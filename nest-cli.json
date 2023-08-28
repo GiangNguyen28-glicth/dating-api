@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/dating-backend/src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/dating-backend/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/dating-backend",
+  "projects": {
+    "dating-backend": {
+      "type": "application",
+      "root": "apps/dating-backend",
+      "entryFile": "main",
+      "sourceRoot": "apps/dating-backend/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/dating-backend/tsconfig.app.json"
+      }
+    },
+    "client-service": {
+      "type": "application",
+      "root": "apps/client-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/client-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/client-service/tsconfig.app.json"
+      }
+    },
+    "shared": {
+      "type": "library",
+      "root": "libs/shared",
+      "entryFile": "index",
+      "sourceRoot": "libs/shared/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/shared/tsconfig.lib.json"
+      }
+    }
+  }
+}
