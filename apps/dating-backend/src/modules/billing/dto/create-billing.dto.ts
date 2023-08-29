@@ -10,5 +10,6 @@ export class CreateBillingDto implements Partial<Billing> {
   createdBy?: string;
   latestPackage?: PackageDTO;
   lastMerchandising?: MerchandisingDTO;
+  expiredDate?: Date;
   status?: BillingStatus;
 }

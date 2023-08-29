@@ -1,25 +1,17 @@
-import { ApiBody, ApiTags } from '@nestjs/swagger';
-import {
-  Controller,
-  Post,
-  Body,
-  BadRequestException,
-  Get,
-} from '@nestjs/common';
-import { PaymentService } from './payment.service';
 import { CurrentUser } from '@common/decorators';
 import { IResponse } from '@common/interfaces';
 import { User } from '@modules/users/entities/user.entity';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { CheckoutDTO } from './dto/card.dto';
-import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
+import { PaymentService } from './payment.service';
+import { AtGuard } from '@common/guards';
 
 @ApiTags('Payment')
 @Controller('payment')
+@UseGuards(AtGuard)
 export class PaymentController {
-  constructor(
-    private paymentService: PaymentService,
-    private readonly amqpConnection: AmqpConnection,
-  ) {}
+  constructor(private paymentService: PaymentService) {}
 
   @Post('stripe/checkout')
   @ApiBody({ type: CheckoutDTO })
@@ -38,14 +30,5 @@ export class PaymentController {
       console.log(error);
       throw error;
     }
-  }
-
-  @Get()
-  async test() {
-    await this.amqpConnection.channel.assertQueue('subscribe-queue');
-    await this.amqpConnection.channel.sendToQueue(
-      'subscribe-queue',
-      new Buffer('Hello, Anonystick!'),
-    );
   }
 }

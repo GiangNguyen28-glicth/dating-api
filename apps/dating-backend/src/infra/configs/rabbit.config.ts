@@ -1,5 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
+import { RabbitService } from '../rabbitmq';
 
 @Global()
 @Module({
@@ -9,6 +10,7 @@ import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
       connectionInitOptions: { wait: false },
     }),
   ],
-  exports: [RabbitMQModule],
+  providers: [RabbitService],
+  exports: [RabbitMQModule, RabbitService],
 })
 export class RabbitModule {}

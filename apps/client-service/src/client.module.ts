@@ -1,9 +1,11 @@
-import { Module } from '@nestjs/common';
+import { CacheModule, Module } from '@nestjs/common';
 import { RabbitModule } from './rabbit/rabbit.module';
 import { UsersModule } from './modules/users/users.module';
 import { MongooseModule } from '@nestjs/mongoose';
-import { MongooseConfigService } from '@app/shared';
+import { CacheConfigService, MongooseConfigService } from '@app/shared';
 import { ConfigModule } from '@nestjs/config';
+import { RedisClientOptions } from 'redis';
+import { BillingModule } from '@modules/billing';
 
 @Module({
   imports: [
@@ -11,11 +13,16 @@ import { ConfigModule } from '@nestjs/config';
       isGlobal: true,
       envFilePath: './apps/dating-backend/.env',
     }),
-    RabbitModule,
-    // UsersModule,
+    CacheModule.registerAsync<RedisClientOptions>({
+      isGlobal: true,
+      useClass: CacheConfigService,
+    }),
     MongooseModule.forRootAsync({
       useClass: MongooseConfigService,
     }),
+    RabbitModule,
+    UsersModule,
+    BillingModule,
   ],
 })
 export class ClientModule {}

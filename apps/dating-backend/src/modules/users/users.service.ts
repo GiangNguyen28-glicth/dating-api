@@ -13,9 +13,9 @@ import {
   throwIfNotExists,
 } from '@dating/utils';
 import { Inject, Injectable } from '@nestjs/common';
-import { UserHelper } from './helper/user.helper';
 import { CreateUserDTO, FilterGetOneUserDTO } from './dto/user.dto';
 import { User } from './entities/user.entity';
+import { UserHelper } from './helper/user.helper';
 
 @Injectable()
 export class UserService {
@@ -65,14 +65,10 @@ export class UserService {
     }
   }
 
-  async findOneAndUpdate(
-    _id: string,
-    entities: Partial<User>,
-    stepStarted?: number,
-  ): Promise<User> {
+  async findOneAndUpdate(_id: string, entities: Partial<User>): Promise<User> {
     try {
-      if (stepStarted) {
-        entities['stepStarted'] = stepStarted;
+      if (entities?.setting && entities?.setting['stepStarted']) {
+        entities['stepStarted'] = entities.setting['stepStarted'];
       }
       const user = await this.userRepo.findOneAndUpdate(_id, entities);
       throwIfNotExists(user, 'Cập nhật thất bại. Không thể tìm thấy User');

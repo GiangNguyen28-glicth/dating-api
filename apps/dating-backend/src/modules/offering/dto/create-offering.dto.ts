@@ -77,6 +77,9 @@ export class MerchandisingDTO implements Merchandising {
 
   @ApiProperty({ type: MerchandisingItemDTO })
   likes: MerchandisingItem;
+
+  @ApiProperty({ type: MerchandisingItemDTO })
+  superLike: MerchandisingItem;
 }
 export class CreateOfferingDto implements Partial<Offering> {
   @ApiProperty()

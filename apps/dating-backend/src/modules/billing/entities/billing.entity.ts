@@ -24,7 +24,7 @@ export class Billing implements IEntity {
   @Prop({ type: Package })
   latestPackage: Package;
 
-  @Prop({ type: MerchandisingItem })
+  @Prop({ type: Merchandising })
   lastMerchandising: Merchandising;
 
   @Prop({ type: String, enum: Object.values(BillingStatus) })

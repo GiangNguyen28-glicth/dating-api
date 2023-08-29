@@ -35,6 +35,9 @@ export class Merchandising {
   rewind: MerchandisingItem;
 
   @Prop({ type: MerchandisingItem })
+  superLike: MerchandisingItem;
+
+  @Prop({ type: MerchandisingItem })
   controlWhoSeesYou: MerchandisingItem;
 
   @Prop({ type: MerchandisingItem })

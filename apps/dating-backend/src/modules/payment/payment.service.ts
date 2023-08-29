@@ -1,32 +1,46 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { StripePaymentStrategy } from './strategies/stripe.strategy';
-import { CheckoutDTO } from './dto/card.dto';
-import { FeatureAccess, User } from '@modules/users/entities/user.entity';
+import {
+  BillingStatus,
+  LimitType,
+  QUEUE,
+  RefreshIntervalUnit,
+} from '@common/consts';
+import { IResponse } from '@common/interfaces';
+import { RabbitService } from '@dating/infra';
 import { BillingService } from '@modules/billing/billing.service';
-import { OfferingService } from '@modules/offering/offering.service';
-import { BillingStatus, LimitType, SERVICE_NAME } from '@common/consts';
-import { ClientRMQ } from '@nestjs/microservices';
-import { Offering, Package } from '@modules/offering/entities/offering.entity';
 import { Billing } from '@modules/billing/entities/billing.entity';
+import { Offering, Package } from '@modules/offering/entities/offering.entity';
+import { OfferingService } from '@modules/offering/offering.service';
+import { FeatureAccess, User } from '@modules/users/entities/user.entity';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { CheckoutDTO } from './dto/card.dto';
 import { IPaymentMessage } from './interfaces/message.interfaces';
-import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
+import { StripePaymentStrategy } from './strategies/stripe.strategy';
+import { docToObject } from '@dating/utils';
 
 @Injectable()
 export class PaymentService {
   private stripe: StripePaymentStrategy;
   constructor(
-    @Inject(SERVICE_NAME.PAYMENT_SERVICE)
-    private paymentClient: ClientRMQ,
     private configService: ConfigService,
     private billingService: BillingService,
     private offeringService: OfferingService,
-    private readonly amqpConnection: AmqpConnection,
+    private rabbitService: RabbitService,
   ) {
     this.stripe = new StripePaymentStrategy(configService);
   }
 
-  async createPaymentIntentStripe(user: User, checkoutDto: CheckoutDTO) {
+  async onModuleInit() {
+    await this.rabbitService.waitForConnect();
+    await this.rabbitService.assertQueue({
+      queue: QUEUE.UPDATE_FEATURE_ACCESS,
+    });
+  }
+
+  async createPaymentIntentStripe(
+    user: User,
+    checkoutDto: CheckoutDTO,
+  ): Promise<IResponse> {
     try {
       const offering = await this.offeringService.findOne(
         checkoutDto.offeringId,
@@ -38,11 +52,14 @@ export class PaymentService {
       if (!_package) {
         throw new BadRequestException('Không tìm thấy Package');
       }
+
       const billing: Billing = await this.billingService.create({
         latestPackage: _package,
+        offering: offering._id.toString(),
         createdBy: user._id,
         lastMerchandising: offering.merchandising,
         status: BillingStatus.INPROGRESS,
+        expiredDate: this.getExpiredDate(_package),
       });
 
       const paymentIntent = await this.stripe.createPayment(user, checkoutDto);
@@ -52,28 +69,54 @@ export class PaymentService {
         });
         throw new BadRequestException('Thanh toán thất bại');
       }
-      const message = this.buildMessage(offering, _package);
-      message['userId'] = user._id;
+      const message = this.buildMessage(offering, _package, user.featureAccess);
       message['billingId'] = billing._id;
-      // await this.amqpConnection.()
+      message['userId'] = user._id;
+      await this.rabbitService.sendToQueue(
+        QUEUE.UPDATE_FEATURE_ACCESS,
+        message,
+      );
       return null;
     } catch (error) {
       throw error;
     }
   }
 
-  async sendMessage(message): Promise<void> {}
+  getExpiredDate(_package: Package): Date {
+    const now = new Date();
+    const amount = _package.amount;
+    switch (_package.refreshIntervalUnit) {
+      case RefreshIntervalUnit.MONTH:
+        now.setMonth(now.getMonth() + amount);
+        break;
+      case RefreshIntervalUnit.WEEK:
+        now.setDate(now.getDate() + amount * 7);
+      case RefreshIntervalUnit.YEAR:
+        now.setFullYear(now.getFullYear() + amount);
+        break;
+      case RefreshIntervalUnit.DAY:
+        now.setDate(now.getDate() + amount);
+      default:
+        throw new BadRequestException('Missing refreshIntervalUnit');
+    }
+    return now;
+  }
 
-  buildMessage(offering: Offering, _package: Package): IPaymentMessage {
-    const { merchandising } = offering;
-    const featureAccess: FeatureAccess = {
-      hideAds: { unlimited: true },
-    };
-    const keys = ['likes', 'rewind', 'superLike'];
-    for (const key in keys) {
+  buildMessage(
+    offering: Offering,
+    _package: Package,
+    featureAccess: FeatureAccess,
+  ): IPaymentMessage {
+    const { merchandising } = docToObject(offering);
+
+    for (const key in merchandising) {
+      if (!merchandising[key]) {
+        continue;
+      }
       if (merchandising[key].type == LimitType.UNLIMITED) {
         featureAccess[key].unlimited = true;
       } else {
+        console.log(key);
         featureAccess[key].amount = _package.amount;
       }
     }

@@ -2,15 +2,11 @@ import { SOCKET } from '@common/consts';
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
 import { Cache } from 'cache-manager';
-import { ClientRedis } from '@nestjs/microservices';
 
 @Injectable()
 export class SocketService {
   private redisClient: Redis;
-  constructor(
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    @Inject('MATH_SERVICE') private client: ClientRedis,
-  ) {
+  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
     this.redisClient = (this.cacheManager as any).store.getClient() as Redis;
   }
 

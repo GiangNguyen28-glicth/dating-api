@@ -104,11 +104,7 @@ export class UsersController {
     @CurrentUser() user: User,
     @Body() setting: UpdateUserSettingDTO,
   ): Promise<IResponse> {
-    await this.userService.findOneAndUpdate(
-      user._id.toString(),
-      { setting },
-      setting.stepStarted,
-    );
+    await this.userService.findOneAndUpdate(user._id.toString(), { setting });
     return {
       success: true,
       message: 'Cập nhật setting thành công',

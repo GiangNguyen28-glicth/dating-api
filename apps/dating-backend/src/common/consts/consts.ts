@@ -21,7 +21,7 @@ export const SERVICE_NAME = {
 };
 
 export const QUEUE = {
-  PAYMENT: 'payment_service',
+  UPDATE_FEATURE_ACCESS: 'update_user_feature_access',
 };
 
 export const LANGUAGE = {
