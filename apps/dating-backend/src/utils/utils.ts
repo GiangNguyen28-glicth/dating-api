@@ -105,6 +105,10 @@ export function formatResult<T>(
   return results;
 }
 
+export function docToObject<T>(doc: T): T {
+  return JSON.parse(JSON.stringify(doc));
+}
+
 export async function downloadImage(url: string, image_name: string) {
   try {
     const response = await axios.get(url, { responseType: 'arraybuffer' });

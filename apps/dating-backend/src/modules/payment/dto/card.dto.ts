@@ -24,9 +24,9 @@ export class CheckoutDTO {
   @ApiProperty({ default: '123' })
   postalCode: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: true })
   offeringId: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: true })
   packageId: string;
 }

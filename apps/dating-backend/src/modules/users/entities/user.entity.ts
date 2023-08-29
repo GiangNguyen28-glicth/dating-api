@@ -28,16 +28,10 @@ export class FeatureAccessItem {
 @Schema({ _id: false })
 export class ControlWhoYouSee {
   @Prop({ default: false })
-  balancedRecommendations: boolean;
-
-  @Prop({ default: false })
   recentlyActive: boolean;
 }
 @Schema({ _id: false })
 export class ControlWhoSeesYou {
-  @Prop({ default: false })
-  standard: boolean;
-
   @Prop({ default: false })
   onlyPeopleIveLiked: boolean;
 }
@@ -47,7 +41,7 @@ export class FeatureAccess {
   @Prop({ type: FeatureAccessItem, default: new FeatureAccessItem(100) })
   likes?: FeatureAccessItem;
 
-  @Prop({ type: FeatureAccessItem })
+  @Prop({ type: FeatureAccessItem, default: new FeatureAccessItem(0) })
   rewind?: FeatureAccessItem;
 
   @Prop({ type: FeatureAccessItem, default: new FeatureAccessItem(0) })
@@ -55,6 +49,12 @@ export class FeatureAccess {
 
   @Prop({ type: FeatureAccessItem, default: new FeatureAccessItem(0) })
   hideAds?: FeatureAccessItem;
+
+  @Prop({ type: FeatureAccessItem, default: new FeatureAccessItem(0) })
+  controlWhoSeesYou?: FeatureAccessItem;
+
+  @Prop({ type: FeatureAccessItem, default: new FeatureAccessItem(0) })
+  controlWhoYouSee?: FeatureAccessItem;
 }
 
 @Schema({ _id: false })
