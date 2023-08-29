@@ -1,4 +1,9 @@
-import { BillingStatus, LimitType, QUEUE } from '@common/consts';
+import {
+  BillingStatus,
+  LimitType,
+  QUEUE,
+  RefreshIntervalUnit,
+} from '@common/consts';
 import { IResponse } from '@common/interfaces';
 import { RabbitService } from '@dating/infra';
 import { BillingService } from '@modules/billing/billing.service';
@@ -47,12 +52,14 @@ export class PaymentService {
       if (!_package) {
         throw new BadRequestException('Không tìm thấy Package');
       }
+
       const billing: Billing = await this.billingService.create({
         latestPackage: _package,
         offering: offering._id.toString(),
         createdBy: user._id,
         lastMerchandising: offering.merchandising,
         status: BillingStatus.INPROGRESS,
+        expiredDate: this.getExpiredDate(_package),
       });
 
       const paymentIntent = await this.stripe.createPayment(user, checkoutDto);
@@ -73,6 +80,26 @@ export class PaymentService {
     } catch (error) {
       throw error;
     }
+  }
+
+  getExpiredDate(_package: Package): Date {
+    const now = new Date();
+    const amount = _package.amount;
+    switch (_package.refreshIntervalUnit) {
+      case RefreshIntervalUnit.MONTH:
+        now.setMonth(now.getMonth() + amount);
+        break;
+      case RefreshIntervalUnit.WEEK:
+        now.setDate(now.getDate() + amount * 7);
+      case RefreshIntervalUnit.YEAR:
+        now.setFullYear(now.getFullYear() + amount);
+        break;
+      case RefreshIntervalUnit.DAY:
+        now.setDate(now.getDate() + amount);
+      default:
+        throw new BadRequestException('Missing refreshIntervalUnit');
+    }
+    return now;
   }
 
   buildMessage(

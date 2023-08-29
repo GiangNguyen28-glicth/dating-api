@@ -70,8 +70,8 @@ export class UserService {
       if (entities?.setting && entities?.setting['stepStarted']) {
         entities['stepStarted'] = entities.setting['stepStarted'];
       }
-      throwIfNotExists(null, 'Cập nhật thất bại. Không thể tìm thấy User');
       const user = await this.userRepo.findOneAndUpdate(_id, entities);
+      throwIfNotExists(user, 'Cập nhật thất bại. Không thể tìm thấy User');
       return user;
     } catch (error) {
       throw error;

@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { CacheConfigService, MongooseConfigService } from '@app/shared';
 import { ConfigModule } from '@nestjs/config';
 import { RedisClientOptions } from 'redis';
+import { BillingModule } from '@modules/billing';
 
 @Module({
   imports: [
@@ -16,11 +17,12 @@ import { RedisClientOptions } from 'redis';
       isGlobal: true,
       useClass: CacheConfigService,
     }),
-    RabbitModule,
-    UsersModule,
     MongooseModule.forRootAsync({
       useClass: MongooseConfigService,
     }),
+    RabbitModule,
+    UsersModule,
+    BillingModule,
   ],
 })
 export class ClientModule {}

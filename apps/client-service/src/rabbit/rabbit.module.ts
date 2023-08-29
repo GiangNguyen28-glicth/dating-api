@@ -3,6 +3,7 @@ import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { RabbitService } from './rabbit.service';
 import { RabbitConsumer } from './rabbit.consumer';
 import { UsersModule } from '@modules/users';
+import { BillingModule } from '@modules/billing';
 
 @Global()
 @Module({
@@ -12,6 +13,7 @@ import { UsersModule } from '@modules/users';
       connectionInitOptions: { wait: false },
     }),
     UsersModule,
+    BillingModule,
   ],
   providers: [RabbitService, RabbitConsumer],
   exports: [RabbitService, RabbitMQModule],
