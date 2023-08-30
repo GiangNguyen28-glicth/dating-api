@@ -1,36 +1,28 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseGuards,
-  Query,
-} from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiParam,
-  ApiQuery,
-  ApiTags,
-} from '@nestjs/swagger';
-import { UserService } from './users.service';
-import {
-  UpdateUserLocationDTO,
-  UpdateUserProfileDto,
-  UpdateUserSettingDTO,
-} from './dto/update-user.dto';
-import {
   AtGuard,
   CurrentUser,
   IResponse,
   IResult,
   PaginationDTO,
 } from '@dating/common';
-import { throwIfNotExists } from '@dating/utils';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
+import {
+  UpdateUserLocationDTO,
+  UpdateUserProfileDto,
+  UpdateUserSettingDTO,
+} from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { UserService } from './users.service';
 
 @ApiTags(User.name)
 @Controller('users')
@@ -104,7 +96,7 @@ export class UsersController {
     @CurrentUser() user: User,
     @Body() setting: UpdateUserSettingDTO,
   ): Promise<IResponse> {
-    await this.userService.findOneAndUpdate(user._id.toString(), { setting });
+    await this.userService.updateSetting(user._id.toString(), { setting });
     return {
       success: true,
       message: 'Cập nhật setting thành công',
@@ -124,6 +116,6 @@ export class UsersController {
 
   @Get('migrate')
   async migrate() {
-    return this.userService.deleteMany();
+    return this.userService.migrate();
   }
 }

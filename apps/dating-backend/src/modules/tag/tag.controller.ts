@@ -1,3 +1,5 @@
+import { IResponse, IResult } from '@dating/common';
+import { throwIfNotExists } from '@dating/utils';
 import {
   Body,
   Controller,
@@ -7,13 +9,11 @@ import {
   Patch,
   Query,
 } from '@nestjs/common';
-import { ApiBody, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 import { FilterGetAllTagDTO } from './dto/tag.dto';
-import { TagService } from './tag.service';
-import { IResponse, IResult } from '@dating/common';
 import { UpdateTagDTO } from './dto/update-tag.dto';
-import { throwIfNotExists } from '@dating/utils';
 import { Tag } from './entities/tag.entity';
+import { TagService } from './tag.service';
 
 @ApiTags(Tag.name)
 @Controller('tag')

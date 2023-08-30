@@ -73,12 +73,19 @@ export class UserMongoRepo extends MongoRepo<User> {
   }
 
   async deleteManyUser() {
-    await this.userModel.deleteMany({ isFirstLogin: false });
+    await this.userModel.deleteMany();
   }
 
   async migrateData() {
     const users = await this.userModel.find();
     for (const user of users) {
+      user.tags = [
+        '64ee243aa7626b0485f03331',
+        '64ee243aa7626b0485f03350',
+        '64ee243aa7626b0485f0336b',
+        '64ee243aa7626b0485f03345',
+        '64ee243aa7626b0485f03325',
+      ];
       await user.save();
     }
   }

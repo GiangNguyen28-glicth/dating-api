@@ -1,15 +1,14 @@
+import { CloudinaryProvider } from '@common/provider';
+import { UserMongoRepoProvider } from '@dating/repositories';
+import { ActionModule } from '@modules/action';
 import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { CloudinaryProvider } from '@common/provider';
-import { LANGUAGE } from '@dating/common';
-import { UserMongoRepoProvider } from '@dating/repositories';
-import { toKeyword, toSlug } from '@dating/utils';
-import { ActionModule } from '@modules/action';
 import { User, UserSchema } from './entities/user.entity';
 import { HelperController } from './helper.controller';
 import { UserHelper } from './helper/user.helper';
 import { UsersController } from './users.controller';
 import { UserService } from './users.service';
+import { RabbitService } from '@dating/infra';
 
 @Module({
   imports: [
@@ -18,11 +17,6 @@ import { UserService } from './users.service';
         name: User.name,
         useFactory: () => {
           UserSchema.pre('save', function (next) {
-            if (this.name) {
-              this.slug = toSlug(this.name, LANGUAGE.VI);
-              this.keyword = toKeyword(this.slug);
-              this.slug += '-' + this._id.toString();
-            }
             if (this.birthDate && !this.age) {
               const currentDate = new Date();
               this.age =
@@ -42,6 +36,7 @@ import { UserService } from './users.service';
     UserHelper,
     UserMongoRepoProvider,
     CloudinaryProvider,
+    RabbitService,
   ],
   exports: [UserService, UserHelper, UserMongoRepoProvider],
 })

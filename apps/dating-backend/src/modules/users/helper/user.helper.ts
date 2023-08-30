@@ -10,7 +10,7 @@ import {
 import axios from 'axios';
 import { v2 } from 'cloudinary';
 import * as _ from 'lodash';
-import { User, UserAddress } from '../entities/user.entity';
+import { Image, User, UserAddress } from '../entities/user.entity';
 const GOOGLE_MAP_API_KEY = process.env.GOOGLE_MAP_API_KEY;
 
 @Injectable()
@@ -133,5 +133,9 @@ export class UserHelper {
     } catch (err) {
       console.log(err);
     }
+  }
+
+  validateBlurImage(image: Image[]) {
+    return image.some(item => !item.blur);
   }
 }

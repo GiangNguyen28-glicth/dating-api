@@ -82,7 +82,7 @@ export class Offering implements IEntity {
   })
   type: OfferingType;
 
-  @Prop([{ type: Package }])
+  @Prop([{ type: Package, default: [] }])
   package: Package[];
 
   @Prop({ type: Merchandising })

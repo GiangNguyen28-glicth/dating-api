@@ -1,4 +1,10 @@
-import { IEntity, TagType } from '@dating/common';
+import {
+  IEntity,
+  ParentTagType,
+  RelationshipModeType,
+  TagRelationshipModeType,
+  TagType,
+} from '@dating/common';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
 
@@ -13,8 +19,15 @@ export class Tag implements IEntity {
   @Prop({ type: String, trim: true, enum: Object.values(TagType) })
   type: TagType;
 
-  @Prop({ type: String, trim: true, enum: Object.values(TagType) })
-  parentType: TagType;
+  @Prop({ type: String, trim: true, enum: Object.values(ParentTagType) })
+  parentType: ParentTagType;
+
+  @Prop({
+    type: String,
+    enum: Object.values(TagRelationshipModeType),
+    default: TagRelationshipModeType.ALL,
+  })
+  mode: TagRelationshipModeType;
 
   @Prop({ trim: true })
   icon: string;

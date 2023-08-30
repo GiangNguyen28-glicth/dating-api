@@ -22,6 +22,7 @@ export const SERVICE_NAME = {
 
 export const QUEUE = {
   UPDATE_FEATURE_ACCESS: 'update_user_feature_access',
+  IMAGES_BUILDER: 'images_builder',
 };
 
 export const LANGUAGE = {

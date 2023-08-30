@@ -3,11 +3,20 @@ import { Gender, LookingFor, RelationshipModeType } from '@common/consts';
 import {
   DiscoverySetting,
   HomeTown,
+  Image,
   User,
   UserSetting,
 } from '../entities/user.entity';
 import { Tag } from '@modules/tag/entities/tag.entity';
 import { Relationship } from '@modules/relationship/entities/relationship.entity';
+
+export class ImageDTO implements Partial<Image> {
+  @ApiProperty()
+  url: string;
+
+  @ApiProperty()
+  blur: string;
+}
 
 export class UpdateUserDiscoverySettingDTO implements DiscoverySetting {
   @ApiProperty()
@@ -70,8 +79,8 @@ export class UpdateUserProfileDto implements Partial<User> {
   @ApiPropertyOptional()
   birthDate?: Date;
 
-  @ApiPropertyOptional()
-  images?: string[];
+  @ApiPropertyOptional({ type: [ImageDTO] })
+  images?: ImageDTO[];
 
   @ApiPropertyOptional()
   school?: string;

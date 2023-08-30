@@ -1,5 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TagType } from '@common/consts';
+import {
+  ParentTagType,
+  TagRelationshipModeType,
+  TagType,
+} from '@common/consts';
 import { Tag } from '../entities/tag.entity';
 
 export class CreateTagDTO implements Partial<Tag> {
@@ -9,8 +13,14 @@ export class CreateTagDTO implements Partial<Tag> {
   @ApiProperty({ type: TagType, enum: TagType })
   type?: TagType;
 
-  @ApiPropertyOptional({ type: TagType, enum: TagType })
-  parentType?: TagType;
+  @ApiPropertyOptional({ type: ParentTagType, enum: ParentTagType })
+  parentType?: ParentTagType;
+
+  @ApiPropertyOptional({
+    type: TagRelationshipModeType,
+    enum: TagRelationshipModeType,
+  })
+  mode?: TagRelationshipModeType;
 
   @ApiProperty()
   description?: string;

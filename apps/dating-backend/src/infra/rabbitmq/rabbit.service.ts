@@ -3,6 +3,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfirmChannel, Connection, ConsumeMessage } from 'amqplib';
 import { RabbitAssertQueue } from './rabbit.assert';
 import { IQueue } from './rabbit.interface';
+import { delay } from '@app/shared';
 const DEFAULT_CHANNEL_ID = 'default_channel';
 
 @Injectable()
@@ -21,6 +22,7 @@ export class RabbitService implements OnModuleInit {
   async waitForConnect() {
     return new Promise(resolve => {
       this.amqpConnection.managedChannel.waitForConnect(async () => {
+        await delay(1000);
         resolve('ok');
       });
     });

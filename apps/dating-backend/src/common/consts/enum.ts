@@ -70,6 +70,17 @@ export enum RelationshipModeType {
   DATE = 'Date',
 }
 
+export enum TagRelationshipModeType {
+  BFF = 'Bff',
+  DATE = 'Date',
+  ALL = 'All',
+}
+
+export enum ParentTagType {
+  LIFE_STYLE = 'Life style',
+  ABOUT_ME = 'About me',
+}
+
 export enum RelationshipType {
   RELATIONSHIP_STATUS = 'Relationship status',
   MODE = 'Mode',

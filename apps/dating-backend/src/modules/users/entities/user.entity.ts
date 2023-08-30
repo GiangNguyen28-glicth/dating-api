@@ -13,6 +13,15 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
 
 @Schema({ _id: false })
+export class Image {
+  @Prop()
+  url: string;
+
+  @Prop()
+  blur?: string;
+}
+
+@Schema({ _id: false })
 export class FeatureAccessItem {
   @Prop({ type: Boolean, default: false })
   unlimited?: boolean;
@@ -207,11 +216,11 @@ export class User implements IEntity {
   @Prop({ type: String, enum: Object.values(Role) })
   role: Role;
 
-  @Prop({ type: [String], default: [] })
-  images: string[];
+  @Prop([{ type: Image, default: [] }])
+  images: Image[];
 
-  @Prop([{ type: MongoID, ref: Tag.name }])
-  tags: Tag[];
+  @Prop([{ type: MongoID, ref: Tag.name, autopopulate: { maxDepth: 1 } }])
+  tags: Tag[] | string[];
 
   @Prop([
     { type: MongoID, ref: Relationship.name, autopopulate: { maxDepth: 1 } },

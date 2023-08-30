@@ -1,10 +1,11 @@
 import { delay } from '@app/shared';
-import { BillingStatus } from '@common/consts';
+import { BillingStatus, QUEUE } from '@common/consts';
 import { Nack, RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
 import { BillingService } from '@modules/billing/billing.service';
 import { IPaymentMessage } from '@modules/payment/interfaces/message.interfaces';
-import { UserService } from '@modules/users';
+import { IImageBuilder, UserService } from '@modules/users';
 import { Injectable } from '@nestjs/common';
+import { encodeImageToBlurhash } from '../images/images.builder';
 
 @Injectable()
 export class RabbitConsumer {
@@ -13,9 +14,9 @@ export class RabbitConsumer {
     private billingService: BillingService,
   ) {}
   @RabbitSubscribe({
-    queue: 'update_user_feature_access',
+    queue: QUEUE.UPDATE_FEATURE_ACCESS,
   })
-  public async updateUserFeatureAccess(msg: IPaymentMessage) {
+  async updateUserFeatureAccess(msg: IPaymentMessage) {
     try {
       await this.billingService.findOneAndUpdate(msg.billingId, {
         status: BillingStatus.SUCCESS,
@@ -24,6 +25,30 @@ export class RabbitConsumer {
         featureAccess: msg.featureAccess,
       });
     } catch (error) {
+      await delay(2000);
+      return new Nack(true);
+    }
+  }
+
+  @RabbitSubscribe({
+    queue: QUEUE.IMAGES_BUILDER,
+  })
+  async imageBuilder(msg: IImageBuilder) {
+    console.log(msg);
+    try {
+      await Promise.all(
+        msg.images.map(async image => {
+          image.blur = await encodeImageToBlurhash(image.url);
+          if (!image.blur) {
+          }
+        }),
+      );
+      console.log('MES:', msg);
+      await this.userService.findOneAndUpdate(msg.userId, {
+        images: msg.images,
+      });
+    } catch (error) {
+      console.log('Error', error);
       await delay(2000);
       return new Nack(true);
     }

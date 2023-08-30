@@ -6,6 +6,9 @@ import {
   RabbitAssertExchange,
   RabbitAssertQueue,
 } from './interfaces/rabbit.assert';
+import { QUEUE } from '@common/index';
+import { encodeImageToBlurhash } from '../images/images.builder';
+import { IImageBuilder, UserService } from '@modules/users';
 
 const DEFAULT_CHANNEL_ID = 'default_channel';
 @Injectable()
@@ -13,11 +16,15 @@ export class RabbitService implements OnModuleInit, OnModuleDestroy {
   private channels: { [conId: string]: ConfirmChannel } = {};
   private connection: Connection;
 
+  constructor(private readonly userService: UserService) {}
+
   onModuleDestroy() {
     this.connection.close();
   }
   async onModuleInit() {
     await this.connectRmq();
+    await this.createChannel();
+    await this.consume();
   }
 
   async exchange(
@@ -81,5 +88,36 @@ export class RabbitService implements OnModuleInit, OnModuleDestroy {
 
   async commit(msg: ConsumeMessage, channelId: string = DEFAULT_CHANNEL_ID) {
     await this.channels[channelId].ack(msg);
+  }
+
+  async consume() {
+    await this.channels[DEFAULT_CHANNEL_ID].prefetch(15);
+    await this.startConsuming();
+  }
+
+  async startConsuming(): Promise<void> {
+    const hook = async () => {
+      this.channels[DEFAULT_CHANNEL_ID].consume(
+        QUEUE.IMAGES_BUILDER,
+        async msg => {
+          const data: IImageBuilder = JSON.parse(msg.content.toString());
+          await Promise.all(
+            data.images.map(async image => {
+              if (!image.blur) {
+                console.log('Start blur image');
+                image.blur = await encodeImageToBlurhash(image.url);
+                console.log(image.blur);
+              }
+            }),
+          );
+          console.log('MES:', msg);
+          await this.userService.findOneAndUpdate(data.userId, {
+            images: data.images,
+          });
+          this.channels[DEFAULT_CHANNEL_ID].ack(msg);
+        },
+      );
+    };
+    await hook();
   }
 }
