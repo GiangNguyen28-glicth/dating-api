@@ -399,36 +399,36 @@
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.48.0.tgz#642633964e217905436033a2bd08bf322849b7fb"
   integrity sha512-ZSjtmelB7IJfWD2Fvb7+Z+ChTIKWq6kjda95fLcQKNS5aheVHn4IkfgRQE3sIIzTcSLwLcLZUD9UBt+V7+h+Pw==
 
-"@golevelup/nestjs-common@^1.4.5":
-  version "1.4.5"
-  resolved "https://registry.yarnpkg.com/@golevelup/nestjs-common/-/nestjs-common-1.4.5.tgz#28557ae2d7cfda60d4f845e1f2ff1da90b337d4d"
-  integrity sha512-WqxGAP4KZjvUea/lYCEfFXB8fS3NwxEWgrQpz2H8jusbz11OSrLECv5TNU9RIRKFnUPbGevy45dvKHF2JTQfJw==
+"@golevelup/nestjs-common@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@golevelup/nestjs-common/-/nestjs-common-2.0.0.tgz#c89664e2f74b42e316bc850e290048739ea79b9f"
+  integrity sha512-D9RLXgkqn9SDLnZ2VoMER9l/+g5CM9Z7sZXa+10+0rZs6yevMepoiWmMVsFoUXLzYG2GwfixHLExwUr3XBCHFw==
   dependencies:
     lodash "^4.17.21"
-    nanoid "^3.2.0"
+    nanoid "^3.3.6"
 
-"@golevelup/nestjs-discovery@^3.0.1":
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/@golevelup/nestjs-discovery/-/nestjs-discovery-3.0.1.tgz#7ad7e2c5ac245bd315ff4a98d4870248dace535a"
-  integrity sha512-kK/GBYVxb8XGlwXgtCWAkPOwDVh7dXyLRaoZuk2bBYntV3DZkYGAIbLKOFTGz+MGz71vEeQ9bGLP7cHKtCee4g==
-  dependencies:
-    lodash "^4.17.15"
-
-"@golevelup/nestjs-modules@^0.6.1":
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/@golevelup/nestjs-modules/-/nestjs-modules-0.6.1.tgz#0b755d2406fed8acb8e61ee3ab52b39994ddf313"
-  integrity sha512-E0STg8In8fhIivnGDJAA70+XLPHzK5bMTkCnif9FbZ8waTYDQ3T/QQL0h73k+CUFeznn1hmuEW14sNaE+8cd7w==
+"@golevelup/nestjs-discovery@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@golevelup/nestjs-discovery/-/nestjs-discovery-4.0.0.tgz#3428f0b620b51e4d425bc9e41cc8f2f338472dc1"
+  integrity sha512-iyZLYip9rhVMR0C93vo860xmboRrD5g5F5iEOfpeblGvYSz8ymQrL9RAST7x/Fp3n+TAXSeOLzDIASt+rak68g==
   dependencies:
     lodash "^4.17.21"
 
-"@golevelup/nestjs-rabbitmq@^3.7.0":
-  version "3.7.0"
-  resolved "https://registry.yarnpkg.com/@golevelup/nestjs-rabbitmq/-/nestjs-rabbitmq-3.7.0.tgz#692448eb2f25f5d3b41a3a5e2a42eb5d158eba48"
-  integrity sha512-wV6SA8oCTu8v66U5i3vu/k6DEvlHKM+LTb9JY7Iz8C0nUUuf6pufgvAalusAi4iJJ7/7p3Q44LF38SB4buszWw==
+"@golevelup/nestjs-modules@^0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@golevelup/nestjs-modules/-/nestjs-modules-0.7.0.tgz#64920cfca6aebc7ad39639108eae1c9f48056c78"
+  integrity sha512-4WxGKubYx0IJF2rxL3S4SChKdl4ZDZPwCdSj6HxmmElXRyua/LlcwLH6NYquh4RRIkQGspDd5WpcMTBw3SxR5g==
   dependencies:
-    "@golevelup/nestjs-common" "^1.4.5"
-    "@golevelup/nestjs-discovery" "^3.0.1"
-    "@golevelup/nestjs-modules" "^0.6.1"
+    lodash "^4.17.21"
+
+"@golevelup/nestjs-rabbitmq@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@golevelup/nestjs-rabbitmq/-/nestjs-rabbitmq-4.0.0.tgz#ebba59571d1b4521e7e25b4148bd4a8249bae5e6"
+  integrity sha512-CQHRq/jyK3GlM7Lv4nVaqd+BJ53tZXsrOtO/8/OZh19i0YOcQxyRM7iDdtULeG8omJB5/aGMZNsbioLuupxoog==
+  dependencies:
+    "@golevelup/nestjs-common" "^2.0.0"
+    "@golevelup/nestjs-discovery" "^4.0.0"
+    "@golevelup/nestjs-modules" "^0.7.0"
     amqp-connection-manager "^3.0.0"
     amqplib "^0.8.0"
     lodash "^4.17.21"
@@ -4050,7 +4050,7 @@ lodash.once@^4.0.0:
   resolved "https://registry.yarnpkg.com/lodash.once/-/lodash.once-4.1.1.tgz#0dd3971213c7c56df880977d504c88fb471a97ac"
   integrity sha512-Sb487aTOCr9drQVL8pIxOzVhafOjZN9UU54hiN8PU3uAiSV7lx1yYNpbNmex2PK6dSJoNTSJUUswT651yww3Mg==
 
-lodash@4.17.21, lodash@^4.17.15, lodash@^4.17.21:
+lodash@4.17.21, lodash@^4.17.21:
   version "4.17.21"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
@@ -4364,7 +4364,7 @@ nan@^2.17.0:
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.17.0.tgz#c0150a2368a182f033e9aa5195ec76ea41a199cb"
   integrity sha512-2ZTgtl0nJsO0KQCjEpxcIr5D+Yv90plTitZt9JBfQvVJDS5seMl3FOvsh3+9CoYWXf/1l5OaZzzF6nDm4cagaQ==
 
-nanoid@^3.2.0:
+nanoid@^3.3.6:
   version "3.3.6"
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.6.tgz#443380c856d6e9f9824267d960b4236ad583ea4c"
   integrity sha512-BGcqMMJuToF7i1rt+2PWSNVnWIkGCU78jBG3RxO/bZlnZPK2Cmi2QaffxGO/2RvWi9sL+FAiRiXMgsyxQ1DIDA==

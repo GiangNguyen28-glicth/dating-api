@@ -114,7 +114,7 @@ export async function downloadImage(url: string, image_name: string) {
     const response = await axios.get(url, { responseType: 'arraybuffer' });
     // Ghi dữ liệu hình ảnh vào tệp'
     fs.writeFileSync(
-      `E:/Nestjs/dating-api/apps/dating-backend/images/${image_name}.jpg`,
+      `/home/giangnt/nest/git/study/dating-api/apps/dating-backend/images/${image_name}.jpg`,
       response.data,
     );
     console.log('Hình ảnh đã được tải xuống và lưu thành công.');

@@ -10,6 +10,9 @@ export class CreateTagDTO implements Partial<Tag> {
   @ApiProperty()
   name?: string;
 
+  @ApiProperty()
+  icon?: string;
+
   @ApiProperty({ type: TagType, enum: TagType })
   type?: TagType;
 

@@ -100,21 +100,25 @@ export class RabbitService implements OnModuleInit, OnModuleDestroy {
       this.channels[DEFAULT_CHANNEL_ID].consume(
         QUEUE.IMAGES_BUILDER,
         async msg => {
-          const data: IImageBuilder = JSON.parse(msg.content.toString());
-          await Promise.all(
-            data.images.map(async image => {
-              if (!image.blur) {
-                console.log('Start blur image');
-                image.blur = await encodeImageToBlurhash(image.url);
-                console.log(image.blur);
-              }
-            }),
-          );
-          console.log('MES:', msg);
-          await this.userService.findOneAndUpdate(data.userId, {
-            images: data.images,
-          });
-          this.channels[DEFAULT_CHANNEL_ID].ack(msg);
+          try {
+            const data: IImageBuilder = JSON.parse(msg.content.toString());
+            await Promise.all(
+              data.images.map(async image => {
+                if (!image.blur) {
+                  console.log('Start blur image');
+                  image.blur = await encodeImageToBlurhash(image.url);
+                  console.log(image.blur);
+                }
+              }),
+            );
+            console.log('MES:', msg);
+            await this.userService.findOneAndUpdate(data.userId, {
+              images: data.images,
+            });
+            await this.channels[DEFAULT_CHANNEL_ID].ack(msg);
+          } catch (error) {
+            console.log(error);
+          }
         },
       );
     };

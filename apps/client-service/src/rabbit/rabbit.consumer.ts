@@ -34,12 +34,12 @@ export class RabbitConsumer {
     queue: QUEUE.IMAGES_BUILDER,
   })
   async imageBuilder(msg: IImageBuilder) {
-    console.log(msg);
     try {
       await Promise.all(
         msg.images.map(async image => {
-          image.blur = await encodeImageToBlurhash(image.url);
           if (!image.blur) {
+            image.blur = await encodeImageToBlurhash(image.url);
+            console.log(image.blur);
           }
         }),
       );

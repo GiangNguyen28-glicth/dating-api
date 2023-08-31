@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@elastic/elasticsearch": "^7.17.12",
-    "@golevelup/nestjs-rabbitmq": "^3.7.0",
+    "@golevelup/nestjs-rabbitmq": "^4.0.0",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^3.0.0",
     "@nestjs/core": "^9.0.0",

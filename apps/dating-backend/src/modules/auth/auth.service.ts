@@ -110,7 +110,7 @@ export class AuthService {
       const user = new User();
       user.email = response.data.email;
       user.name = response.data.name;
-      user.images = [response.data.picture];
+      // user.images = [response.data.picture];
       user.registerType = RegisterType.GOOGLE;
       return await this.loginWithOAuth2(user);
     } catch (error) {

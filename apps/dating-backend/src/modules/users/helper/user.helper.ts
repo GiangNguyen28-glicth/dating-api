@@ -36,7 +36,7 @@ export class UserHelper {
     const userAddress = new UserAddress();
     const rawLocation = await this.getRawLocation(lat, long);
     const result = _.get(rawLocation, 'data.results', []);
-    const addressComponents = _.get(result[0], 'address_components', []) || [];
+    const addressComponents = _.get(result[0], 'address_components', []);
     userAddress.fullAddress = _.get(result[0], 'formatted_address', null);
     for (let i = 0; i < addressComponents.length; i++) {
       const item = addressComponents[i];

@@ -7,6 +7,7 @@ import {
   Get,
   Param,
   Patch,
+  Post,
   Query,
 } from '@nestjs/common';
 import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
@@ -14,6 +15,7 @@ import { FilterGetAllTagDTO } from './dto/tag.dto';
 import { UpdateTagDTO } from './dto/update-tag.dto';
 import { Tag } from './entities/tag.entity';
 import { TagService } from './tag.service';
+import { CreateTagDTO } from './dto/create-tag.dto';
 
 @ApiTags(Tag.name)
 @Controller('tag')
@@ -44,6 +46,12 @@ export class TagController {
       success: true,
       message: 'Cập nhật Tag thành công',
     };
+  }
+
+  @Post()
+  @ApiBody({ type: CreateTagDTO })
+  async create(@Body() tagDto: CreateTagDTO): Promise<IResponse> {
+    return await this.tagService.create(tagDto);
   }
 
   @Delete(':id')

@@ -4,14 +4,14 @@ export enum Gender {
 }
 
 export enum TagType {
-  PASSIONS = 'Passions',
-  LIFE_STYLE = 'Life style',
   EDUCATION = 'Education',
   PETS = 'Pets',
   DIETARY_PREFERENCE = 'Dietary Preference',
   PERSONALITY_TYPE = 'Personality Type',
   ZODIAC = 'Zodiac',
   SMOKE_QUESTION = 'Smoke question',
+  LOVE_QUESTION = 'Love question',
+  DO_EXERCISE = 'Do exercise',
 }
 
 export enum RegisterType {

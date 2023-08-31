@@ -32,31 +32,34 @@ export class UserMongoRepo extends MongoRepo<User> {
     const query: any = this.userHelper.getFilterByDistance(user, filter);
     const results: User[] = await this.userModel.aggregate([
       query,
-      // {
-      //   $lookup: {
-      //     from: 'tags',
-      //     let: { tags: '$tags' },
-      //     pipeline: [
-      //       {
-      //         $match: {
-      //           $expr: { $in: ['$_id', '$$tags'] },
-      //         },
-      //       },
-      //       {
-      //         $project: {
-      //           name: 1,
-      //           type: 1,
-      //           parentType: 1,
-      //         },
-      //       },
-      //     ],
-      //     as: 'tags',
-      //   },
-      // },
+      {
+        $lookup: {
+          from: 'tags',
+          let: { tags: '$tags' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $in: ['$_id', '$$tags'] },
+              },
+            },
+            {
+              $project: {
+                name: 1,
+                type: 1,
+                parentType: 1,
+              },
+            },
+          ],
+          as: 'tags',
+        },
+      },
       {
         $project: {
           __v: 0,
           geoLocation: 0,
+          featureAccess: 0,
+          setting: 0,
+          registerType: 0,
         },
       },
       {

@@ -1,5 +1,6 @@
 import {
   DATABASE_TYPE,
+  IResponse,
   IResult,
   PROVIDER_REPO,
   PaginationDTO,
@@ -11,6 +12,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { FilterGetAllTagDTO } from './dto/tag.dto';
 import { UpdateTagDTO } from './dto/update-tag.dto';
 import { Tag } from './entities/tag.entity';
+import { CreateTagDTO } from './dto/create-tag.dto';
 
 @Injectable()
 export class TagService {
@@ -44,7 +46,6 @@ export class TagService {
     try {
       const tag = await this.tagRepo.findOne({ queryFilter: { _id: _id } });
       throwIfNotExists(tag, 'Không thể tìm thấy Tag');
-      tag.type = TagType.PASSIONS;
       await this.tagRepo.save(tag);
       return tag;
     } catch (error) {
@@ -58,6 +59,19 @@ export class TagService {
   ): Promise<Tag> {
     try {
       return await this.tagRepo.findOneAndUpdate(_id, updateTagDto);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async create(tagDto: CreateTagDTO): Promise<IResponse> {
+    try {
+      const tag = await this.tagRepo.insert(tagDto);
+      await this.tagRepo.save(tag);
+      return {
+        success: true,
+        message: 'Tao Tag thanh cong',
+      };
     } catch (error) {
       throw error;
     }

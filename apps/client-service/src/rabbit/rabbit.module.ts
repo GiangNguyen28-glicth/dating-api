@@ -8,19 +8,19 @@ import { RabbitService } from './rabbit.service';
 @Global()
 @Module({
   imports: [
-    RabbitMQModule.forRoot(RabbitMQModule, {
-      uri: 'amqp://localhost:5672',
-      channels: {
-        default_channel: {
-          prefetchCount: 15,
-        },
-      },
-      connectionInitOptions: { wait: false },
-    }),
+    // RabbitMQModule.forRoot(RabbitMQModule, {
+    //   uri: 'amqp://localhost:5672',
+    //   channels: {
+    //     default_channel: {
+    //       prefetchCount: 15,
+    //     },
+    //   },
+    //   connectionInitOptions: { wait: false },
+    // }),
     UsersModule,
-    // BillingModule,
+    BillingModule,
   ],
   providers: [RabbitService],
-  exports: [RabbitMQModule],
+  // exports: [RabbitMQModule],
 })
 export class RabbitModule {}

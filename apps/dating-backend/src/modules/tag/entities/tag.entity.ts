@@ -1,7 +1,6 @@
 import {
   IEntity,
   ParentTagType,
-  RelationshipModeType,
   TagRelationshipModeType,
   TagType,
 } from '@dating/common';

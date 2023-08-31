@@ -36,7 +36,7 @@ import { RabbitService } from '@dating/infra';
     UserHelper,
     UserMongoRepoProvider,
     CloudinaryProvider,
-    RabbitService,
+    // RabbitService,
   ],
   exports: [UserService, UserHelper, UserMongoRepoProvider],
 })

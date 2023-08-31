@@ -24,13 +24,12 @@ export class UserService implements OnModuleInit {
   constructor(
     @Inject(PROVIDER_REPO.USER + DATABASE_TYPE.MONGO)
     private userRepo: UserRepo,
-    private userHelper: UserHelper,
-    private rabbitService: RabbitService,
+    private userHelper: UserHelper, // private rabbitService: RabbitService,
   ) {}
 
   async onModuleInit() {
-    await this.rabbitService.waitForConnect();
-    await this.rabbitService.assertQueue({ queue: QUEUE.IMAGES_BUILDER });
+    // await this.rabbitService.waitForConnect();
+    // await this.rabbitService.assertQueue({ queue: QUEUE.IMAGES_BUILDER });
   }
 
   async create(createUserDto: CreateUserDTO): Promise<User> {
@@ -81,10 +80,11 @@ export class UserService implements OnModuleInit {
         entities.images.length &&
         this.userHelper.validateBlurImage(entities.images)
       ) {
-        await this.rabbitService.sendToQueue(QUEUE.IMAGES_BUILDER, {
-          userId: _id,
-          images: entities.images,
-        });
+        console.log('Send message to queue images builder');
+        // await this.rabbitService.sendToQueue(QUEUE.IMAGES_BUILDER, {
+        //   userId: _id,
+        //   images: entities.images,
+        // });
       }
       return user;
     } catch (error) {
@@ -130,16 +130,16 @@ export class UserService implements OnModuleInit {
         for (let i = 0; i < user.images.length; i++) {
           await downloadImage(user.images[i].url, `${user.email}_${image}`);
           const url = await this.userHelper.uploadImage(
-            `E:/Nestjs/dating-api/apps/dating-backend/images/${user.email}_${image}.jpg`,
+            `/home/giangnt/nest/git/study/dating-api/apps/dating-backend/images/${user.email}_${image}.jpg`,
           );
           user.images[i].url = url;
           image++;
         }
         const newUser = await this.userRepo.insert(user);
-        await this.rabbitService.sendToQueue(QUEUE.IMAGES_BUILDER, {
-          userId: newUser._id,
-          images: newUser.images,
-        });
+        // await this.rabbitService.sendToQueue(QUEUE.IMAGES_BUILDER, {
+        //   userId: newUser._id,
+        //   images: newUser.images,
+        // });
         await this.userRepo.save(newUser);
         count++;
       }
