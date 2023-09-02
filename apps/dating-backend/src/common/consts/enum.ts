@@ -86,3 +86,10 @@ export enum RelationshipType {
   MODE = 'Mode',
   LOOKING_FOR = 'Looking for',
 }
+
+export enum JobStatus {
+  INPROGRESS = 'Inprogress',
+  TODO = 'Todo',
+  DONE = 'Done',
+  ERROR = 'Error',
+}

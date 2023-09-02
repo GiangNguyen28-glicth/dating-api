@@ -9,12 +9,13 @@ import {
 } from '../entities/user.entity';
 import { Tag } from '@modules/tag/entities/tag.entity';
 import { Relationship } from '@modules/relationship/entities/relationship.entity';
+import { Transform } from 'class-transformer';
 
 export class ImageDTO implements Partial<Image> {
   @ApiProperty()
   url: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   blur: string;
 }
 
@@ -79,6 +80,11 @@ export class UpdateUserProfileDto implements Partial<User> {
   @ApiPropertyOptional()
   birthDate?: Date;
 
+  @Transform(({ value }) =>
+    value.map(image => {
+      return { url: image };
+    }),
+  )
   @ApiPropertyOptional({ type: [ImageDTO] })
   images?: ImageDTO[];
 

@@ -25,6 +25,11 @@ export const QUEUE = {
   IMAGES_BUILDER: 'images_builder',
 };
 
+export const RMQ_CHANNEL = {
+  USER_CHANNEL: 'user_channel',
+  PAYMENT_CHANNEL: 'channel_channel',
+};
+
 export const LANGUAGE = {
   EN: 'en',
   VI: 'vi',
@@ -40,6 +45,7 @@ export const SMS = 'Sms_';
 export const TOKEN = 'Token_';
 export const MongoID = Schema.Types.ObjectId;
 export const MAX_COUNT_IN_ACTION_UPSERT = 999999;
+export const DEFAULT_CHANNEL_ID = 'default_channel';
 
 export const EXCLUDE_FIELDS = {
   USER: '-slug -keyword -registerType -setting -isBlocked -isFistLogin -geoLocation',

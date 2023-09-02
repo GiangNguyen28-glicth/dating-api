@@ -1,3 +1,6 @@
+import { ConfirmChannel } from 'amqplib';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+
 import {
   DATABASE_TYPE,
   IResult,
@@ -13,23 +16,37 @@ import {
   mappingData,
   throwIfNotExists,
 } from '@dating/utils';
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { RabbitService } from '@app/shared';
+
 import { CreateUserDTO, FilterGetOneUserDTO } from './dto/user.dto';
 import { User } from './entities/user.entity';
 import { UserHelper } from './helper/user.helper';
-import { RabbitService } from '@dating/infra';
 
 @Injectable()
 export class UserService implements OnModuleInit {
+  private channel: ConfirmChannel;
   constructor(
     @Inject(PROVIDER_REPO.USER + DATABASE_TYPE.MONGO)
     private userRepo: UserRepo,
-    private userHelper: UserHelper, // private rabbitService: RabbitService,
+    private userHelper: UserHelper,
+    private rabbitService: RabbitService,
   ) {}
 
   async onModuleInit() {
-    // await this.rabbitService.waitForConnect();
-    // await this.rabbitService.assertQueue({ queue: QUEUE.IMAGES_BUILDER });
+    await this.rabbitService.connectRmq();
+    this.channel = await this.rabbitService.createChannel('user_channel');
+    await this.rabbitService.assertQueue(
+      {
+        queue: QUEUE.IMAGES_BUILDER,
+        options: {
+          durable: true,
+          arguments: {
+            'x-queue-type': 'quorum',
+          },
+        },
+      },
+      'user_channel',
+    );
   }
 
   async create(createUserDto: CreateUserDTO): Promise<User> {
@@ -77,14 +94,15 @@ export class UserService implements OnModuleInit {
       const user = await this.userRepo.findOneAndUpdate(_id, entities);
       throwIfNotExists(user, 'Cập nhật thất bại. Không thể tìm thấy User');
       if (
+        entities.images &&
         entities.images.length &&
         this.userHelper.validateBlurImage(entities.images)
       ) {
         console.log('Send message to queue images builder');
-        // await this.rabbitService.sendToQueue(QUEUE.IMAGES_BUILDER, {
-        //   userId: _id,
-        //   images: entities.images,
-        // });
+        await this.rabbitService.sendToQueue(QUEUE.IMAGES_BUILDER, {
+          userId: _id,
+          images: entities.images,
+        });
       }
       return user;
     } catch (error) {
@@ -130,7 +148,7 @@ export class UserService implements OnModuleInit {
         for (let i = 0; i < user.images.length; i++) {
           await downloadImage(user.images[i].url, `${user.email}_${image}`);
           const url = await this.userHelper.uploadImage(
-            `/home/giangnt/nest/git/study/dating-api/apps/dating-backend/images/${user.email}_${image}.jpg`,
+            `E:/Nestjs/dating-api/apps/dating-backend/images/${user.email}_${image}.jpg`,
           );
           user.images[i].url = url;
           image++;

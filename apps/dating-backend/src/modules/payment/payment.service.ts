@@ -1,3 +1,4 @@
+import { BadRequestException, Injectable } from '@nestjs/common';
 import {
   BillingStatus,
   LimitType,
@@ -5,18 +6,18 @@ import {
   RefreshIntervalUnit,
 } from '@common/consts';
 import { IResponse } from '@common/interfaces';
-import { RabbitService } from '@dating/infra';
 import { BillingService } from '@modules/billing/billing.service';
 import { Billing } from '@modules/billing/entities/billing.entity';
 import { Offering, Package } from '@modules/offering/entities/offering.entity';
 import { OfferingService } from '@modules/offering/offering.service';
 import { FeatureAccess, User } from '@modules/users/entities/user.entity';
-import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { docToObject } from '@dating/utils';
+
 import { CheckoutDTO } from './dto/card.dto';
 import { IPaymentMessage } from './interfaces/message.interfaces';
 import { StripePaymentStrategy } from './strategies/stripe.strategy';
-import { docToObject } from '@dating/utils';
+import { RabbitService } from '@app/shared';
 
 @Injectable()
 export class PaymentService {
@@ -31,7 +32,6 @@ export class PaymentService {
   }
 
   async onModuleInit() {
-    await this.rabbitService.waitForConnect();
     await this.rabbitService.assertQueue({
       queue: QUEUE.UPDATE_FEATURE_ACCESS,
     });

@@ -8,7 +8,6 @@ import { HelperController } from './helper.controller';
 import { UserHelper } from './helper/user.helper';
 import { UsersController } from './users.controller';
 import { UserService } from './users.service';
-import { RabbitService } from '@dating/infra';
 
 @Module({
   imports: [

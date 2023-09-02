@@ -1,5 +1,5 @@
 import { Options } from 'amqp-connection-manager';
-import { ExchangeRb } from './rabbit.assert';
+import { ExchangeRb } from './rabbitmq.assert';
 
 export interface IQueueBinding {
   queue: string;

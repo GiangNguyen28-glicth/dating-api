@@ -1,2 +1,1 @@
-export * from './rabbit.module';
-export * from './rabbit.service';
+export * from './rabbit-consumer.module';

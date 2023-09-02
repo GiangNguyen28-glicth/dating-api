@@ -21,7 +21,6 @@
   },
   "dependencies": {
     "@elastic/elasticsearch": "^7.17.12",
-    "@golevelup/nestjs-rabbitmq": "^4.0.0",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^3.0.0",
     "@nestjs/core": "^9.0.0",
@@ -46,6 +45,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "cloudinary": "^1.40.0",
+    "cron": "^2.4.3",
     "dayjs": "^1.11.9",
     "dotenv": "^16.3.1",
     "ioredis": "^5.3.2",

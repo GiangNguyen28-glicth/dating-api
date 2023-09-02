@@ -1,11 +1,10 @@
 import { CurrentUser } from '@common/decorators';
-import { Body, Controller, Delete, Get, Param, Patch } from '@nestjs/common';
+import { IResponse, IResult } from '@common/interfaces';
+import { User } from '@modules/users/entities/user.entity';
+import { Controller, Delete, Get, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { BillingService } from './billing.service';
-import { UpdateBillingDto } from './dto/update-billing.dto';
 import { Billing } from './entities/billing.entity';
-import { User } from '@modules/users/entities/user.entity';
-import { IResponse, IResult } from '@common/interfaces';
 
 @ApiTags(Billing.name)
 @Controller('billing')

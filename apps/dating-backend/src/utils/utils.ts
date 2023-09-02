@@ -13,6 +13,7 @@ import * as fs from 'fs';
 import axios from 'axios';
 import * as bcrypt from 'bcrypt';
 import { GeoLocation, User } from '@modules/users/entities/user.entity';
+import { data_tt } from './data';
 
 export function toSlug(text: string, locale?: string): string {
   if (!text) return '';
@@ -114,7 +115,7 @@ export async function downloadImage(url: string, image_name: string) {
     const response = await axios.get(url, { responseType: 'arraybuffer' });
     // Ghi dữ liệu hình ảnh vào tệp'
     fs.writeFileSync(
-      `/home/giangnt/nest/git/study/dating-api/apps/dating-backend/images/${image_name}.jpg`,
+      `E:/Nestjs/dating-api/apps/dating-backend/images/${image_name}.jpg`,
       response.data,
     );
     console.log('Hình ảnh đã được tải xuống và lưu thành công.');
@@ -11177,7 +11178,8 @@ export function mappingData(): User[] {
       ],
     },
   };
-  const results = obj.data.results;
+  const obj_2 = data_tt;
+  const results = obj_2.data.results;
   const users: User[] = [];
   results.map(item => {
     try {

@@ -1,30 +1,26 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import * as amqp from 'amqplib';
 import { ConfirmChannel, Connection, ConsumeMessage } from 'amqplib';
-import { IExchangeRb, IQueue, IQueueBinding } from './interfaces/rabbit';
-import {
-  RabbitAssertExchange,
-  RabbitAssertQueue,
-} from './interfaces/rabbit.assert';
-import { QUEUE } from '@common/index';
-import { encodeImageToBlurhash } from '../images/images.builder';
-import { IImageBuilder, UserService } from '@modules/users';
+
+import { RabbitAssertExchange, RabbitAssertQueue } from './rabbitmq.assert';
+import { IExchangeRb, IQueue, IQueueBinding } from './rabbitmq.interfaces';
 
 const DEFAULT_CHANNEL_ID = 'default_channel';
 @Injectable()
 export class RabbitService implements OnModuleInit, OnModuleDestroy {
   private channels: { [conId: string]: ConfirmChannel } = {};
+  private hooks: { [conId: string]: ((conId: string) => Promise<void>)[] } = {};
   private connection: Connection;
-
-  constructor(private readonly userService: UserService) {}
+  private channelName: string;
 
   onModuleDestroy() {
+    console.log('Close connection');
     this.connection.close();
   }
+
   async onModuleInit() {
     await this.connectRmq();
     await this.createChannel();
-    await this.consume();
   }
 
   async exchange(
@@ -64,9 +60,18 @@ export class RabbitService implements OnModuleInit, OnModuleDestroy {
   async connectRmq(): Promise<void> {
     try {
       if (!this.connection) {
-        this.connection = await amqp.connect('amqp://localhost:5672');
+        console.log('Open the new connection');
+        this.connection = await amqp.connect(
+          'amqp://localhost:5672?heartbeat=3000',
+        );
       }
-      return this.connection;
+      this.connection.on(
+        'error',
+        (async (error: Error) => {
+          console.log('Connect error:', error);
+          await this.createChannel(this.channelName);
+        }).bind(this),
+      );
     } catch (error) {
       console.log('Connect to Rmq error. Try to reconnect');
       setTimeout(this.connectRmq.bind(this), 3000);
@@ -75,6 +80,18 @@ export class RabbitService implements OnModuleInit, OnModuleDestroy {
 
   async createChannel(channelId: string = DEFAULT_CHANNEL_ID) {
     this.channels[channelId] = await this.connection.createChannel();
+    this.channels[channelId]?.on(
+      'error',
+      (async (error: Error) => {
+        console.log('Hello error: ', error);
+        await this.createChannel(channelId);
+      }).bind(this),
+    );
+
+    this.channels[channelId]?.connection.on('heartbeat', () => {
+      console.debug('Received a Heartbeat signal');
+    });
+
     return this.channels[channelId];
   }
 
@@ -83,45 +100,42 @@ export class RabbitService implements OnModuleInit, OnModuleDestroy {
     msg: any,
     channelId: string = DEFAULT_CHANNEL_ID,
   ) {
-    this.channels[channelId].sendToQueue(queue, Buffer.from(msg.toString()));
+    this.channels[channelId].sendToQueue(
+      queue,
+      Buffer.from(JSON.stringify(msg)),
+      { persistent: true },
+    );
   }
 
-  async commit(msg: ConsumeMessage, channelId: string = DEFAULT_CHANNEL_ID) {
-    await this.channels[channelId].ack(msg);
+  async reject(
+    msg: ConsumeMessage,
+    requeue?: boolean,
+    channelId: string = DEFAULT_CHANNEL_ID,
+  ) {
+    await this.channels[channelId].reject(msg, requeue ?? true);
   }
 
-  async consume() {
-    await this.channels[DEFAULT_CHANNEL_ID].prefetch(15);
-    await this.startConsuming();
+  async pushToHooks(
+    channelId: string = DEFAULT_CHANNEL_ID,
+    hook: () => Promise<void>,
+  ) {
+    if (!this.hooks[channelId]) {
+      this.hooks[channelId] = [];
+    }
+    this.hooks[channelId].push(hook);
   }
 
-  async startConsuming(): Promise<void> {
-    const hook = async () => {
-      this.channels[DEFAULT_CHANNEL_ID].consume(
-        QUEUE.IMAGES_BUILDER,
-        async msg => {
-          try {
-            const data: IImageBuilder = JSON.parse(msg.content.toString());
-            await Promise.all(
-              data.images.map(async image => {
-                if (!image.blur) {
-                  console.log('Start blur image');
-                  image.blur = await encodeImageToBlurhash(image.url);
-                  console.log(image.blur);
-                }
-              }),
-            );
-            console.log('MES:', msg);
-            await this.userService.findOneAndUpdate(data.userId, {
-              images: data.images,
-            });
-            await this.channels[DEFAULT_CHANNEL_ID].ack(msg);
-          } catch (error) {
-            console.log(error);
-          }
-        },
-      );
-    };
-    await hook();
+  async startConsuming(channelId: string = DEFAULT_CHANNEL_ID) {
+    for (const hook of this.hooks[channelId]) {
+      await hook(channelId);
+    }
+  }
+
+  getContentFromMessage(msg: ConsumeMessage) {
+    return JSON.parse(msg.content.toString());
+  }
+
+  setChannelName(channelName: string) {
+    this.channelName = channelName;
   }
 }

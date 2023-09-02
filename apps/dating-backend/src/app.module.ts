@@ -5,11 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { RedisClientOptions } from 'redis';
 import { HttpThrottlerGuard } from './common/guards';
-import {
-  CacheConfigService,
-  RabbitModule,
-  ThrottlerConfigService,
-} from './infra/configs';
+import { ThrottlerConfigService } from './infra/configs';
 import {
   ActionModule,
   AuthModule,
@@ -26,7 +22,11 @@ import {
   TagModule,
   UsersModule,
 } from './modules';
-import { MongooseConfigService } from '@app/shared';
+import {
+  CacheConfigService,
+  MongooseConfigService,
+  RabbitModule,
+} from '@app/shared';
 
 @Module({
   imports: [

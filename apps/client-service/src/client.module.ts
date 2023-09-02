@@ -1,11 +1,16 @@
 import { CacheModule, Module } from '@nestjs/common';
-import { RabbitModule } from './rabbit/rabbit.module';
 import { MongooseModule } from '@nestjs/mongoose';
-import { CacheConfigService, MongooseConfigService } from '@app/shared';
+import {
+  CacheConfigService,
+  MongooseConfigService,
+  RabbitModule,
+} from '@app/shared';
 import { ConfigModule } from '@nestjs/config';
 import { RedisClientOptions } from 'redis';
 import { BillingModule } from '@modules/billing';
 import { UsersModule } from '@modules/users';
+import { RabbitConsumerModule } from './rabbit';
+import { JobsModule } from './jobs';
 
 @Module({
   imports: [
@@ -21,8 +26,10 @@ import { UsersModule } from '@modules/users';
       useClass: MongooseConfigService,
     }),
     RabbitModule,
+    RabbitConsumerModule,
+    JobsModule,
     UsersModule,
-    // BillingModule,
+    BillingModule,
   ],
 })
 export class ClientModule {}

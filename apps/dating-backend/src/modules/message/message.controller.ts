@@ -32,7 +32,6 @@ export class MessageController {
   }
 
   @Get()
-  @ApiQuery({ type: FilterGetAllMessageDTO })
   findAll(@Query() filter: FilterGetAllMessageDTO) {
     return this.messageService.findAll(filter);
   }
