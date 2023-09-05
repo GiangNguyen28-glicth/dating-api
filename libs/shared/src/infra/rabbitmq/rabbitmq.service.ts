@@ -62,7 +62,7 @@ export class RabbitService implements OnModuleInit, OnModuleDestroy {
       if (!this.connection) {
         console.log('Open the new connection :D');
         this.connection = await amqp.connect(
-          'amqp://rabbitmq:5672?heartbeat=3000',
+          'amqps://hqbfuqgr:XhELPgsH_-gV73U0urRTnncq14R3CCHb@armadillo.rmq.cloudamqp.com/hqbfuqgr',
         );
       }
       this.connection.on(
