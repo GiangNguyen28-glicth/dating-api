@@ -1,6 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { MessageType } from '@common/consts';
 import { Message } from '../entities/message.entity';
+import { ImageDTO } from '@modules/users/dto';
+
 export class CreateMessageDto implements Partial<Message> {
   @ApiProperty()
   receiver: string;
@@ -8,14 +10,14 @@ export class CreateMessageDto implements Partial<Message> {
   @ApiPropertyOptional()
   text: string;
 
-  @ApiPropertyOptional()
-  urlImage?: string;
+  @ApiPropertyOptional({ type: [String] })
+  images?: ImageDTO[];
 
-  @ApiProperty()
+  @ApiProperty({ enum: MessageType })
   type?: MessageType;
 
   @ApiProperty()
-  conversion?: string;
+  conversation?: string;
 
   @ApiProperty()
   uuid: string;

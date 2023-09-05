@@ -60,9 +60,9 @@ export class RabbitService implements OnModuleInit, OnModuleDestroy {
   async connectRmq(): Promise<void> {
     try {
       if (!this.connection) {
-        console.log('Open the new connection');
+        console.log('Open the new connection :D');
         this.connection = await amqp.connect(
-          'amqp://localhost:5672?heartbeat=3000',
+          'amqp://rabbitmq:5672?heartbeat=3000',
         );
       }
       this.connection.on(

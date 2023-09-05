@@ -1,4 +1,4 @@
-import { FilterGetOne, RegisterType } from '@dating/common';
+import { FilterGetAll, FilterGetOne, RegisterType } from '@dating/common';
 import { IsEmail, IsPhoneNumber } from 'class-validator';
 import { User } from '../entities/user.entity';
 
@@ -15,6 +15,14 @@ export class FilterGetOneUserDTO extends FilterGetOne implements Partial<User> {
   email?: string;
   registerType?: RegisterType;
   phoneNumber?: string;
+}
+
+export class FilterGetAllUserDTO extends FilterGetAll implements Partial<User> {
+  _id?: string;
+  email?: string;
+  registerType?: RegisterType;
+  phoneNumber?: string;
+  lastActiveDate?: Date;
 }
 
 export class RecommendationDTO {

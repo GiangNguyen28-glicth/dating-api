@@ -41,6 +41,8 @@ export class ActionService {
 
   async like(owner: User, userId: string): Promise<IResponse> {
     try {
+      const user = await this.userService.findOne({ _id: userId });
+      throwIfNotExists(user, 'User không tồn tại');
       const matchRq = await this.matchReqService.findOne({
         owner: owner._id.toString(),
         requestBy: userId,
@@ -50,7 +52,7 @@ export class ActionService {
         userId,
       );
       if (matchRq) {
-        await this.matched(owner, userId, socketIdsClient, matchRq._id);
+        await this.matched(owner, user, socketIdsClient, matchRq._id);
         // await this.actionRepo.
       } else {
         this.socketGateway.sendEventToClient(
@@ -94,12 +96,12 @@ export class ActionService {
 
   async matched(
     owner: User,
-    userId: string,
+    user: User,
     socketIdsClient: ISocketIdsClient,
     matchRqId: string,
   ): Promise<void> {
     await this.conversationService.create({
-      members: [owner._id.toString(), userId],
+      members: [owner, user],
     });
     await this.matchReqService.remove(matchRqId);
     this.socketGateway.sendEventToClient(

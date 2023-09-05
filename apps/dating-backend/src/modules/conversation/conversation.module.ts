@@ -3,10 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConversationMongoRepoProvider } from '@dating/repositories';
 import { ConversationService } from './conversation.service';
 import { ConversationController } from './conversation.controller';
-import {
-  Conversation,
-  ConversationSchema,
-} from './entities/conversation.entity';
+import { Conversation, ConversationSchema } from './entities';
 
 @Module({
   imports: [

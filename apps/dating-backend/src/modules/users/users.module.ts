@@ -1,7 +1,7 @@
 import { CloudinaryProvider } from '@common/provider';
 import { UserMongoRepoProvider } from '@dating/repositories';
 import { ActionModule } from '@modules/action';
-import { Module, forwardRef } from '@nestjs/common';
+import { Global, Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './entities/user.entity';
 import { HelperController } from './helper.controller';
@@ -9,6 +9,7 @@ import { UserHelper } from './helper/user.helper';
 import { UsersController } from './users.controller';
 import { UserService } from './users.service';
 
+@Global()
 @Module({
   imports: [
     MongooseModule.forFeatureAsync([

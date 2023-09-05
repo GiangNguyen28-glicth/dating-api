@@ -6,3 +6,4 @@ export * from './guards';
 export * from './interfaces';
 export * from './provider';
 export * from './strategies';
+export * from './message';

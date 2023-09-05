@@ -8,13 +8,13 @@ import { PaginationDTO } from '@common/dto';
 import { IResult } from '@common/interfaces';
 import { ConversationRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
+import { User } from '@modules/users/entities/user.entity';
 import { Inject, Injectable } from '@nestjs/common';
 import {
   FilterGetAllConversationDTO,
   FilterGetOneConversationDTO,
 } from './dto/conversation.dto';
 import { CreateConversationDto } from './dto/create-conversation.dto';
-import { User } from '@modules/users/entities/user.entity';
 import { Conversation } from './entities/conversation.entity';
 
 @Injectable()
@@ -52,25 +52,22 @@ export class ConversationService {
           pagination,
           populate: [
             {
-              path: 'lastMessage',
-            },
-            {
               path: 'members',
               select: EXCLUDE_FIELDS.USER,
             },
           ],
         }),
       ]);
-      this.filterByLastMessaged(results, user._id.toString());
+      this.getReceiver(results, user._id.toString());
       return formatResult(results, totalCount, pagination);
     } catch (error) {
       throw error;
     }
   }
 
-  filterByLastMessaged(conversations: Conversation[], user_id: string) {
+  getReceiver(conversations: Conversation[], user_id: string) {
     conversations.map(item => {
-      item.user =
+      item['user'] =
         (item.members[0] as User)._id.toString() === user_id
           ? (item.members[1] as User)
           : (item.members[0] as User);
@@ -86,13 +83,25 @@ export class ConversationService {
       const [queryFilter] = new FilterBuilder<Conversation>()
         .setFilterItem('_id', '$eq', filter?._id)
         .buildQuery();
-      const conversation = await this.conversationRepo.findOne({ queryFilter });
+      const conversation = await this.conversationRepo.findOne({
+        queryFilter,
+        populate: [
+          {
+            path: 'members',
+            select: EXCLUDE_FIELDS.USER,
+          },
+        ],
+      });
       throwIfNotExists(conversation, 'Conversation not found');
-      conversation.user =
+      if (!filter?.toJSON) {
+        return conversation;
+      }
+      const newConversation = this.conversationRepo.docToJSON(conversation);
+      newConversation.user =
         conversation.members[0]._id.toString() === user._id.toString()
           ? conversation.members[1]
           : conversation.members[0];
-      return conversation;
+      return newConversation;
     } catch (error) {
       throw error;
     }

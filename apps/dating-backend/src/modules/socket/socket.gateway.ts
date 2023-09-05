@@ -5,9 +5,9 @@ import {
   WebsocketExceptionsFilter,
   WsGuard,
 } from '@dating/common';
+import { CreateMessageDto } from '@modules/message/dto';
 import { MessageService } from '@modules/message/message.service';
-import { CreateMessageDto } from '@modules/message/dto/create-message.dto';
-import { User } from '@modules/users/entities/user.entity';
+import { User } from '@modules/users/entities';
 import { UserService } from '@modules/users/users.service';
 import {
   Inject,
@@ -30,8 +30,13 @@ import {
 import Redis from 'ioredis';
 import { Server, Socket } from 'socket.io';
 import { SocketService } from './socket.service';
+import { Message } from '@modules/message/entities';
 
-@WebSocketGateway({ transport: ['websocket'], allowEIO3: true, cors: '*' })
+@WebSocketGateway(80, {
+  transport: ['websocket'],
+  allowEIO3: true,
+  cors: '*',
+})
 @UseFilters(WebsocketExceptionsFilter)
 @UsePipes(new ValidationPipe({ transform: true }))
 export class SocketGateway
@@ -42,7 +47,7 @@ export class SocketGateway
     private socketService: SocketService,
     @Inject(forwardRef(() => UserService))
     private userService: UserService,
-    private messageService: MessageService, // @Inject(forwardRef(() => MessageService))
+    private messageService: MessageService,
   ) {
     this.redisClient = socketService.getRedisClient();
   }
@@ -51,7 +56,9 @@ export class SocketGateway
   public server: Server;
 
   handleConnection(client: any, ...args: any[]) {
-    console.log('Connection Done');
+    console.log(
+      '========================Connection Done========================',
+    );
   }
 
   afterInit(server: Server) {
@@ -61,6 +68,7 @@ export class SocketGateway
   @UseGuards(WsGuard)
   async handleDisconnect(@ConnectedSocket() socket: Socket) {
     try {
+      return;
       const userId = socket['userId'];
       const socketKey = SOCKET + userId;
       await this.redisClient.srem(socketKey, socket.id);
@@ -94,7 +102,7 @@ export class SocketGateway
   async sendMessage(
     @MessageBody() data: CreateMessageDto,
     @CurrentUserWS() user: User,
-  ): Promise<void> {
+  ): Promise<Message> {
     try {
       data['sender'] = user._id.toString();
       const [message, socketIdsSender, socketIdsReceiver] = await Promise.all([
@@ -107,6 +115,7 @@ export class SocketGateway
         message,
         uuid: data.uuid,
       });
+      return message;
     } catch (error) {
       throw error;
     }

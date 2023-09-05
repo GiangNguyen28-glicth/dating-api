@@ -19,7 +19,7 @@ export class Billing implements IEntity {
   offering: Offering | string;
 
   @Prop({ type: MongoID, ref: User.name })
-  createdBy: User | string;
+  createdBy: User;
 
   @Prop({ type: Package })
   latestPackage: Package;

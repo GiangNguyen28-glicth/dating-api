@@ -1,12 +1,13 @@
 import { Global, Module } from '@nestjs/common';
 import { UsersModule } from '@modules/users';
 import { BillingModule } from '@modules/billing';
-import { PaymentConsumer, UserConsumer } from './consumer';
+import { MessageConsumer, PaymentConsumer, UserConsumer } from './consumer';
+import { MessageModule } from '@modules/message';
 
 @Global()
 @Module({
-  imports: [UsersModule, BillingModule],
-  providers: [PaymentConsumer, UserConsumer],
+  imports: [UsersModule, BillingModule, MessageModule],
+  providers: [PaymentConsumer, UserConsumer, MessageConsumer],
   exports: [],
 })
 export class RabbitConsumerModule {}

@@ -16,7 +16,7 @@ export class ImageDTO implements Partial<Image> {
   url: string;
 
   @ApiPropertyOptional()
-  blur: string;
+  blur?: string;
 }
 
 export class UpdateUserDiscoverySettingDTO implements DiscoverySetting {

@@ -1,27 +1,31 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
+import { ConfirmChannel } from 'amqplib';
+
 import {
   BillingStatus,
   LimitType,
-  QUEUE,
+  QUEUE_NAME,
+  RMQ_CHANNEL,
   RefreshIntervalUnit,
 } from '@common/consts';
 import { IResponse } from '@common/interfaces';
 import { BillingService } from '@modules/billing/billing.service';
-import { Billing } from '@modules/billing/entities/billing.entity';
+import { Billing } from '@modules/billing/entities';
 import { Offering, Package } from '@modules/offering/entities/offering.entity';
 import { OfferingService } from '@modules/offering/offering.service';
-import { FeatureAccess, User } from '@modules/users/entities/user.entity';
+import { FeatureAccess, User } from '@modules/users/entities';
 import { ConfigService } from '@nestjs/config';
 import { docToObject } from '@dating/utils';
 
 import { CheckoutDTO } from './dto/card.dto';
-import { IPaymentMessage } from './interfaces/message.interfaces';
 import { StripePaymentStrategy } from './strategies/stripe.strategy';
 import { RabbitService } from '@app/shared';
+import { IPaymentMessage } from '@common/message';
 
 @Injectable()
-export class PaymentService {
+export class PaymentService implements OnModuleInit {
   private stripe: StripePaymentStrategy;
+  private channel: ConfirmChannel;
   constructor(
     private configService: ConfigService,
     private billingService: BillingService,
@@ -32,9 +36,22 @@ export class PaymentService {
   }
 
   async onModuleInit() {
-    await this.rabbitService.assertQueue({
-      queue: QUEUE.UPDATE_FEATURE_ACCESS,
-    });
+    await this.rabbitService.connectRmq();
+    this.channel = await this.rabbitService.createChannel(
+      RMQ_CHANNEL.PAYMENT_CHANNEL,
+    );
+    await this.rabbitService.assertQueue(
+      {
+        queue: QUEUE_NAME.UPDATE_FEATURE_ACCESS,
+        options: {
+          durable: true,
+          arguments: {
+            'x-queue-type': 'quorum',
+          },
+        },
+      },
+      RMQ_CHANNEL.PAYMENT_CHANNEL,
+    );
   }
 
   async createPaymentIntentStripe(
@@ -56,7 +73,7 @@ export class PaymentService {
       const billing: Billing = await this.billingService.create({
         latestPackage: _package,
         offering: offering._id.toString(),
-        createdBy: user._id,
+        createdBy: user,
         lastMerchandising: offering.merchandising,
         status: BillingStatus.INPROGRESS,
         expiredDate: this.getExpiredDate(_package),
@@ -73,7 +90,7 @@ export class PaymentService {
       message['billingId'] = billing._id;
       message['userId'] = user._id;
       await this.rabbitService.sendToQueue(
-        QUEUE.UPDATE_FEATURE_ACCESS,
+        QUEUE_NAME.UPDATE_FEATURE_ACCESS,
         message,
       );
       return null;

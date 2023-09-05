@@ -3,10 +3,12 @@ import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 
 import {
   DATABASE_TYPE,
+  IOptionFilterGetAll,
   IResult,
   PROVIDER_REPO,
   PaginationDTO,
-  QUEUE,
+  QUEUE_NAME,
+  RMQ_CHANNEL,
 } from '@dating/common';
 import { UserRepo } from '@dating/repositories';
 import {
@@ -34,10 +36,12 @@ export class UserService implements OnModuleInit {
 
   async onModuleInit() {
     await this.rabbitService.connectRmq();
-    this.channel = await this.rabbitService.createChannel('user_channel');
+    this.channel = await this.rabbitService.createChannel(
+      RMQ_CHANNEL.USER_CHANNEL,
+    );
     await this.rabbitService.assertQueue(
       {
-        queue: QUEUE.IMAGES_BUILDER,
+        queue: QUEUE_NAME.USER_IMAGES_BUILDER,
         options: {
           durable: true,
           arguments: {
@@ -45,7 +49,7 @@ export class UserService implements OnModuleInit {
           },
         },
       },
-      'user_channel',
+      RMQ_CHANNEL.USER_CHANNEL,
     );
   }
 
@@ -82,11 +86,14 @@ export class UserService implements OnModuleInit {
         .setFilterItem('registerType', '$eq', filter?.registerType)
         .setFilterItem('phoneNumber', '$eq', filter?.phoneNumber)
         .buildQuery();
-      const user = await this.userRepo.findOne({ queryFilter });
-      return user;
+      return await this.userRepo.findOne({ queryFilter });
     } catch (error) {
       throw error;
     }
+  }
+
+  async findAll(option?: IOptionFilterGetAll<User>): Promise<User[]> {
+    return await this.userRepo.findAll(option);
   }
 
   async findOneAndUpdate(_id: string, entities: Partial<User>): Promise<User> {
@@ -99,7 +106,7 @@ export class UserService implements OnModuleInit {
         this.userHelper.validateBlurImage(entities.images)
       ) {
         console.log('Send message to queue images builder');
-        await this.rabbitService.sendToQueue(QUEUE.IMAGES_BUILDER, {
+        await this.rabbitService.sendToQueue(QUEUE_NAME.USER_IMAGES_BUILDER, {
           userId: _id,
           images: entities.images,
         });
@@ -135,6 +142,10 @@ export class UserService implements OnModuleInit {
     } catch (error) {
       throw error;
     }
+  }
+
+  async updateMany(ids: string[], entities): Promise<void> {
+    await this.userRepo.updateMany(ids, entities);
   }
 
   async insertManyUser(): Promise<boolean> {

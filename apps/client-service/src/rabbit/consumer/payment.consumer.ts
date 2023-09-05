@@ -1,10 +1,11 @@
 import { ConfirmChannel } from 'amqplib';
-import { IRabbitConsumer, RabbitService, delay } from '@app/shared';
-import { BillingStatus, QUEUE, RMQ_CHANNEL } from '@common/consts';
-import { BillingService } from '@modules/billing';
-import { IPaymentMessage } from '@modules/payment';
-import { UserService } from '@modules/users';
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+
+import { RabbitService } from '@app/shared';
+import { BillingStatus, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
+import { BillingService } from '@modules/billing';
+import { UserService } from '@modules/users';
+import { IPaymentMessage } from '@common/message';
 
 @Injectable()
 export class PaymentConsumer implements OnModuleInit, OnModuleDestroy {
@@ -28,18 +29,24 @@ export class PaymentConsumer implements OnModuleInit, OnModuleDestroy {
     );
     await this.rabbitService.assertQueue(
       {
-        queue: QUEUE.UPDATE_FEATURE_ACCESS,
+        queue: QUEUE_NAME.UPDATE_FEATURE_ACCESS,
+        options: {
+          durable: true,
+          arguments: {
+            'x-queue-type': 'quorum',
+          },
+        },
       },
       RMQ_CHANNEL.PAYMENT_CHANNEL,
     );
-    await Promise.all([await this.consumePayment()]);
+    await Promise.all([this.consumePayment()]);
     await this.rabbitService.startConsuming(RMQ_CHANNEL.PAYMENT_CHANNEL);
   }
 
   async consumePayment(): Promise<void> {
     const hook = async () => {
       this.channel.consume(
-        QUEUE.UPDATE_FEATURE_ACCESS,
+        QUEUE_NAME.UPDATE_FEATURE_ACCESS,
         async msg => {
           try {
             const content: IPaymentMessage =

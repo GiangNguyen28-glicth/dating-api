@@ -1,23 +1,26 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseGuards,
-  Query,
-} from '@nestjs/common';
-import { MessageService } from './message.service';
-import { CreateMessageDto } from './dto/create-message.dto';
-import { UpdateMessageDto } from './dto/update-message.dto';
-import { ApiBody, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { AtGuard } from '@common/guards';
 import { CurrentUser } from '@common/decorators';
-import { FilterGetAllMessageDTO } from './dto/filter-message.dto';
-import { User } from '@modules/users/entities/user.entity';
+import { AtGuard } from '@common/guards';
+import { IResponse, IResult } from '@common/interfaces';
+import { User } from '@modules/users/entities';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  CreateMessageDto,
+  FilterGetAllMessageDTO,
+  UpdateMessageDto,
+} from './dto';
 import { Message } from './entities/message.entity';
+import { MessageService } from './message.service';
 
 @ApiTags(Message.name)
 @UseGuards(AtGuard)
@@ -32,23 +35,20 @@ export class MessageController {
   }
 
   @Get()
-  findAll(@Query() filter: FilterGetAllMessageDTO) {
-    return this.messageService.findAll(filter);
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.messageService.findOne(+id);
+  async findAll(
+    @Query() filter: FilterGetAllMessageDTO,
+  ): Promise<IResult<Message>> {
+    return await this.messageService.findAll(filter);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMessageDto: UpdateMessageDto) {
-    return this.messageService.update(+id, updateMessageDto);
+  async update(@Param('id') id: string, @Body() messageDto: UpdateMessageDto) {
+    return this.messageService.findOneAndUpdate(id, messageDto);
   }
 
   @Delete(':id')
   @ApiParam({ type: 'string', name: 'id' })
-  remove(@Param('id') id: string) {
-    return this.messageService.remove(id);
+  async remove(@Param('id') id: string): Promise<IResponse> {
+    return await this.messageService.remove(id);
   }
 }

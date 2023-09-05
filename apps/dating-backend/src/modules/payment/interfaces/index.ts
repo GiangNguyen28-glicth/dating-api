@@ -1,1 +1,1 @@
-export * from './message.interfaces';
+export * from './payment.interfaces';

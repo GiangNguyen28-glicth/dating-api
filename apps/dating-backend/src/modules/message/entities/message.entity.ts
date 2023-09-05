@@ -1,8 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { IEntity, MessageType, MongoID } from '@dating/common';
 import { Transform } from 'class-transformer';
-import { Conversation } from '@modules/conversation/entities/conversation.entity';
-import { User } from '@modules/users/entities/user.entity';
+
+import { IEntity, MessageType, MongoID } from '@dating/common';
+import { Conversation } from '@modules/conversation/entities';
+import { User, Image } from '@modules/users/entities';
 @Schema({ timestamps: true })
 export class Message implements IEntity {
   @Transform(({ value }) => value.toString())
@@ -18,13 +19,13 @@ export class Message implements IEntity {
   receiver: User | string;
 
   @Prop({ type: MongoID, ref: 'Conversation' })
-  conversion: Conversation | string;
+  conversation: Conversation | string;
 
   @Prop({ type: String, trim: true, enum: Object.values(MessageType) })
   type: MessageType;
 
-  @Prop({ trim: true, type: [String] })
-  urlImages: string[];
+  @Prop([{ type: Image, default: [] }])
+  images: Image[];
 
   @Prop({ type: Number })
   cursor: number;

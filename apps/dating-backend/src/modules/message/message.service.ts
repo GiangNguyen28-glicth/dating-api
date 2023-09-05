@@ -1,28 +1,67 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { CreateMessageDto } from './dto/create-message.dto';
-import { UpdateMessageDto } from './dto/update-message.dto';
-import { DATABASE_TYPE, PROVIDER_REPO } from '@common/consts';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { ConfirmChannel } from 'amqplib';
+
+import {
+  DATABASE_TYPE,
+  PROVIDER_REPO,
+  QUEUE_NAME,
+  RMQ_CHANNEL,
+} from '@common/consts';
+import { IResponse, IResult } from '@common/interfaces';
 import { MessageRepo } from '@dating/repositories';
-import { FilterGetAllMessageDTO } from './dto/filter-message.dto';
-import { IResult } from '@common/interfaces';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
-import { User } from '@modules/users/entities/user.entity';
 import { ConversationService } from '@modules/conversation/conversation.service';
+import { Image, User } from '@modules/users/entities';
+
 import { Message } from './entities/message.entity';
-import { PaginationDTO } from '@common/dto';
+import {
+  CreateMessageDto,
+  FilterGetAllMessageDTO,
+  UpdateMessageDto,
+} from './dto';
+import { RabbitService } from '@app/shared';
 
 @Injectable()
-export class MessageService {
+export class MessageService implements OnModuleInit {
+  private channel: ConfirmChannel;
+
   constructor(
     @Inject(PROVIDER_REPO.MESSAGE + DATABASE_TYPE.MONGO)
     private messageRepo: MessageRepo,
     private conversationService: ConversationService,
+    private rabbitService: RabbitService,
   ) {}
+
+  async onModuleInit() {
+    await this.rabbitService.connectRmq();
+    this.channel = await this.rabbitService.createChannel(
+      RMQ_CHANNEL.MESSAGE_CHANNEL,
+    );
+    await this.rabbitService.assertQueue(
+      {
+        queue: QUEUE_NAME.MESSAGE_IMAGES_BUILDER,
+        options: {
+          durable: true,
+          arguments: {
+            'x-queue-type': 'quorum',
+          },
+        },
+      },
+      RMQ_CHANNEL.MESSAGE_CHANNEL,
+    );
+  }
+
   async create(messageDto: CreateMessageDto, user: User): Promise<Message> {
     try {
       messageDto['sender'] = user._id.toString();
+      if (messageDto.images.length) {
+        messageDto.images = this.transformImages(messageDto.images);
+      }
       const [conversation, message] = await Promise.all([
-        this.conversationService.findOne({ _id: messageDto.conversion }, user), //1
+        this.conversationService.findOne(
+          { _id: messageDto.conversation },
+          user,
+        ), //1
         this.messageRepo.insert(messageDto),
       ]);
       let isFirstMessage = false;
@@ -30,13 +69,22 @@ export class MessageService {
         isFirstMessage = true;
         message['cursor'] = 1;
       } else {
-        message.cursor = (conversation.lastMessage as Message).cursor + 1;
+        message.cursor = conversation.lastMessage.cursor + 1;
       }
       conversation.lastMessage = message;
       await Promise.all([
         this.conversationService.updateModel(conversation), //7
         this.messageRepo.save(message), //8
       ]);
+      if (messageDto.images.length) {
+        await this.rabbitService.sendToQueue(
+          QUEUE_NAME.MESSAGE_IMAGES_BUILDER,
+          {
+            messageId: message._id,
+            images: messageDto.images,
+          },
+        );
+      }
       return message;
     } catch (error) {
       throw error;
@@ -47,7 +95,7 @@ export class MessageService {
     try {
       const cursor = (filter.page - 1) * filter.size;
       const [queryFilter] = new FilterBuilder<Message>()
-        .setFilterItem('conversion', '$eq', filter?.conversion)
+        .setFilterItem('conversation', '$eq', filter?.conversation)
         .setFilterItem('cursor', '$gte', cursor)
         .setSortItem('createdAt', 'desc')
         .buildQuery();
@@ -64,21 +112,30 @@ export class MessageService {
     }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} message`;
+  transformImages(images: Image[]): Image[] {
+    return images.map(image => {
+      return { url: image } as unknown as Image;
+    });
   }
 
-  update(id: number, updateMessageDto: UpdateMessageDto) {
-    return `This action updates a #${id} message`;
+  async findOneAndUpdate(
+    id: string,
+    messageDto: UpdateMessageDto,
+  ): Promise<Message> {
+    const message = await this.messageRepo.findOneAndUpdate(id, messageDto);
+    throwIfNotExists(message, 'Message không tồn tại');
+    return message;
   }
 
-  async remove(_id: string): Promise<boolean> {
+  async remove(_id: string): Promise<IResponse> {
     try {
       const message = await this.messageRepo.findOneAndUpdate(_id, {
         isDeleted: true,
       });
-      throwIfNotExists(message, 'Message not found');
-      return message ? true : false;
+      return {
+        success: true,
+        message: 'Xóa tin nhắn thành công',
+      };
     } catch (error) {
       throw error;
     }

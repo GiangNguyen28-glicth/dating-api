@@ -1,14 +1,19 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateBillingDto } from './dto/create-billing.dto';
-import { UpdateBillingDto } from './dto/update-billing.dto';
+
 import { CurrentUser } from '@common/decorators';
-import { Billing } from './entities/billing.entity';
 import { IResponse, IResult } from '@common/interfaces';
 import { DATABASE_TYPE, PROVIDER_REPO } from '@common/consts';
 import { BillingRepo } from '@dating/repositories';
 import { FilterBuilder, throwIfNotExists } from '@dating/utils';
-import { FilterGetOneBillingDTO } from './dto/billing.dto';
-import { User } from '@modules/users/entities/user.entity';
+import { User } from '@modules/users/entities';
+
+import { Billing } from './entities';
+import {
+  CreateBillingDto,
+  FilterGetAllBillingDTO,
+  FilterGetOneBillingDTO,
+  UpdateBillingDto,
+} from './dto';
 
 @Injectable()
 export class BillingService {
@@ -25,11 +30,16 @@ export class BillingService {
     }
   }
 
-  async findAll(@CurrentUser() user: User): Promise<IResult<Billing>> {
+  async findAll(
+    filter: FilterGetAllBillingDTO,
+    @CurrentUser() user?: User,
+  ): Promise<IResult<Billing>> {
     try {
       const [queryFilter] = new FilterBuilder<Billing>()
-        .setFilterItem('createdBy', '$eq', user._id)
+        .setFilterItem('createdBy', '$eq', user?._id)
         .setFilterItem('isDeleted', '$eq', false, true)
+        .setFilterItem('expiredDate', '$gte', filter?.expiredDate)
+        .setFilterItem('status', '$eq', filter?.status)
         .setSortItem('createdAt', 'desc')
         .buildQuery();
       const [totalCount, results] = await Promise.all([

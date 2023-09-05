@@ -1,10 +1,11 @@
 import { CurrentUser } from '@common/decorators';
 import { IResponse, IResult } from '@common/interfaces';
 import { User } from '@modules/users/entities/user.entity';
-import { Controller, Delete, Get, Param } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { BillingService } from './billing.service';
 import { Billing } from './entities/billing.entity';
+import { FilterGetAllBillingDTO } from './dto';
 
 @ApiTags(Billing.name)
 @Controller('billing')
@@ -12,8 +13,11 @@ export class BillingController {
   constructor(private readonly billingService: BillingService) {}
 
   @Get()
-  async findAllByUser(@CurrentUser() user: User): Promise<IResult<Billing>> {
-    return await this.billingService.findAll(user);
+  async findAllByUser(
+    @Query() filter: FilterGetAllBillingDTO,
+    @CurrentUser() user: User,
+  ): Promise<IResult<Billing>> {
+    return await this.billingService.findAll(filter, user);
   }
 
   @Get(':id')

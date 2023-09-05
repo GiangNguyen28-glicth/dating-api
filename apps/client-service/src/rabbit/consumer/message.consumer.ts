@@ -3,30 +3,32 @@ import { ConfirmChannel } from 'amqplib';
 
 import { RabbitService } from '@app/shared';
 import { QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
+import { IMessageImageBuilder } from '@common/message';
+import { MessageService } from '@modules/message';
 import { encodeImageToBlurhash } from '../../images';
-import { UserService } from '@modules/users';
-import { IUserImageBuilder } from '@common/message';
 
 @Injectable()
-export class UserConsumer implements OnModuleInit, OnModuleDestroy {
+export class MessageConsumer implements OnModuleInit, OnModuleDestroy {
   private channel: ConfirmChannel;
 
   constructor(
+    private messageService: MessageService,
     private rabbitService: RabbitService,
-    private userService: UserService,
   ) {}
+
+  onModuleDestroy() {
+    return;
+    throw new Error('Method not implemented.');
+  }
 
   async onModuleInit() {
     await this.rabbitService.connectRmq();
-    this.rabbitService.setChannelName(RMQ_CHANNEL.USER_CHANNEL);
     this.channel = await this.rabbitService.createChannel(
-      RMQ_CHANNEL.USER_CHANNEL,
+      RMQ_CHANNEL.MESSAGE_CHANNEL,
     );
-    this.channel.prefetch(4);
-
     await this.rabbitService.assertQueue(
       {
-        queue: QUEUE_NAME.USER_IMAGES_BUILDER,
+        queue: QUEUE_NAME.MESSAGE_IMAGES_BUILDER,
         options: {
           durable: true,
           arguments: {
@@ -34,39 +36,39 @@ export class UserConsumer implements OnModuleInit, OnModuleDestroy {
           },
         },
       },
-      RMQ_CHANNEL.USER_CHANNEL,
+      RMQ_CHANNEL.MESSAGE_CHANNEL,
     );
     await Promise.all([this.consumeImageBuilder()]);
-    await this.rabbitService.startConsuming(RMQ_CHANNEL.USER_CHANNEL);
+    await this.rabbitService.startConsuming(RMQ_CHANNEL.MESSAGE_CHANNEL);
   }
 
   async consumeImageBuilder(): Promise<void> {
-    const hook = async (): Promise<void> => {
+    const hook = async () => {
       this.channel.consume(
-        QUEUE_NAME.USER_IMAGES_BUILDER,
+        QUEUE_NAME.MESSAGE_IMAGES_BUILDER,
         async msg => {
           try {
-            const content: IUserImageBuilder =
+            const content: IMessageImageBuilder =
               this.rabbitService.getContentFromMessage(msg);
-            await this.processEncodeImage(content);
+            await this.updateImages(content);
             await this.channel.ack(msg);
           } catch (error) {
-            await this.rabbitService.reject(msg);
+            await this.rabbitService.reject(
+              msg,
+              true,
+              RMQ_CHANNEL.MESSAGE_CHANNEL,
+            );
           }
         },
         { noAck: false },
       );
     };
-    this.rabbitService.pushToHooks(RMQ_CHANNEL.USER_CHANNEL, hook);
+    this.rabbitService.pushToHooks(RMQ_CHANNEL.MESSAGE_CHANNEL, hook);
   }
 
-  onModuleDestroy() {
-    return;
-    throw new Error('Method not implemented.');
-  }
-
-  async processEncodeImage(msg: IUserImageBuilder): Promise<void> {
+  async updateImages(msg: IMessageImageBuilder) {
     try {
+      const { messageId, images } = msg;
       await Promise.all(
         msg.images.map(async image => {
           if (!image.blur) {
@@ -74,9 +76,9 @@ export class UserConsumer implements OnModuleInit, OnModuleDestroy {
           }
         }),
       );
-      await this.userService.findOneAndUpdate(msg.userId, {
-        images: msg.images,
-      });
-    } catch (error) {}
+      await this.messageService.findOneAndUpdate(messageId, { images });
+    } catch (error) {
+      throw error;
+    }
   }
 }

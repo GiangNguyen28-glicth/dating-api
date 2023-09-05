@@ -17,12 +17,13 @@ export interface IOptionFilterGetOne<T> {
 
 export interface CrudRepo<T> {
   findAll(option?: IOptionFilterGetAll<T>): Promise<T[]>;
-  findOne(filterQuery?: IOptionFilterGetOne<T>, fields?: string[]);
+  findOne(filterQuery?: IOptionFilterGetOne<T>, fields?: string[]): Promise<T>;
   count(filterQuery?: Partial<T>): Promise<number>;
   insert(entity: Partial<T>);
   findOneAndUpdate(id: string, entity: Partial<T>): Promise<T>;
   delete(id: string): Promise<T>;
   insertMany(entities: T[]): Promise<void>;
+  updateMany(ids: string[], entities: Partial<T>): Promise<void>;
   upsert(filterQuery: T, entities: T): Promise<T>;
   save(document): Promise<any>;
   distinct(

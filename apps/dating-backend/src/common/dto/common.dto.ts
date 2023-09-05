@@ -7,14 +7,14 @@ export class PaginationDTO {
   @IsInt()
   @Min(0)
   @Type(() => Number)
-  page: number;
+  page?: number;
 
   @ApiProperty({ type: Number, default: 100, required: false })
   @Max(100)
   @IsInt()
   @Type(() => Number)
   @IsOptional()
-  size: number;
+  size?: number;
 }
 
 export class FilterGetAll extends PaginationDTO {

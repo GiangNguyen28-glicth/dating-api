@@ -12,8 +12,8 @@ export abstract class MongoRepo<T> implements CrudRepo<T> {
     const result = await this.model
       .find(queryFilter)
       .populate(populate)
-      .skip((pagination?.page - 1) * pagination.size)
-      .limit(pagination.size)
+      .skip((pagination?.page - 1) * pagination?.size)
+      .limit(pagination?.size)
       .sort(sortOption)
       .select(fields)
       .lean();
@@ -49,6 +49,10 @@ export abstract class MongoRepo<T> implements CrudRepo<T> {
     return await document.save();
   }
 
+  toJSON(doc: Document): T {
+    return doc.toJSON();
+  }
+
   async findOneAndUpdate(id: string, entity: Partial<T>): Promise<T> {
     return (await this.model.findOneAndUpdate({ _id: id }, entity, {
       lean: true,
@@ -77,6 +81,10 @@ export abstract class MongoRepo<T> implements CrudRepo<T> {
       upsert: true,
       new: true,
     }) as T;
+  }
+
+  async updateMany(ids: string[], entities: Partial<T>): Promise<void> {
+    await this.model.updateMany({ _id: { $in: ids } }, entities);
   }
 
   async updateEntities(entities: Partial<T>): Promise<T | Document> {

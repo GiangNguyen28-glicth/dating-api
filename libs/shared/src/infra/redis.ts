@@ -11,7 +11,7 @@ export class CacheConfigService implements CacheOptionsFactory {
       store: redisStore as any,
       url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
       username: process.env.REDIS_USERNAME,
-      password: process.env.REDIS_PASSWORD,
+      password: 'eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81',
       max: parseInt(process.env.REDIS_MAX_SIZE),
       isGlobal: true,
     };

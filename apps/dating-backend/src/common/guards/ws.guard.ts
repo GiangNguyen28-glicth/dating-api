@@ -6,6 +6,7 @@ import { WsException } from '@nestjs/websockets';
 export class WsGuard extends AuthGuard('ws') {
   getRequest(context: ExecutionContext) {
     const ctx = context.switchToWs().getClient().handshake;
+    console.log(ctx);
     return ctx;
   }
   handleRequest(err: any, user: any, info: any) {
