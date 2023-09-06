@@ -58,21 +58,24 @@ export class ConversationService {
           ],
         }),
       ]);
-      this.getReceiver(results, user._id.toString());
+      this.setReceiver(results, user._id.toString());
       return formatResult(results, totalCount, pagination);
     } catch (error) {
       throw error;
     }
   }
 
-  getReceiver(conversations: Conversation[], user_id: string) {
+  setReceiver(conversations: Conversation[], userId: string) {
     conversations.map(item => {
-      item['user'] =
-        (item.members[0] as User)._id.toString() === user_id
-          ? (item.members[1] as User)
-          : (item.members[0] as User);
+      item['user'] = this.getReceiver(item, userId);
       return item;
     });
+  }
+
+  getReceiver(conversation: Conversation, userId: string): User {
+    return conversation.members[0]._id.toString() === userId
+      ? conversation.members[1]
+      : conversation.members[0];
   }
 
   async findOne(
@@ -83,6 +86,7 @@ export class ConversationService {
       const [queryFilter] = new FilterBuilder<Conversation>()
         .setFilterItem('_id', '$eq', filter?._id)
         .buildQuery();
+
       const conversation = await this.conversationRepo.findOne({
         queryFilter,
         populate: [
@@ -97,10 +101,11 @@ export class ConversationService {
         return conversation;
       }
       const newConversation = this.conversationRepo.docToJSON(conversation);
-      newConversation.user =
-        conversation.members[0]._id.toString() === user._id.toString()
-          ? conversation.members[1]
-          : conversation.members[0];
+      newConversation.user = this.getReceiver(
+        conversation,
+        user._id.toString(),
+      );
+
       return newConversation;
     } catch (error) {
       throw error;

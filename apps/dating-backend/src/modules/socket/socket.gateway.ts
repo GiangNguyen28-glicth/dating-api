@@ -33,9 +33,12 @@ import { SocketService } from './socket.service';
 import { Message } from '@modules/message/entities';
 
 @WebSocketGateway({
-  transport: ['websocket'],
-  allowEIO3: true,
-  cors: '*',
+  cors: {
+    origin: 'http://localhost:3001',
+    methods: ['GET', 'POST'],
+    credentials: true,
+    allowedHeaders: ['accessToken'],
+  },
 })
 @UseFilters(WebsocketExceptionsFilter)
 @UsePipes(new ValidationPipe({ transform: true }))
@@ -88,6 +91,10 @@ export class SocketGateway
     @ConnectedSocket() socket: Socket,
     @CurrentUserWS() user: User,
   ) {
+    console.log(
+      '========================verifyFirstConnection========================',
+      user,
+    );
     try {
       (socket as any).userId = user._id.toString();
       const socketKey = SOCKET + user._id.toString();
@@ -103,18 +110,15 @@ export class SocketGateway
     @MessageBody() data: CreateMessageDto,
     @CurrentUserWS() user: User,
   ): Promise<Message> {
+    console.log('========================sendMessage========================');
+
     try {
       data['sender'] = user._id.toString();
-      const [message, socketIdsSender, socketIdsReceiver] = await Promise.all([
-        this.messageService.create(data, user),
-        this.socketService.getSocketIdsByUser(data['sender']),
-        this.socketService.getSocketIdsByUser(data.receiver),
-      ]);
+      const message = await this.messageService.create(data, user);
+      const socketIdsReceiver = await this.socketService.getSocketIdsByUser(
+        message.receiver._id.toString(),
+      );
       this.sendEventToClient(socketIdsReceiver, 'receiverMessage', message);
-      this.sendEventToClient(socketIdsSender, 'confirmMessage', {
-        message,
-        uuid: data.uuid,
-      });
       return message;
     } catch (error) {
       throw error;

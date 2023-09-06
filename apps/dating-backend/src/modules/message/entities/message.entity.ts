@@ -16,7 +16,7 @@ export class Message implements IEntity {
   sender: User | string;
 
   @Prop({ type: MongoID, ref: User.name })
-  receiver: User | string;
+  receiver: User;
 
   @Prop({ type: MongoID, ref: 'Conversation' })
   conversation: Conversation | string;

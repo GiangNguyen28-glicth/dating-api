@@ -18,34 +18,16 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@modules/": [
-        "apps/dating-backend/src/modules/"
-      ],
-      "@modules/*": [
-        "apps/dating-backend/src/modules/*"
-      ],
-      "@common/": [
-        "apps/dating-backend/src/common/"
-      ],
-      "@common/*": [
-        "apps/dating-backend/src/common/*"
-      ],
-      "@dating/*": [
-        "apps/dating-backend/src/*"
-      ],
-      "@app/shared": [
-        "libs/shared/src"
-      ],
-      "@app/shared/*": [
-        "libs/shared/src/*"
-      ]
+      "@modules/": ["apps/dating-backend/src/modules/"],
+      "@modules/*": ["apps/dating-backend/src/modules/*"],
+      "@common/": ["apps/dating-backend/src/common/"],
+      "@common/*": ["apps/dating-backend/src/common/*"],
+      "@dating/*": ["apps/dating-backend/src/*"],
+      "@app/shared": ["libs/shared/src"],
+      "@app/shared/*": ["libs/shared/src/*"]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    "**/*.d.ts"
-  ],
+  "include": ["**/*.ts", "**/*.tsx", "**/*.d.ts"],
   "exclude": [
     "node_modules",
     "dist",
