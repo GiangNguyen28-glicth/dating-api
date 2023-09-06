@@ -30,6 +30,7 @@ export interface CrudRepo<T> {
     field: string,
     { queryFilter }?: IOptionFilterGetAll<T>,
   ): Promise<any[]>;
+  toJSON(document): T;
 }
 
 export interface IEntity {

@@ -9,11 +9,6 @@ export const CurrentUser = createParamDecorator(
 
 export const CurrentUserWS = createParamDecorator(
   (data: string, context: ExecutionContext) => {
-    console.log(
-      '========================CurrentUserWS========================',
-      context.switchToWs().getClient(),
-    );
-
     const user = context.switchToWs().getClient().handshake.user;
     return user;
   },

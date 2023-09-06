@@ -114,16 +114,11 @@ export class SocketGateway
 
     try {
       data['sender'] = user._id.toString();
-      const [message, socketIdsSender, socketIdsReceiver] = await Promise.all([
-        this.messageService.create(data, user),
-        this.socketService.getSocketIdsByUser(data['sender']),
-        this.socketService.getSocketIdsByUser(data.receiver),
-      ]);
+      const message = await this.messageService.create(data, user);
+      const socketIdsReceiver = await this.socketService.getSocketIdsByUser(
+        message.receiver._id.toString(),
+      );
       this.sendEventToClient(socketIdsReceiver, 'receiverMessage', message);
-      this.sendEventToClient(socketIdsSender, 'confirmMessage', {
-        message,
-        uuid: data.uuid,
-      });
       return message;
     } catch (error) {
       throw error;

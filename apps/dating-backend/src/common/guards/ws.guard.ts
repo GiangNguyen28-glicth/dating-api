@@ -8,12 +8,8 @@ export class WsGuard extends AuthGuard('ws') {
   getRequest(context: ExecutionContext) {
     const ctx = context.switchToWs().getClient().handshake;
     const { accessToken } = parse(ctx.headers.cookie);
-
-    return {
-      headers: {
-        authorization: `Bearer ${accessToken}`,
-      },
-    };
+    ctx.headers['authorization'] = `Bearer ${accessToken}`;
+    return ctx;
   }
   handleRequest(err: any, user: any, info: any) {
     if (err || !user) {

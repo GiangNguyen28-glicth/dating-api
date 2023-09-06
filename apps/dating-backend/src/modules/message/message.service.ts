@@ -54,16 +54,21 @@ export class MessageService implements OnModuleInit {
   async create(messageDto: CreateMessageDto, user: User): Promise<Message> {
     try {
       messageDto['sender'] = user._id.toString();
-      if (messageDto.images.length) {
+      const conversation = await this.conversationService.findOne(
+        { _id: messageDto.conversation },
+        user,
+      );
+
+      if (messageDto.images && messageDto.images.length) {
         messageDto.images = this.transformImages(messageDto.images);
       }
-      const [conversation, message] = await Promise.all([
-        this.conversationService.findOne(
-          { _id: messageDto.conversation },
-          user,
-        ), //1
-        this.messageRepo.insert(messageDto),
-      ]);
+
+      messageDto.receiver = this.conversationService.getReceiver(
+        conversation,
+        messageDto['sender'],
+      );
+
+      const message = await this.messageRepo.insert(messageDto);
       let isFirstMessage = false;
       if (!conversation.lastMessage) {
         isFirstMessage = true;
@@ -73,10 +78,10 @@ export class MessageService implements OnModuleInit {
       }
       conversation.lastMessage = message;
       await Promise.all([
-        this.conversationService.updateModel(conversation), //7
-        this.messageRepo.save(message), //8
+        this.conversationService.updateModel(conversation),
+        this.messageRepo.save(message),
       ]);
-      if (messageDto.images.length) {
+      if (messageDto.images && messageDto.images.length) {
         await this.rabbitService.sendToQueue(
           QUEUE_NAME.MESSAGE_IMAGES_BUILDER,
           {
@@ -85,7 +90,7 @@ export class MessageService implements OnModuleInit {
           },
         );
       }
-      return message;
+      return this.messageRepo.toJSON(message);
     } catch (error) {
       throw error;
     }
