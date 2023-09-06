@@ -32,7 +32,7 @@ import { Server, Socket } from 'socket.io';
 import { SocketService } from './socket.service';
 import { Message } from '@modules/message/entities';
 
-@WebSocketGateway(80, {
+@WebSocketGateway({
   transport: ['websocket'],
   allowEIO3: true,
   cors: '*',
