@@ -10,16 +10,16 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ReportService } from './report.service';
-import { CreateReportDto } from './dto/create-report.dto';
-import { UpdateReportDto } from './dto/update-report.dto';
+import { ApiBody, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+
 import { CurrentUser } from '@common/decorators';
 import { IResponse } from '@common/interfaces';
-import { ApiBody, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { FilterGetAllReportDTO } from './dto/filter-report.dto';
-import { Report } from './entities/report.entity';
 import { AtGuard } from '@common/guards';
-import { User } from '@modules/users/entities/user.entity';
+import { User } from '@modules/users/entities';
+
+import { ReportService } from './report.service';
+import { Report } from './entities/report.entity';
+import { CreateReportDto, FilterGetAllReportDTO, UpdateReportDto } from './dto';
 
 @ApiTags(Report.name)
 @Controller('report')

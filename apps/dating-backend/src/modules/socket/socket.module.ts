@@ -1,9 +1,11 @@
 import { Global, Module, forwardRef } from '@nestjs/common';
-import { SocketService } from './socket.service';
-import { SocketGateway } from './socket.gateway';
-import { WsStrategy } from '@common/strategies/ws.strategies';
+
+import { WsStrategy } from '@common/strategies';
 import { UsersModule } from '@modules/users';
 import { MessageModule } from '@modules/message';
+
+import { SocketService } from './socket.service';
+import { SocketGateway } from './socket.gateway';
 @Global()
 @Module({
   imports: [forwardRef(() => UsersModule), MessageModule],

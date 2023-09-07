@@ -1,10 +1,10 @@
-import { Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Controller, Param, Post, UseGuards } from '@nestjs/common';
+import { CurrentUser } from '@common/decorators';
 import { ApiTags } from '@nestjs/swagger';
 import { AtGuard } from '@common/guards';
-import { User } from '@modules/users/entities/user.entity';
+import { User } from '@modules/users/entities';
 import { ActionService } from './action.service';
 import { Action } from './entites/action.entity';
-import { CurrentUser } from '@common/decorators';
 
 @Controller('action')
 @ApiTags(Action.name)

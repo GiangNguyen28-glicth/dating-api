@@ -1,10 +1,12 @@
-import { CurrentUser } from '@common/decorators';
-import { IResponse, IResult } from '@common/interfaces';
-import { User } from '@modules/users/entities/user.entity';
 import { Controller, Delete, Get, Param, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+
+import { CurrentUser } from '@common/decorators';
+import { IResponse, IResult } from '@common/interfaces';
+import { User } from '@modules/users/entities';
+
 import { BillingService } from './billing.service';
-import { Billing } from './entities/billing.entity';
+import { Billing } from './entities';
 import { FilterGetAllBillingDTO } from './dto';
 
 @ApiTags(Billing.name)

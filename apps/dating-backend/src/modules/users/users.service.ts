@@ -20,9 +20,9 @@ import {
 } from '@dating/utils';
 import { RabbitService } from '@app/shared';
 
-import { CreateUserDTO, FilterGetOneUserDTO } from './dto/user.dto';
-import { User } from './entities/user.entity';
-import { UserHelper } from './helper/user.helper';
+import { CreateUserDTO, FilterGetOneUserDTO } from './dto';
+import { User } from './entities';
+import { UserHelper } from './helper';
 
 @Injectable()
 export class UserService implements OnModuleInit {

@@ -66,7 +66,8 @@ export class MessageService implements OnModuleInit {
       messageDto.receiver = this.conversationService.getReceiver(
         conversation,
         messageDto['sender'],
-      );
+        false,
+      ) as string;
 
       const message = await this.messageRepo.insert(messageDto);
       let isFirstMessage = false;

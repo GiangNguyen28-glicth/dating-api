@@ -6,7 +6,7 @@ import { User } from '@modules/users/entities';
 
 export class CreateMessageDto implements Partial<Message> {
   @ApiProperty()
-  receiver: User;
+  receiver: string;
 
   @ApiPropertyOptional()
   text: string;

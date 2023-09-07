@@ -12,7 +12,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { SmsDTO, VerifyOTPDTO } from './dto/auth.dto';
+import { SmsDTO, VerifyOTPDTO } from './dto';
 import { IToken } from './interfaces';
 
 @ApiTags('Auth')
