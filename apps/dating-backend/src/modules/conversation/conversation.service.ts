@@ -112,6 +112,12 @@ export class ConversationService {
             path: 'members',
             select: EXCLUDE_FIELDS.USER,
           },
+          {
+            path: 'lastMessage',
+          },
+          {
+            path: 'messagePin',
+          },
         ];
       }
       const conversation = await this.conversationRepo.findOne(options);
