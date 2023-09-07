@@ -1,7 +1,8 @@
 # compiled output
 /dist
 /node_modules
-
+/apps/client-service/.env
+/apps/dating-backend/.env
 # Logs
 logs
 *.log

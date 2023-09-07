@@ -1,13 +1,15 @@
 import { ExecutionContext, Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { WsException } from '@nestjs/websockets';
-import { parse } from 'cookie';
 
 @Injectable()
 export class WsGuard extends AuthGuard('ws') {
   getRequest(context: ExecutionContext) {
     const ctx = context.switchToWs().getClient().handshake;
-    const { accessToken } = parse(ctx.headers.cookie);
+    const accessToken = ctx.auth.token;
+    if (!accessToken) {
+      throw new WsException('UnauthorizedException');
+    }
     ctx.headers['authorization'] = `Bearer ${accessToken}`;
     return ctx;
   }

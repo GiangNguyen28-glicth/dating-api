@@ -20,6 +20,9 @@ export class Job implements IEntity {
   })
   status: JobStatus;
 
+  @Prop()
+  totalUpdate?: number;
+
   @Prop({ default: false })
   isDeleted?: boolean;
 

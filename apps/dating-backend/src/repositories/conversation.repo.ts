@@ -1,13 +1,12 @@
-import { InjectModel } from '@nestjs/mongoose';
 import {
   ConversationModelType,
   CrudRepo,
   DATABASE_TYPE,
-  IOptionFilterGetAll,
   PROVIDER_REPO,
 } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
 import { Conversation } from '@modules/conversation/entities/conversation.entity';
+import { InjectModel } from '@nestjs/mongoose';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ConversationRepo extends CrudRepo<Conversation> {

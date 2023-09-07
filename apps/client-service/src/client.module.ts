@@ -16,7 +16,7 @@ import { JobsModule } from './jobs';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: './apps/dating-backend/.env',
+      envFilePath: './apps/client-service/.env',
     }),
     CacheModule.registerAsync<RedisClientOptions>({
       isGlobal: true,

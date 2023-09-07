@@ -34,7 +34,7 @@ import { Message } from '@modules/message/entities';
 
 @WebSocketGateway({
   cors: {
-    origin: 'http://localhost:3001',
+    origin: 'http://localhost:3000',
     methods: ['GET', 'POST'],
     credentials: true,
     allowedHeaders: ['accessToken'],
