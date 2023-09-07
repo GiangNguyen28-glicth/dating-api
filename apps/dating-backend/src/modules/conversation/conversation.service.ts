@@ -1,3 +1,5 @@
+import { Inject, Injectable } from '@nestjs/common';
+
 import {
   DATABASE_TYPE,
   EXCLUDE_FIELDS,
@@ -5,17 +7,17 @@ import {
   PROVIDER_REPO,
 } from '@common/consts';
 import { PaginationDTO } from '@common/dto';
-import { IResult } from '@common/interfaces';
+import { IOptionFilterGetOne, IResult } from '@common/interfaces';
 import { ConversationRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
-import { User } from '@modules/users/entities/user.entity';
-import { Inject, Injectable } from '@nestjs/common';
+import { User } from '@modules/users/entities';
+
+import { Conversation } from './entities';
 import {
+  CreateConversationDto,
   FilterGetAllConversationDTO,
   FilterGetOneConversationDTO,
-} from './dto/conversation.dto';
-import { CreateConversationDto } from './dto/create-conversation.dto';
-import { Conversation } from './entities/conversation.entity';
+} from './dto';
 
 @Injectable()
 export class ConversationService {
@@ -55,6 +57,12 @@ export class ConversationService {
               path: 'members',
               select: EXCLUDE_FIELDS.USER,
             },
+            {
+              path: 'lastMessage',
+            },
+            {
+              path: 'messagePin',
+            },
           ],
         }),
       ]);
@@ -67,13 +75,22 @@ export class ConversationService {
 
   setReceiver(conversations: Conversation[], userId: string) {
     conversations.map(item => {
-      item['user'] = this.getReceiver(item, userId);
+      item['user'] = this.getReceiver(item, userId) as User;
       return item;
     });
   }
 
-  getReceiver(conversation: Conversation, userId: string): User {
-    return conversation.members[0]._id.toString() === userId
+  getReceiver(
+    conversation: Conversation,
+    userId: string,
+    isPopulate?: boolean,
+  ): User | string {
+    if (!isPopulate) {
+      return (conversation.members[0] as User)._id.toString() === userId
+        ? (conversation.members[1] as User)
+        : (conversation.members[0] as User);
+    }
+    return conversation.members[0] === userId
       ? conversation.members[1]
       : conversation.members[0];
   }
@@ -86,25 +103,33 @@ export class ConversationService {
       const [queryFilter] = new FilterBuilder<Conversation>()
         .setFilterItem('_id', '$eq', filter?._id)
         .buildQuery();
-
-      const conversation = await this.conversationRepo.findOne({
+      const options: IOptionFilterGetOne<Conversation> = {
         queryFilter,
-        populate: [
+      };
+      if (filter?.populate) {
+        options.populate = [
           {
             path: 'members',
             select: EXCLUDE_FIELDS.USER,
           },
-        ],
-      });
+          {
+            path: 'lastMessage',
+          },
+          {
+            path: 'messagePin',
+          },
+        ];
+      }
+      const conversation = await this.conversationRepo.findOne(options);
       throwIfNotExists(conversation, 'Conversation not found');
       if (!filter?.toJSON) {
         return conversation;
       }
-      const newConversation = this.conversationRepo.docToJSON(conversation);
+      const newConversation = this.conversationRepo.toJSON(conversation);
       newConversation.user = this.getReceiver(
         conversation,
         user._id.toString(),
-      );
+      ) as User;
 
       return newConversation;
     } catch (error) {

@@ -1,6 +1,6 @@
 import { FilterGetAll, FilterGetOne } from '@common/dto';
 import { ApiProperty } from '@nestjs/swagger';
-import { Conversation } from '../entities/conversation.entity';
+import { Conversation } from '../entities';
 import { User } from '@modules/users/entities';
 
 export class FilterGetAllConversationDTO extends FilterGetAll {
@@ -14,4 +14,5 @@ export class FilterGetOneConversationDTO
 {
   members?: User[];
   toJSON?: boolean;
+  populate?: boolean;
 }

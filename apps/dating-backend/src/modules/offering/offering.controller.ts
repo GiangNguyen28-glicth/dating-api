@@ -9,12 +9,13 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { OfferingService } from './offering.service';
-import { CreateOfferingDto } from './dto/create-offering.dto';
-import { UpdateOfferingDto } from './dto/update-offering.dto';
-import { Offering } from './entities/offering.entity';
+
 import { IResponse, IResult } from '@common/interfaces';
 import { PaginationDTO } from '@common/dto';
+
+import { OfferingService } from './offering.service';
+import { Offering } from './entities';
+import { CreateOfferingDto, UpdateOfferingDto } from './dto';
 
 @ApiTags(Offering.name)
 @Controller('offering')

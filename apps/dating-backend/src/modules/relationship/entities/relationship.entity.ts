@@ -1,7 +1,8 @@
-import { RelationshipModeType, RelationshipType } from '@common/consts';
-import { IEntity } from '@common/interfaces';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
+
+import { RelationshipModeType, RelationshipType } from '@common/consts';
+import { IEntity } from '@common/interfaces';
 
 @Schema({ timestamps: true })
 export class Relationship implements IEntity {

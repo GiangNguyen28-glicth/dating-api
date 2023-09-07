@@ -9,13 +9,14 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
-import { RelationshipService } from './relationship.service';
-import { CreateRelationshipDTO } from './dto/create-relationship.dto';
-import { UpdateRelationshipDto } from './dto/update-relationship.dto';
+
 import { IResponse, IResult } from '@common/interfaces';
 import { Relationship } from './entities/relationship.entity';
 import { PaginationDTO } from '@common/dto';
 import { RelationshipType } from '@common/consts';
+
+import { RelationshipService } from './relationship.service';
+import { CreateRelationshipDTO, UpdateRelationshipDto } from './dto';
 
 @ApiTags(Relationship.name)
 @Controller('relationship')

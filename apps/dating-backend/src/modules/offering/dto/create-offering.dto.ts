@@ -1,18 +1,19 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNumber } from 'class-validator';
+
 import {
   Currency,
   LimitType,
   OfferingType,
   RefreshIntervalUnit,
 } from '@common/consts';
+
 import {
   Merchandising,
   MerchandisingItem,
   Offering,
   Package,
-} from '../entities/offering.entity';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber } from 'class-validator';
-
+} from '../entities';
 export class PackageDTO implements Package {
   @ApiProperty({ default: 12 })
   @IsNumber()

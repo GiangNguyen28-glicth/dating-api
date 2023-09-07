@@ -1,5 +1,5 @@
-import { IJwtPayload } from '@modules/auth/interfaces/jwt.payload';
-import { User } from '@modules/users/entities/user.entity';
+import { IJwtPayload } from '@modules/auth';
+import { User } from '@modules/users/entities';
 import { UserService } from '@modules/users/users.service';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';

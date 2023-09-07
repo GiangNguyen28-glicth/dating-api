@@ -1,7 +1,3 @@
-import { CurrentUser } from '@common/decorators';
-import { AtGuard } from '@common/guards';
-import { IResponse, IResult } from '@common/interfaces';
-import { User } from '@modules/users/entities';
 import {
   Body,
   Controller,
@@ -13,13 +9,19 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+
+import { CurrentUser } from '@common/decorators';
+import { AtGuard } from '@common/guards';
+import { IResponse, IResult } from '@common/interfaces';
+import { User } from '@modules/users/entities';
+
 import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 import {
   CreateMessageDto,
   FilterGetAllMessageDTO,
   UpdateMessageDto,
 } from './dto';
-import { Message } from './entities/message.entity';
+import { Message } from './entities';
 import { MessageService } from './message.service';
 
 @ApiTags(Message.name)

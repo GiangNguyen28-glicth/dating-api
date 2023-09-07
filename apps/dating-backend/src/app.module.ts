@@ -20,13 +20,13 @@ import {
   ReportModule,
   SocketModule,
   TagModule,
-  UsersModule,
 } from './modules';
 import {
   CacheConfigService,
   MongooseConfigService,
   RabbitModule,
 } from '@app/shared';
+import { UsersModule } from '@modules/users/users.module';
 
 @Module({
   imports: [

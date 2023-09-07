@@ -9,11 +9,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
-import { ConversationService } from './conversation.service';
-import { FilterGetAllConversationDTO } from './dto/conversation.dto';
-import { CreateConversationDto } from './dto/create-conversation.dto';
+
 import { User } from '@modules/users/entities';
-import { Conversation } from './entities/conversation.entity';
+
+import { ConversationService } from './conversation.service';
+import { Conversation } from './entities';
+import { CreateConversationDto, FilterGetAllConversationDTO } from './dto';
 
 @ApiTags(Conversation.name)
 @ApiBearerAuth()
@@ -41,7 +42,7 @@ export class ConversationController {
     @CurrentUser() user: User,
   ): Promise<Conversation> {
     return await this.conversationService.findOne(
-      { _id: id, toJSON: true },
+      { _id: id, toJSON: true, populate: true },
       user,
     );
   }

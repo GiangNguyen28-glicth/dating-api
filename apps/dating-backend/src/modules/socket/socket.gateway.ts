@@ -116,7 +116,7 @@ export class SocketGateway
       data['sender'] = user._id.toString();
       const message = await this.messageService.create(data, user);
       const socketIdsReceiver = await this.socketService.getSocketIdsByUser(
-        message.receiver._id.toString(),
+        message.receiver as string,
       );
       this.sendEventToClient(socketIdsReceiver, 'receiverMessage', message);
       return message;
