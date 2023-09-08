@@ -1,5 +1,5 @@
 import { FilterGetOne } from '@common/dto';
-import { Action } from '../entites/action.entity';
+import { Action } from '../entities/action.entity';
 
 export class FilterGetOneActionDTO
   extends FilterGetOne

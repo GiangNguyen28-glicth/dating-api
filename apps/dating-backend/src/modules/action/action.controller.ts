@@ -4,7 +4,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { AtGuard } from '@common/guards';
 import { User } from '@modules/users/entities';
 import { ActionService } from './action.service';
-import { Action } from './entites/action.entity';
+import { Action } from './entities/action.entity';
 
 @Controller('action')
 @ApiTags(Action.name)

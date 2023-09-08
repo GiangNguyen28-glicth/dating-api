@@ -1,14 +1,14 @@
-import { Action } from '@modules/action/entites/action.entity';
-import { Report } from '@modules/report/entities/report.entity';
-import { Billing } from '@modules/billing/entities/billing.entity';
-import { Offering } from '@modules/offering/entities/offering.entity';
-import { MatchRequest } from '@modules/match-request/entities/match-request.entity';
 import { Model, SortOrder } from 'mongoose';
-import { Tag } from '@modules/tag/entities/tag.entity';
-import { User } from '@modules/users/entities/user.entity';
-import { Conversation } from '@modules/conversation/entities/conversation.entity';
-import { Message } from '@modules/message/entities/message.entity';
-import { Relationship } from '@modules/relationship/entities/relationship.entity';
+import { Action } from '@modules/action/entities';
+import { Report } from '@modules/report/entities';
+import { Billing } from '@modules/billing/entities';
+import { Offering } from '@modules/offering/entities/';
+import { MatchRequest } from '@modules/match-request/entities';
+import { Tag } from '@modules/tag/entities';
+import { User } from '@modules/users/entities';
+import { Conversation } from '@modules/conversation/entities';
+import { Message } from '@modules/message/entities';
+import { Relationship } from '@modules/relationship/entities';
 
 export type SortQuery = { [key: string]: SortOrder };
 export type TagModelType = Model<Tag>;

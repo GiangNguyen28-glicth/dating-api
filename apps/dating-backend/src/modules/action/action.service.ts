@@ -8,7 +8,7 @@ import { SocketGateway } from '@modules/socket/socket.gateway';
 import { User } from '@modules/users/entities';
 
 import { FilterGetOneActionDTO } from './dto/action.dto';
-import { Action } from './entites/action.entity';
+import { Action } from './entities/action.entity';
 import { MatchRequestService } from '@modules/match-request/match-request.service';
 import { ConversationService } from '@modules/conversation/conversation.service';
 import { UserService } from '@modules/users/users.service';

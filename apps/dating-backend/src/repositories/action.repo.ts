@@ -6,7 +6,7 @@ import {
   PROVIDER_REPO,
 } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
-import { Action } from '@modules/action/entites/action.entity';
+import { Action } from '@modules/action/entities/action.entity';
 import { User } from '@modules/users/entities/user.entity';
 import { InjectModel } from '@nestjs/mongoose';
 
