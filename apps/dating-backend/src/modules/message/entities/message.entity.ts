@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
 
-import { IEntity, MessageType, MongoID } from '@dating/common';
+import { IEntity, MessageStatus, MessageType, MongoID } from '@dating/common';
 import { Conversation } from '@modules/conversation/entities';
 import { User, Image } from '@modules/users/entities';
 @Schema({ timestamps: true })
@@ -24,6 +24,16 @@ export class Message implements IEntity {
   @Prop({ type: String, trim: true, enum: Object.values(MessageType) })
   type: MessageType;
 
+  @Prop({
+    type: String,
+    enum: Object.values(MessageStatus),
+    default: MessageStatus.SENT,
+  })
+  status: MessageStatus;
+
+  @Prop({ type: Date })
+  seenAt: Date;
+
   @Prop([{ type: Image, default: [] }])
   images: Image[];
 
@@ -38,4 +48,4 @@ export class Message implements IEntity {
   updatedAt: Date;
 }
 export const MessageSchema = SchemaFactory.createForClass(Message);
-MessageSchema.index({ conversion: 1, cursor: 1 });
+MessageSchema.index({ conversation: 1, cursor: 1, status: 1 });

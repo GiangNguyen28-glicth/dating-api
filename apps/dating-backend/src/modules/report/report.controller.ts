@@ -44,8 +44,7 @@ export class ReportController {
   }
 
   @Get()
-  @ApiQuery({ type: FilterGetAllReportDTO })
-  findAll(@Query() filter: FilterGetAllReportDTO) {
+  async findAll(@Query() filter: FilterGetAllReportDTO) {
     return this.reportService.findAll(filter);
   }
 

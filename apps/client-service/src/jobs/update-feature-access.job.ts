@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { CronJob } from 'cron';
-import { InjectModel } from '@nestjs/mongoose';
 
-import { IJob } from './interfaces';
-import { Job, JobModelType } from './entities/job.entity';
 import { JobStatus } from '@common/consts';
-import { BuilderService, PullerService, UpdaterService } from './processors';
+import { Job } from './entities/job.entity';
 import { JobsService } from './jobs.service';
+import { BuilderService, PullerService, UpdaterService } from './processors';
 
 const UPDATE_USER_FEATURE_ACCESS = 'UPDATE_USER_FEATURE_ACCESS';
 const UPDATE_BATCH_SIZE = 500;
@@ -14,16 +12,16 @@ const UPDATE_BATCH_SIZE = 500;
 export class UpdateFeatureAccessJob {
   private cronJob: CronJob;
   constructor(
-    @InjectModel(Job.name) private jobModel: JobModelType,
     private pullerService: PullerService,
     private builderService: BuilderService,
     private updaterService: UpdaterService,
     private jobService: JobsService,
   ) {
     this.cronJob = new CronJob(
-      '0 47 9 * * *',
-      () => {
+      '14 20 * * *',
+      async () => {
         console.log('Hello world');
+        await this.process();
         // your code to run every 12PM
       },
       null,
@@ -34,13 +32,14 @@ export class UpdateFeatureAccessJob {
   }
 
   async process(): Promise<void> {
+    const job: Job = {
+      name: UPDATE_USER_FEATURE_ACCESS,
+      status: JobStatus.TODO,
+    };
+    const jobDoc = await this.jobService.createJob(job);
     try {
-      const job: Job = {
-        name: UPDATE_USER_FEATURE_ACCESS,
-        status: JobStatus.TODO,
-      };
-      const jobDoc = await this.jobService.createJob(job);
       const users = await this.pullerService.getAllUserToUpdateFT();
+      jobDoc.totalUpdate = users.length;
       while (users.length) {
         const batchUsers = users.splice(0, UPDATE_BATCH_SIZE);
         const updateMany =
@@ -54,15 +53,17 @@ export class UpdateFeatureAccessJob {
       jobDoc.status = JobStatus.DONE;
       await this.jobService.save(jobDoc);
     } catch (error) {
+      jobDoc.status = JobStatus.ERROR;
+      await this.jobService.save(jobDoc);
       throw error;
     }
   }
 
-  start() {
+  async start() {
     this.cronJob.start();
   }
 
-  stop() {
+  async stop() {
     this.cronJob.stop();
   }
 }

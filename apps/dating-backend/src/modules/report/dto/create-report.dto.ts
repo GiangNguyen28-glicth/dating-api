@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Report } from '../entities/report.entity';
+import { User } from '@modules/users/entities';
 export class CreateReportDto implements Partial<Report> {
   @ApiProperty()
   reason?: string;
@@ -8,5 +9,5 @@ export class CreateReportDto implements Partial<Report> {
   description?: string;
 
   @ApiProperty()
-  userIsReported?: string;
+  reportedUser?: User;
 }

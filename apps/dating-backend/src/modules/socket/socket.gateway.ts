@@ -5,7 +5,7 @@ import {
   WebsocketExceptionsFilter,
   WsGuard,
 } from '@dating/common';
-import { CreateMessageDto } from '@modules/message/dto';
+import { CreateMessageDto, SeenMessage } from '@modules/message/dto';
 import { MessageService } from '@modules/message/message.service';
 import { User } from '@modules/users/entities';
 import { UserService } from '@modules/users/users.service';
@@ -34,7 +34,7 @@ import { Message } from '@modules/message/entities';
 
 @WebSocketGateway({
   cors: {
-    origin: 'http://localhost:3000',
+    origin: ['http://localhost:3000', 'http://localhost:3001'],
     methods: ['GET', 'POST'],
     credentials: true,
     allowedHeaders: ['accessToken'],
@@ -71,11 +71,13 @@ export class SocketGateway
   @UseGuards(WsGuard)
   async handleDisconnect(@ConnectedSocket() socket: Socket) {
     try {
-      return;
       const userId = socket['userId'];
       const socketKey = SOCKET + userId;
       await this.redisClient.srem(socketKey, socket.id);
       const socketIds = await this.socketService.getSocketIdsByUser(userId);
+      console.log(
+        '========================Disconnection========================',
+      );
       if (!socketIds.length) {
         await this.userService.findOneAndUpdate(userId, { onlineNow: false });
         return;
@@ -93,7 +95,6 @@ export class SocketGateway
   ) {
     console.log(
       '========================verifyFirstConnection========================',
-      user,
     );
     try {
       (socket as any).userId = user._id.toString();
@@ -123,6 +124,16 @@ export class SocketGateway
     } catch (error) {
       throw error;
     }
+  }
+
+  @SubscribeMessage('seenMessage')
+  // @UseGuards(WsGuard)
+  async seenMessage(
+    @MessageBody() data: SeenMessage,
+    // @CurrentUserWS() user: User,
+  ) {
+    console.log('========================seenMessage========================');
+    await this.messageService.seenMessage(data);
   }
 
   sendEventToClient(socketIds: string[], eventName: string, data) {
