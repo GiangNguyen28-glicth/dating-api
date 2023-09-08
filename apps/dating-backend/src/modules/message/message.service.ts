@@ -61,10 +61,6 @@ export class MessageService implements OnModuleInit {
         user,
       );
 
-      // if (messageDto.images && messageDto.images.length) {
-      //   messageDto.images = this.transformImages(messageDto.images);
-      // }
-
       messageDto.receiver = this.conversationService.getReceiver(
         conversation,
         messageDto['sender'],
@@ -105,7 +101,7 @@ export class MessageService implements OnModuleInit {
       const [queryFilter, sortOption] = new FilterBuilder<Message>()
         .setFilterItem('conversation', '$eq', filter?.conversation)
         .setFilterItem('cursor', '$gte', cursor, true)
-        .setSortItem('createdAt', 'desc')
+        .setSortItem('createdAt', 'asc')
         .buildQuery();
       const [results, totalCount] = await Promise.all([
         this.messageRepo.findAll({ queryFilter, sortOption }),
