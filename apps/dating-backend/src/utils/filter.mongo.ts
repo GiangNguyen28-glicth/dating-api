@@ -1,7 +1,7 @@
 import { SortOrder } from 'mongoose';
 import { transformTextSearch } from './utils';
 import { MongoQuery, SortQuery } from '@dating/common';
-
+import { isNil } from 'lodash';
 export class FilterBuilder<T> {
   private queryFilter: any = {
     $and: [],

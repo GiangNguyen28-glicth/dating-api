@@ -38,7 +38,7 @@ export class BillingService {
       const [queryFilter] = new FilterBuilder<Billing>()
         .setFilterItem('createdBy', '$eq', user?._id)
         .setFilterItem('isDeleted', '$eq', false, true)
-        .setFilterItem('expiredDate', '$gte', filter?.expiredDate)
+        .setFilterItem('expiredDate', '$lte', filter?.expiredDate)
         .setFilterItem('status', '$eq', filter?.status)
         .setSortItem('createdAt', 'desc')
         .buildQuery();

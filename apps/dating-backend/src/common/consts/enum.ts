@@ -42,6 +42,11 @@ export enum BillingStatus {
   ERROR = 'Error',
 }
 
+export enum BillingProcess {
+  INPROGRESS = 'Inprogress',
+  EXPIRED = 'Expired',
+}
+
 export enum RefreshIntervalUnit {
   DAY = 'Day',
   WEEK = 'Week',

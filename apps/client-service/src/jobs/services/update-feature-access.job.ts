@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { CronJob } from 'cron';
 
 import { JobStatus } from '@common/consts';
-import { Job } from './entities/job.entity';
-import { JobsService } from './jobs.service';
-import { BuilderService, PullerService, UpdaterService } from './processors';
+import { Job } from '../entities/job.entity';
+import { JobsService } from '../jobs.service';
+import { BuilderService, PullerService, UpdaterService } from '../processors';
 
 const UPDATE_USER_FEATURE_ACCESS = 'UPDATE_USER_FEATURE_ACCESS';
 const UPDATE_BATCH_SIZE = 500;
@@ -55,7 +55,7 @@ export class UpdateFeatureAccessJob {
     } catch (error) {
       jobDoc.status = JobStatus.ERROR;
       await this.jobService.save(jobDoc);
-      throw error;
+      return;
     }
   }
 

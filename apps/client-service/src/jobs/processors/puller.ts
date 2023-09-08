@@ -6,8 +6,13 @@ import { UserService } from '@modules/users';
 import { User } from '@modules/users/entities';
 import { BillingService } from '@modules/billing';
 import { Billing } from '@modules/billing/entities';
-import { BillingStatus, DEFAULT_LIKES_REMAINING } from '@common/consts';
+import {
+  BillingProcess,
+  BillingStatus,
+  DEFAULT_LIKES_REMAINING,
+} from '@common/consts';
 import { Job, JobModelType } from '../entities/job.entity';
+import { IOptionFilterGetAll } from '@common/interfaces';
 
 @Injectable()
 export class PullerService {
@@ -21,8 +26,13 @@ export class PullerService {
     const data = await this.billingService.findAll({
       expiredDate: new Date(),
       status: BillingStatus.SUCCESS,
+      process: BillingProcess.INPROGRESS,
     });
     return data.results;
+  }
+
+  async getAllUser(option?: IOptionFilterGetAll<User>): Promise<User[]> {
+    return await this.userService.findAll(option);
   }
 
   async getAllUserToUpdateFT(): Promise<User[]> {

@@ -101,13 +101,13 @@ export class MessageService implements OnModuleInit {
   async findAll(filter: FilterGetAllMessageDTO): Promise<IResult<Message>> {
     try {
       const cursor = (filter.page - 1) * filter.size;
-      const [queryFilter] = new FilterBuilder<Message>()
+      const [queryFilter, sortOption] = new FilterBuilder<Message>()
         .setFilterItem('conversation', '$eq', filter?.conversation)
-        .setFilterItem('cursor', '$gte', cursor)
+        .setFilterItem('cursor', '$gte', cursor, true)
         .setSortItem('createdAt', 'desc')
         .buildQuery();
       const [results, totalCount] = await Promise.all([
-        this.messageRepo.findAll({ queryFilter }),
+        this.messageRepo.findAll({ queryFilter, sortOption }),
         this.messageRepo.count(queryFilter),
       ]);
       return formatResult(results, totalCount, {

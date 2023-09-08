@@ -1,7 +1,7 @@
 import { FilterGetAll, FilterGetOne } from '@common/dto';
 import { Billing } from '../entities';
-import { BillingStatus } from '@common/index';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { BillingProcess, BillingStatus } from '@common/consts';
 
 export class FilterGetOneBillingDTO
   extends FilterGetOne
@@ -16,4 +16,7 @@ export class FilterGetAllBillingDTO
 
   @ApiPropertyOptional()
   status?: BillingStatus;
+
+  @ApiPropertyOptional()
+  process?: BillingProcess;
 }

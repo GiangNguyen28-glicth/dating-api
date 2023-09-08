@@ -7,8 +7,8 @@ import {
   RelationshipModeType,
   Role,
 } from '@dating/common';
-import { Relationship } from '@modules/relationship/entities/relationship.entity';
-import { Tag } from '@modules/tag/entities/tag.entity';
+import { Relationship } from '@modules/relationship/entities';
+import { Tag } from '@modules/tag/entities';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
 
