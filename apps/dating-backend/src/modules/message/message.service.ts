@@ -13,10 +13,11 @@ import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
 import { ConversationService } from '@modules/conversation/conversation.service';
 import { Image, User } from '@modules/users/entities';
 
-import { Message } from './entities/message.entity';
+import { Message } from './entities';
 import {
   CreateMessageDto,
   FilterGetAllMessageDTO,
+  SeenMessage,
   UpdateMessageDto,
 } from './dto';
 import { RabbitService } from '@app/shared';
@@ -133,11 +134,23 @@ export class MessageService implements OnModuleInit {
     return message;
   }
 
+  async seenMessage(seenMessage: SeenMessage): Promise<void> {
+    try {
+      const temp = await this.messageRepo.seenMessage(seenMessage);
+      console.log(temp);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async remove(_id: string): Promise<IResponse> {
     try {
       const message = await this.messageRepo.findOneAndUpdate(_id, {
         isDeleted: true,
       });
+      if (!message) {
+        throwIfNotExists(message, 'Message không tông tại');
+      }
       return {
         success: true,
         message: 'Xóa tin nhắn thành công',

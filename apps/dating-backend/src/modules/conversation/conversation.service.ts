@@ -106,19 +106,16 @@ export class ConversationService {
       const options: IOptionFilterGetOne<Conversation> = {
         queryFilter,
       };
+      options.populate = [
+        {
+          path: 'lastMessage',
+        },
+      ];
       if (filter?.populate) {
-        options.populate = [
-          {
-            path: 'members',
-            select: EXCLUDE_FIELDS.USER,
-          },
-          {
-            path: 'lastMessage',
-          },
-          {
-            path: 'messagePin',
-          },
-        ];
+        options.populate.push({
+          path: 'members',
+          select: EXCLUDE_FIELDS.USER,
+        });
       }
       const conversation = await this.conversationRepo.findOne(options);
       throwIfNotExists(conversation, 'Conversation not found');

@@ -31,6 +31,11 @@ export enum MessageType {
   IMAGE = 'Image',
 }
 
+export enum MessageStatus {
+  SEEN = 'Seen',
+  SENT = 'Sent',
+}
+
 export enum BillingStatus {
   SUCCESS = 'Success',
   INPROGRESS = 'Inprogress',

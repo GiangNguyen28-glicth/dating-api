@@ -1,14 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ReportRepo } from '@dating/repositories';
 import { DATABASE_TYPE, PROVIDER_REPO } from '@common/consts';
-import { CreateReportDto } from './dto/create-report.dto';
-import { UpdateReportDto } from './dto/update-report.dto';
 import { IResult } from '@common/interfaces';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
-import { Report } from './entities/report.entity';
 import { PaginationDTO } from '@common/dto';
-import { FilterGetAllReportDTO } from './dto/filter-report.dto';
-import { User } from '@modules/users/entities/user.entity';
+import { User } from '@modules/users/entities';
+
+import { CreateReportDto, FilterGetAllReportDTO, UpdateReportDto } from './dto';
+import { Report } from './entities';
 @Injectable()
 export class ReportService {
   constructor(
@@ -55,7 +54,7 @@ export class ReportService {
             select: basicFieldsPopulate.join(' '),
           },
           {
-            path: 'userIsReported',
+            path: 'reportedUser',
             select: basicFieldsPopulate.join(' '),
           },
         ],

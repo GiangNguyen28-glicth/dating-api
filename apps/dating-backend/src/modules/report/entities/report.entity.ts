@@ -10,10 +10,10 @@ export class Report implements IEntity {
   _id?: string;
 
   @Prop({ type: MongoID, ref: User.name })
-  userIsReported: User | string;
+  reportedUser: User;
 
   @Prop({ type: MongoID, ref: User.name })
-  reportBy: User | string;
+  reportBy: User;
 
   @Prop({ trim: true })
   reason: string;
