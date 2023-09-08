@@ -53,6 +53,7 @@ export class MessageService implements OnModuleInit {
   }
 
   async create(messageDto: CreateMessageDto, user: User): Promise<Message> {
+    delete messageDto['status'];
     try {
       messageDto['sender'] = user._id.toString();
       const conversation = await this.conversationService.findOne(
@@ -60,9 +61,9 @@ export class MessageService implements OnModuleInit {
         user,
       );
 
-      if (messageDto.images && messageDto.images.length) {
-        messageDto.images = this.transformImages(messageDto.images);
-      }
+      // if (messageDto.images && messageDto.images.length) {
+      //   messageDto.images = this.transformImages(messageDto.images);
+      // }
 
       messageDto.receiver = this.conversationService.getReceiver(
         conversation,
