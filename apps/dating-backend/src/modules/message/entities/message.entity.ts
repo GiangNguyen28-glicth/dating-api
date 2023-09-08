@@ -34,7 +34,7 @@ export class Message implements IEntity {
   @Prop({ type: Date })
   seenAt: Date;
 
-  @Prop([{ type: Image, default: [] }])
+  @Prop([{ type: Image }])
   images: Image[];
 
   @Prop({ type: Number })

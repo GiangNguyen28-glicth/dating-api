@@ -110,8 +110,15 @@ export class SocketGateway
   async sendMessage(
     @MessageBody() data: CreateMessageDto,
     @CurrentUserWS() user: User,
-  ): Promise<Message> {
-    console.log('========================sendMessage========================');
+  ): Promise<
+    Message & {
+      uuid: string;
+    }
+  > {
+    console.log(
+      '========================sendMessage========================',
+      data,
+    );
 
     try {
       data['sender'] = user._id.toString();
@@ -120,7 +127,10 @@ export class SocketGateway
         message.receiver as string,
       );
       this.sendEventToClient(socketIdsReceiver, 'receiverMessage', message);
-      return message;
+      return {
+        ...message,
+        uuid: data.uuid,
+      };
     } catch (error) {
       throw error;
     }
