@@ -71,13 +71,13 @@ export class MessageService implements OnModuleInit {
       let isFirstMessage = false;
       if (!conversation.lastMessage) {
         isFirstMessage = true;
-        message['cursor'] = 1;
+        // message['cursor'] = 1;
       } else {
-        message.cursor = conversation.lastMessage.cursor + 1;
+        // message.cursor = conversation.lastMessage.cursor + 1;
       }
       conversation.lastMessage = message;
       await Promise.all([
-        this.conversationService.updateModel(conversation),
+        // this.conversationService.updateModel(),
         this.messageRepo.save(message),
       ]);
       if (messageDto.images && messageDto.images.length) {
