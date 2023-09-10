@@ -34,7 +34,11 @@ import { Message } from '@modules/message/entities';
 
 @WebSocketGateway({
   cors: {
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'https://420d-2a09-bac5-d46b-e6-00-17-230.ngrok-free.app',
+    ],
     methods: ['GET', 'POST'],
     credentials: true,
     allowedHeaders: ['accessToken'],
@@ -108,6 +112,7 @@ export class SocketGateway
   @SubscribeMessage('sendMessage')
   @UseGuards(WsGuard)
   async sendMessage(
+    @ConnectedSocket() client: Socket,
     @MessageBody() data: CreateMessageDto,
     @CurrentUserWS() user: User,
   ): Promise<
@@ -118,13 +123,23 @@ export class SocketGateway
     console.log(
       '========================sendMessage========================',
       data,
+      client,
     );
 
     try {
       data['sender'] = user._id.toString();
       const message = await this.messageService.create(data, user);
-      const socketIdsReceiver = await this.socketService.getSocketIdsByUser(
-        message.receiver as string,
+
+      const [socketIdsSender, socketIdsReceiver] = await Promise.all([
+        this.socketService.getSocketIdsByUser(message.sender as string),
+        this.socketService.getSocketIdsByUser(message.receiver as string),
+      ]);
+
+      // This event emit to all tab of user sent the message in order to those tabs update new message
+      this.sendEventToClient(
+        socketIdsSender.filter(id => id !== client.id),
+        'sentMessage',
+        message,
       );
       this.sendEventToClient(socketIdsReceiver, 'receiverMessage', message);
       return {
@@ -144,6 +159,10 @@ export class SocketGateway
   ) {
     console.log('========================seenMessage========================');
     await this.messageService.seenMessage(data);
+    const socketIds = await this.socketService.getSocketIdsByUser(data.sender);
+
+    this.sendEventToClient(socketIds, 'seenMessage', data);
+    return data;
   }
 
   sendEventToClient(socketIds: string[], eventName: string, data) {

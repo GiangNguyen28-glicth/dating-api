@@ -26,4 +26,6 @@ export class CreateMessageDto implements Partial<Message> {
 export class SeenMessage {
   conversation: string;
   seenAt: Date;
+  messageID: string;
+  sender: string;
 }
