@@ -16,8 +16,8 @@ export interface IOptionFilterGetOne<T> {
 }
 
 export interface CrudRepo<T> {
-  findAll(option?: IOptionFilterGetAll<T>): Promise<T[]>;
   findOne(filterQuery?: IOptionFilterGetOne<T>, fields?: string[]): Promise<T>;
+  findAll(option?: IOptionFilterGetAll<T>): Promise<T[]>;
   count(filterQuery?: Partial<T>): Promise<number>;
   insert(entity: Partial<T>);
   findOneAndUpdate(id: string, entity: Partial<T>): Promise<T>;

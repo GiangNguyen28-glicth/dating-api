@@ -7,7 +7,7 @@ import {
 } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
 import { SeenMessage } from '@modules/message/dto';
-import { Message } from '@modules/message/entities/message.entity';
+import { Message } from '@modules/message/entities';
 import { InjectModel } from '@nestjs/mongoose';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface

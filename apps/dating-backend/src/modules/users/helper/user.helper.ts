@@ -107,6 +107,7 @@ export class UserHelper {
         },
         spherical: true,
         distanceField: 'calcDistance',
+        maxDistance: user.setting.discovery.distance * 1000,
         query: filter,
       },
     };

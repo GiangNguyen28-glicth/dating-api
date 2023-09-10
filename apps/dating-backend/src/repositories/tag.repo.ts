@@ -5,7 +5,7 @@ import {
   TagModelType,
 } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
-import { Tag } from '@modules/tag/entities/tag.entity';
+import { Tag } from '@modules/tag/entities';
 import { InjectModel } from '@nestjs/mongoose';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
