@@ -219,18 +219,15 @@ export class User implements IEntity {
   @Prop([{ type: Image, default: [] }])
   images: Image[];
 
-  @Prop([{ type: MongoID, ref: Tag.name, autopopulate: { maxDepth: 1 } }])
-  tags: Tag[] | string[];
+  @Prop([{ type: MongoID, ref: Tag.name }])
+  tags: Tag[];
 
-  @Prop([
-    { type: MongoID, ref: Relationship.name, autopopulate: { maxDepth: 1 } },
-  ])
-  relationship: Relationship[];
+  @Prop([{ type: MongoID, ref: Relationship.name }])
+  relationships: Relationship[];
 
   @Prop({
     type: MongoID,
     ref: Relationship.name,
-    autopopulate: { maxDepth: 1 },
   })
   relationshipStatus: Relationship;
 

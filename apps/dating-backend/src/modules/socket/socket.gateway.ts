@@ -26,6 +26,7 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  WsException,
 } from '@nestjs/websockets';
 import Redis from 'ioredis';
 import { Server, Socket } from 'socket.io';
@@ -37,7 +38,7 @@ import { Message } from '@modules/message/entities';
     origin: [
       'http://localhost:3000',
       'http://localhost:3001',
-      'https://420d-2a09-bac5-d46b-e6-00-17-230.ngrok-free.app',
+      'https://0684-2a09-bac5-d46e-18c8-00-278-66.ngrok-free.app',
     ],
     methods: ['GET', 'POST'],
     credentials: true,
@@ -87,7 +88,7 @@ export class SocketGateway
         return;
       }
     } catch (error) {
-      throw error;
+      throw new WsException(error.message);
     }
   }
 
@@ -120,16 +121,10 @@ export class SocketGateway
       uuid: string;
     }
   > {
-    console.log(
-      '========================sendMessage========================',
-      data,
-      client,
-    );
+    console.log('========================sendMessage========================');
 
     try {
-      data['sender'] = user._id.toString();
       const message = await this.messageService.create(data, user);
-
       const [socketIdsSender, socketIdsReceiver] = await Promise.all([
         this.socketService.getSocketIdsByUser(message.sender as string),
         this.socketService.getSocketIdsByUser(message.receiver as string),
@@ -141,7 +136,7 @@ export class SocketGateway
         'sentMessage',
         message,
       );
-      this.sendEventToClient(socketIdsReceiver, 'receiverMessage', message);
+      this.sendEventToClient(socketIdsReceiver, 'newMessage', message);
       return {
         ...message,
         uuid: data.uuid,
@@ -152,7 +147,7 @@ export class SocketGateway
   }
 
   @SubscribeMessage('seenMessage')
-  // @UseGuards(WsGuard)
+  @UseGuards(WsGuard)
   async seenMessage(
     @MessageBody() data: SeenMessage,
     // @CurrentUserWS() user: User,

@@ -9,7 +9,7 @@ export class Conversation implements IEntity {
   @Transform(({ value }) => value.toString())
   _id: string;
 
-  @Prop({ type: MongoID, ref: Message.name })
+  @Prop({ type: MongoID, ref: Message.name, autopopulate: { maxDepth: 1 } })
   lastMessage: Message;
 
   @Prop({ type: MongoID, ref: Message.name })

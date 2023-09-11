@@ -56,30 +56,14 @@ export class MessageService implements OnModuleInit {
     delete messageDto['status'];
     try {
       messageDto['sender'] = user._id.toString();
-      const conversation = await this.conversationService.findOne(
-        { _id: messageDto.conversation },
-        user,
-      );
-
-      messageDto.receiver = this.conversationService.getReceiver(
-        conversation,
-        messageDto['sender'],
-        false,
-      ) as string;
 
       const message = await this.messageRepo.insert(messageDto);
-      let isFirstMessage = false;
-      if (!conversation.lastMessage) {
-        isFirstMessage = true;
-        // message['cursor'] = 1;
-      } else {
-        // message.cursor = conversation.lastMessage.cursor + 1;
-      }
-      conversation.lastMessage = message;
-      await Promise.all([
-        // this.conversationService.updateModel(),
-        this.messageRepo.save(message),
-      ]);
+      const conversation = await this.conversationService.findOneAndUpdate(
+        messageDto.conversation,
+        { lastMessage: message },
+      );
+      throwIfNotExists(conversation, 'Không tìm thấy cuộc hội thoại');
+      await this.messageRepo.save(message);
       if (messageDto.images && messageDto.images.length) {
         await this.rabbitService.sendToQueue(
           QUEUE_NAME.MESSAGE_IMAGES_BUILDER,
@@ -97,16 +81,20 @@ export class MessageService implements OnModuleInit {
 
   async findAll(filter: FilterGetAllMessageDTO): Promise<IResult<Message>> {
     try {
-      const cursor = (filter.page - 1) * filter.size;
       const [queryFilter, sortOption] = new FilterBuilder<Message>()
         .setFilterItem('conversation', '$eq', filter?.conversation)
-        .setFilterItem('cursor', '$gte', cursor, true)
-        .setSortItem('createdAt', 'asc')
+        .setSortItem('createdAt', 'desc')
         .buildQuery();
-      const [results, totalCount] = await Promise.all([
-        this.messageRepo.findAll({ queryFilter, sortOption }),
+      // eslint-disable-next-line prefer-const
+      let [results, totalCount] = await Promise.all([
+        this.messageRepo.findAll({
+          queryFilter,
+          sortOption,
+          pagination: { size: filter?.size, page: filter?.page },
+        }),
         this.messageRepo.count(queryFilter),
       ]);
+      results = results.reverse();
       return formatResult(results, totalCount, {
         page: filter?.page,
         size: filter?.size,
@@ -114,12 +102,6 @@ export class MessageService implements OnModuleInit {
     } catch (error) {
       throw error;
     }
-  }
-
-  transformImages(images: Image[]): Image[] {
-    return images.map(image => {
-      return { url: image } as unknown as Image;
-    });
   }
 
   async findOneAndUpdate(
@@ -133,8 +115,15 @@ export class MessageService implements OnModuleInit {
 
   async seenMessage(seenMessage: SeenMessage): Promise<void> {
     try {
-      const temp = await this.messageRepo.seenMessage(seenMessage);
-      console.log(temp);
+      await this.messageRepo.seenMessage(seenMessage);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async receivedMessage(receiverId: string): Promise<void> {
+    try {
+      await this.messageRepo.receivedMessage(receiverId);
     } catch (error) {
       throw error;
     }

@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
+import { ConfigService } from '@nestjs/config';
 
 import {
   BillingStatus,
@@ -11,10 +12,9 @@ import {
 import { IResponse } from '@common/interfaces';
 import { BillingService } from '@modules/billing/billing.service';
 import { Billing } from '@modules/billing/entities';
-import { Offering, Package } from '@modules/offering/entities/offering.entity';
+import { Offering, Package } from '@modules/offering/entities';
 import { OfferingService } from '@modules/offering/offering.service';
 import { FeatureAccess, User } from '@modules/users/entities';
-import { ConfigService } from '@nestjs/config';
 import { docToObject } from '@dating/utils';
 
 import { CheckoutDTO } from './dto/card.dto';

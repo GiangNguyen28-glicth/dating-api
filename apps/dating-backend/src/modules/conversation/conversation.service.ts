@@ -105,12 +105,8 @@ export class ConversationService {
         .buildQuery();
       const options: IOptionFilterGetOne<Conversation> = {
         queryFilter,
+        populate: [],
       };
-      options.populate = [
-        {
-          path: 'lastMessage',
-        },
-      ];
       if (filter?.populate) {
         options.populate.push({
           path: 'members',
