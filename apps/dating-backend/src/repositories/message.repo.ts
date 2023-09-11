@@ -12,7 +12,8 @@ import { InjectModel } from '@nestjs/mongoose';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface MessageRepo extends CrudRepo<Message> {
-  seenMessage(seenMessage: SeenMessage);
+  seenMessage(seenMessage: SeenMessage): void;
+  receivedMessage(receiverId: string): void;
 }
 export class MessageMongoRepo extends MongoRepo<Message> {
   constructor(
@@ -21,12 +22,19 @@ export class MessageMongoRepo extends MongoRepo<Message> {
     super(messageModel);
   }
 
-  async seenMessage(seenMessage: SeenMessage): Promise<any> {
+  async seenMessage(seenMessage: SeenMessage): Promise<void> {
     const { conversation, seenAt } = seenMessage;
-    return await this.messageModel.updateMany(
+    await this.messageModel.updateMany(
       { conversation, status: MessageStatus.SENT, createdAt: { $lte: seenAt } },
       { $set: { status: MessageStatus.SEEN, seenAt } },
       { returnDocument: 'after', rawResult: true },
+    );
+  }
+
+  async receivedMessage(receiverId: string): Promise<void> {
+    await this.messageModel.updateMany(
+      { receiver: receiverId, status: MessageStatus.SENT },
+      { $set: { status: MessageStatus.RECEIVED } },
     );
   }
 }

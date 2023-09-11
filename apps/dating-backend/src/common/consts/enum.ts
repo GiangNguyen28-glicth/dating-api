@@ -34,6 +34,7 @@ export enum MessageType {
 export enum MessageStatus {
   SEEN = 'Seen',
   SENT = 'Sent',
+  RECEIVED = 'Received',
 }
 
 export enum BillingStatus {

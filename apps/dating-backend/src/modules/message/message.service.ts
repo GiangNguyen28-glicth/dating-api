@@ -83,9 +83,10 @@ export class MessageService implements OnModuleInit {
     try {
       const [queryFilter, sortOption] = new FilterBuilder<Message>()
         .setFilterItem('conversation', '$eq', filter?.conversation)
-        .setSortItem('createdAt', 'asc')
+        .setSortItem('createdAt', 'desc')
         .buildQuery();
-      const [results, totalCount] = await Promise.all([
+      // eslint-disable-next-line prefer-const
+      let [results, totalCount] = await Promise.all([
         this.messageRepo.findAll({
           queryFilter,
           sortOption,
@@ -93,6 +94,7 @@ export class MessageService implements OnModuleInit {
         }),
         this.messageRepo.count(queryFilter),
       ]);
+      results = results.reverse();
       return formatResult(results, totalCount, {
         page: filter?.page,
         size: filter?.size,
@@ -100,12 +102,6 @@ export class MessageService implements OnModuleInit {
     } catch (error) {
       throw error;
     }
-  }
-
-  transformImages(images: Image[]): Image[] {
-    return images.map(image => {
-      return { url: image } as unknown as Image;
-    });
   }
 
   async findOneAndUpdate(
@@ -119,8 +115,15 @@ export class MessageService implements OnModuleInit {
 
   async seenMessage(seenMessage: SeenMessage): Promise<void> {
     try {
-      const temp = await this.messageRepo.seenMessage(seenMessage);
-      console.log(temp);
+      await this.messageRepo.seenMessage(seenMessage);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async receivedMessage(receiverId: string): Promise<void> {
+    try {
+      await this.messageRepo.receivedMessage(receiverId);
     } catch (error) {
       throw error;
     }
