@@ -1,12 +1,11 @@
+import { MongooseModule } from '@nestjs/mongoose';
 import { Module } from '@nestjs/common';
+
+import { MatchRequestMongoRepoProvider } from '@dating/repositories';
+
 import { MatchRequestService } from './match-request.service';
 import { MatchRequestController } from './match-request.controller';
-import { MongooseModule } from '@nestjs/mongoose';
-import {
-  MatchRequest,
-  MatchRequestSchema,
-} from './entities/match-request.entity';
-import { MatchRequestMongoRepoProvider } from '@dating/repositories/match-request.repo';
+import { MatchRequest, MatchRequestSchema } from './entities';
 
 @Module({
   imports: [

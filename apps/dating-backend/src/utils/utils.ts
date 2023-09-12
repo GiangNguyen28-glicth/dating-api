@@ -95,13 +95,17 @@ export function formatResult<T>(
     },
   };
   const totalPage = totalCount / pagination.size;
-  results.pagination['totalPage'] =
+  results.pagination.totalPage =
     totalPage > 0 ? Math.floor(totalPage) + 1 : totalPage;
   if (pagination.page > 1) {
-    results.pagination['prevPage'] = null;
+    results.pagination.prevPage = pagination.page - 1;
+  } else {
+    results.pagination.prevPage = null;
   }
   if (results.pagination.totalPage <= pagination.page) {
     results.pagination.nextPage = null;
+  } else {
+    results.pagination.nextPage = pagination.page + 1;
   }
   return results;
 }

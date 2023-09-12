@@ -3,11 +3,15 @@ import { Transform } from 'class-transformer';
 
 import { MongoID, NotificationStatus, NotificationType } from '@common/consts';
 import { User } from '@modules/users/entities';
+import { IEntity } from '@common/interfaces';
 
 @Schema({ timestamps: true })
-export class Notification {
+export class Notification implements IEntity {
   @Transform(({ value }) => value.toString())
   _id: string;
+
+  @Prop()
+  name: string;
 
   @Prop()
   description: string;
@@ -23,9 +27,6 @@ export class Notification {
 
   @Prop({ type: String, enum: Object.values(NotificationStatus) })
   status: NotificationStatus;
-
-  @Prop({ type: Boolean, default: false })
-  isDeleted: boolean;
 
   createdAt: Date;
 

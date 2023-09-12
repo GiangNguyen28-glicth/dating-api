@@ -2,26 +2,29 @@ import { Inject, Injectable, forwardRef } from '@nestjs/common';
 
 import { DATABASE_TYPE, PROVIDER_REPO } from '@common/consts';
 import { IResponse, ISocketIdsClient } from '@common/interfaces';
-import { ActionRepo } from '@dating/repositories/action.repo';
+import { ActionRepo } from '@dating/repositories';
 import { FilterBuilder, throwIfNotExists } from '@dating/utils';
-import { SocketGateway } from '@modules/socket/socket.gateway';
-import { User } from '@modules/users/entities';
 
-import { FilterGetOneActionDTO } from './dto/action.dto';
-import { Action } from './entities/action.entity';
-import { MatchRequestService } from '@modules/match-request/match-request.service';
-import { ConversationService } from '@modules/conversation/conversation.service';
-import { UserService } from '@modules/users/users.service';
+import { SocketGateway } from '@modules/socket';
+import { MatchRequestService } from '@modules/match-request';
+import { ConversationService } from '@modules/conversation';
+import { User, UserService } from '@modules/users';
+
+import { FilterGetOneActionDTO } from './dto';
+import { Action } from './entities';
 
 @Injectable()
 export class ActionService {
   constructor(
     @Inject(PROVIDER_REPO.ACTION + DATABASE_TYPE.MONGO)
     private actionRepo: ActionRepo,
+
     @Inject(forwardRef(() => SocketGateway))
     private socketGateway: SocketGateway,
+
     @Inject(forwardRef(() => UserService))
     private userService: UserService,
+
     private matchReqService: MatchRequestService,
     private conversationService: ConversationService,
   ) {}

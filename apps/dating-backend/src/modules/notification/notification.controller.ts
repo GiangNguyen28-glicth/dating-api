@@ -1,20 +1,34 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
+
+import { IResponse } from '@common/interfaces';
+import { AtGuard } from '@common/guards';
+import { CurrentUser } from '@common/decorators';
+import { User } from '@modules/users';
+
+import { FilterGetAllNotification } from './dto';
 import { NotificationService } from './notification.service';
-import { CreateNotificationDto } from './dto/create-notification.dto';
-import { UpdateNotificationDto } from './dto/update-notification.dto';
 
 @Controller('notification')
+@UseGuards(AtGuard)
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
-  @Post()
-  create(@Body() createNotificationDto: CreateNotificationDto) {
-    return this.notificationService.create(createNotificationDto);
-  }
-
   @Get()
-  findAll() {
-    return this.notificationService.findAll();
+  findAll(
+    @CurrentUser() user: User,
+    @Query() filter: FilterGetAllNotification,
+  ) {
+    return this.notificationService.findAll(user, filter);
   }
 
   @Get(':id')
@@ -22,13 +36,8 @@ export class NotificationController {
     return this.notificationService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateNotificationDto: UpdateNotificationDto) {
-    return this.notificationService.update(+id, updateNotificationDto);
-  }
-
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.notificationService.remove(+id);
+  async remove(@Param('id') id: string): Promise<IResponse> {
+    return this.notificationService.remove(id);
   }
 }

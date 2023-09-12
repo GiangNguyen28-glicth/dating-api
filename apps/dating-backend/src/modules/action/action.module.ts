@@ -1,20 +1,23 @@
-import { ActionMongoRepoProvider } from '@dating/repositories';
-import { SocketModule } from '@modules/socket';
 import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ActionService } from './action.service';
-import { Action, ActionSchema } from './entities/action.entity';
-import { ActionController } from './action.controller';
-import { MatchRequestModule } from '@modules/match-request';
-import { ConversationModule } from '@modules/conversation';
-import { UsersModule } from '@modules/users';
 
+import { ActionMongoRepoProvider } from '@dating/repositories';
+import {
+  MatchRequestModule,
+  ConversationModule,
+  UsersModule,
+  SocketModule,
+} from '@dating/modules';
+
+import { ActionService } from './action.service';
+import { Action, ActionSchema } from './entities';
+import { ActionController } from './action.controller';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Action.name, schema: ActionSchema }]),
     forwardRef(() => SocketModule),
-    MatchRequestModule,
     forwardRef(() => UsersModule),
+    MatchRequestModule,
     ConversationModule,
   ],
   controllers: [ActionController],

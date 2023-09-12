@@ -1,15 +1,4 @@
 import {
-  CurrentUserWS,
-  ISocketIdsClient,
-  SOCKET,
-  WebsocketExceptionsFilter,
-  WsGuard,
-} from '@dating/common';
-import { CreateMessageDto, SeenMessage } from '@modules/message/dto';
-import { MessageService } from '@modules/message/message.service';
-import { User } from '@modules/users/entities';
-import { UserService } from '@modules/users/users.service';
-import {
   Inject,
   UseFilters,
   UseGuards,
@@ -30,8 +19,24 @@ import {
 } from '@nestjs/websockets';
 import Redis from 'ioredis';
 import { Server, Socket } from 'socket.io';
+
+import {
+  CurrentUserWS,
+  ISocketIdsClient,
+  SOCKET,
+  WebsocketExceptionsFilter,
+  WsGuard,
+} from '@dating/common';
+import {
+  CreateMessageDto,
+  SeenMessage,
+  MessageService,
+  Message,
+} from '@modules/message';
+import { UserService, User } from '@modules/users';
+import { ActionService } from '@modules/action';
+
 import { SocketService } from './socket.service';
-import { Message } from '@modules/message/entities';
 
 @WebSocketGateway({
   cors: {
@@ -55,6 +60,8 @@ export class SocketGateway
     private socketService: SocketService,
     @Inject(forwardRef(() => UserService))
     private userService: UserService,
+    @Inject(forwardRef(() => ActionService))
+    private actionService: ActionService,
     private messageService: MessageService,
   ) {
     this.redisClient = socketService.getRedisClient();

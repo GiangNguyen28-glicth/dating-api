@@ -6,28 +6,27 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { RedisClientOptions } from 'redis';
 import { HttpThrottlerGuard } from './common/guards';
 import { ThrottlerConfigService } from './infra/configs';
-import {
-  ActionModule,
-  AuthModule,
-  BillingModule,
-  ConversationModule,
-  MailModule,
-  MatchRequestModule,
-  MessageModule,
-  NotificationModule,
-  OfferingModule,
-  PaymentModule,
-  RelationshipModule,
-  ReportModule,
-  SocketModule,
-  TagModule,
-} from './modules';
+
 import {
   CacheConfigService,
   MongooseConfigService,
   RabbitModule,
 } from '@app/shared';
 import { UsersModule } from '@modules/users/users.module';
+import { AuthModule } from '@modules/auth/auth.module';
+import { TagModule } from '@modules/tag/tag.module';
+import { MailModule } from '@modules/mail/mail.module';
+import { SocketModule } from '@modules/socket/socket.module';
+import { ConversationModule } from '@modules/conversation/conversation.module';
+import { OfferingModule } from '@modules/offering/offering.module';
+import { BillingModule } from '@modules/billing/billing.module';
+import { MessageModule } from '@modules/message/message.module';
+import { PaymentModule } from '@modules/payment/payment.module';
+import { ActionModule } from '@modules/action/action.module';
+import { ReportModule } from '@modules/report/report.module';
+import { MatchRequestModule } from '@modules/match-request/match-request.module';
+import { NotificationModule } from '@modules/notification/notification.module';
+import { RelationshipModule } from '@modules/relationship/relationship.module';
 
 @Module({
   imports: [

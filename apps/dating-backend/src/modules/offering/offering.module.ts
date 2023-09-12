@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+
+import { OfferingMongoRepoProvider } from '@dating/repositories';
+
 import { OfferingService } from './offering.service';
 import { OfferingController } from './offering.controller';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Offering, OfferingSchema } from './entities/offering.entity';
-import { OfferingMongoRepoProvider } from '@dating/repositories';
+import { Offering, OfferingSchema } from './entities';
 
 @Module({
   imports: [

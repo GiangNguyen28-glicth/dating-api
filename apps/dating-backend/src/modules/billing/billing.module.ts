@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+
+import { BillingMongoRepoProvider } from '@dating/repositories';
+
 import { BillingService } from './billing.service';
 import { BillingController } from './billing.controller';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Billing, BillingSchema } from './entities/billing.entity';
-import { BillingMongoRepoProvider } from '@dating/repositories';
+import { Billing, BillingSchema } from './entities';
 
 @Module({
   imports: [

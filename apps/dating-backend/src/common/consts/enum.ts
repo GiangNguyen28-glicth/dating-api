@@ -110,11 +110,12 @@ export enum NotificationType {
   MESSAGE = 'Message',
   PROMOTION = 'Promotion',
   LIKE = 'Like',
-  MATCH = 'Match',
+  MATCHED = 'Matched',
 }
 
 export enum NotificationStatus {
   SEEN = 'Seen',
   NOT_SEEN = 'Not seen',
   RECEIVED = 'Received',
+  NOT_RECEIVED = 'Not received',
 }

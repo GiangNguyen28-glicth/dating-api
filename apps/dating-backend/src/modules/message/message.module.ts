@@ -1,8 +1,10 @@
-import { MessageMongoRepoProvider } from '@dating/repositories';
-import { ConversationModule } from '@modules/conversation';
-import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Message, MessageSchema } from './entities/message.entity';
+import { Module } from '@nestjs/common';
+
+import { MessageMongoRepoProvider } from '@dating/repositories';
+import { ConversationModule } from '@dating/modules';
+
+import { Message, MessageSchema } from './entities';
 import { MessageController } from './message.controller';
 import { MessageService } from './message.service';
 @Module({

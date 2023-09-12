@@ -10,7 +10,7 @@ import {
 import axios from 'axios';
 import { v2 } from 'cloudinary';
 import * as _ from 'lodash';
-import { Image, User, UserAddress } from '../entities/user.entity';
+import { Image, User, UserAddress } from '../entities';
 const GOOGLE_MAP_API_KEY = process.env.GOOGLE_MAP_API_KEY;
 
 @Injectable()

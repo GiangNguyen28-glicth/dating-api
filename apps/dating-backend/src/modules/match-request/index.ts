@@ -1,2 +1,3 @@
-export * from './match-request.module';
 export * from './match-request.service';
+export * from './entities';
+export * from './dto';

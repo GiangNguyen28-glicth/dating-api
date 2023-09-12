@@ -1,9 +1,11 @@
+import { MongooseModule } from '@nestjs/mongoose';
+import { Global, Module, forwardRef } from '@nestjs/common';
+
 import { CloudinaryProvider } from '@common/provider';
 import { UserMongoRepoProvider } from '@dating/repositories';
-import { ActionModule } from '@modules/action';
-import { Global, Module, forwardRef } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from './entities/user.entity';
+import { ActionModule } from '@dating/modules';
+
+import { User, UserSchema } from './entities';
 import { HelperController } from './helper.controller';
 import { UserHelper } from './helper/user.helper';
 import { UsersController } from './users.controller';
