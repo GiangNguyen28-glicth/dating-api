@@ -1,14 +1,18 @@
+import { Inject, Injectable } from '@nestjs/common';
+import { PopulateOptions } from 'mongoose';
+
 import { DATABASE_TYPE, PROVIDER_REPO } from '@common/consts';
 import { PaginationDTO } from '@common/dto';
 import { IResponse, IResult } from '@common/interfaces';
-import { MatchRequestRepo } from '@dating/repositories/match-request.repo';
+import { MatchRequestRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult } from '@dating/utils';
-import { Inject, Injectable } from '@nestjs/common';
-import { PopulateOptions } from 'mongoose';
-import { CreateMatchRequestDto } from './dto/create-match-request.dto';
-import { FilterGelAllMqDTO, FilterGetOneMq } from './dto/match-request.dto';
-import { MatchRequest } from './entities/match-request.entity';
-import { User } from '@modules/users/entities/user.entity';
+import { MatchRequest } from './entities';
+import { User } from '@modules/users/entities';
+import {
+  CreateMatchRequestDto,
+  FilterGelAllMqDTO,
+  FilterGetOneMq,
+} from './dto';
 
 @Injectable()
 export class MatchRequestService {
@@ -36,7 +40,7 @@ export class MatchRequestService {
         size: filter?.size,
         page: filter?.page,
       };
-      const basicFieldsPopulate = ['_id,name,images', 'tags', 'bio'];
+      const basicFieldsPopulate = ['_id', 'name', 'images', 'tags', 'bio'];
       const populate: PopulateOptions[] = [];
       if (isPopulate) {
         populate.push({
