@@ -9,6 +9,7 @@ import { User } from '@modules/users/entities';
 import { Conversation } from '@modules/conversation/entities';
 import { Message } from '@modules/message/entities';
 import { Relationship } from '@modules/relationship/entities';
+import { Notification } from '@modules/notification';
 
 export type SortQuery = { [key: string]: SortOrder };
 export type TagModelType = Model<Tag>;
@@ -21,6 +22,7 @@ export type ActionModelType = Model<Action>;
 export type ReportModelType = Model<Report>;
 export type MatchRequestModelType = Model<MatchRequest>;
 export type RelationshipModelType = Model<Relationship>;
+export type NotificationModelType = Model<Notification>;
 export type MongoQuery =
   | '$eq'
   | '$gte'

@@ -1,6 +1,6 @@
 import { ConfirmChannel } from 'amqplib';
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
-
+import { get } from 'lodash';
 import {
   DATABASE_TYPE,
   IOptionFilterGetAll,
@@ -23,6 +23,8 @@ import { RabbitService } from '@app/shared';
 import { CreateUserDTO, FilterGetOneUserDTO } from './dto';
 import { User } from './entities';
 import { UserHelper } from './helper';
+import { FinalCondRecommendation } from './interfaces';
+import { PipelineStage } from 'mongoose';
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -67,10 +69,89 @@ export class UserService implements OnModuleInit {
     pagination: PaginationDTO,
   ): Promise<IResult<User>> {
     try {
-      const queryFilter = await this.userHelper.buildFilterBySetting(user);
+      const queryByUserSetting = await this.userHelper.buildFilterBySetting(
+        user,
+      );
+      const queryByDistance: any = this.userHelper.getFilterByDistance(
+        user,
+        queryByUserSetting,
+      );
+      const geoQuery = get(queryByDistance, '$geoNear', null);
+      const finalStage: PipelineStage[] = [];
+      const finalCond: FinalCondRecommendation = {};
+      if (geoQuery) {
+        finalCond.$geoNear = queryByDistance;
+        finalStage.push(finalCond.$geoNear);
+      } else {
+        finalCond.$match = queryByDistance;
+        finalStage.push(finalCond.$match);
+      }
+      finalStage.push(
+        {
+          $lookup: {
+            from: 'tags',
+            let: { tags: '$tags' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: { $in: ['$_id', '$$tags'] },
+                },
+              },
+              {
+                $project: {
+                  name: 1,
+                  type: 1,
+                  parentType: 1,
+                },
+              },
+            ],
+            as: 'tags',
+          },
+        },
+        {
+          $lookup: {
+            from: 'relationships',
+            let: { relationships: '$relationships' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: { $in: ['$_id', '$$relationships'] },
+                },
+              },
+            ],
+            as: 'relationships',
+          },
+        },
+        {
+          $lookup: {
+            from: 'relationships',
+            localField: 'relationshipStatus',
+            foreignField: '_id',
+            as: 'relationshipStatus',
+          },
+        },
+        {
+          $project: {
+            __v: 0,
+            geoLocation: 0,
+            featureAccess: 0,
+            setting: 0,
+            registerType: 0,
+          },
+        },
+        {
+          $sort: { _id: -1 },
+        },
+        {
+          $skip: (pagination?.page - 1) * pagination?.size || 0,
+        },
+        {
+          $limit: pagination?.size || 100,
+        },
+      );
       const [totalCount, results] = await Promise.all([
-        this.userRepo.count(queryFilter),
-        this.userRepo.recommendation(user, queryFilter, pagination),
+        this.userRepo.count(),
+        this.userRepo.recommendation(finalStage),
       ]);
       return formatResult(results, totalCount, pagination);
     } catch (error) {

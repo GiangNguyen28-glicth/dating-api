@@ -9,13 +9,13 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 
 import { CurrentUser } from '@common/decorators';
 import { AtGuard } from '@common/guards';
 import { IResponse, IResult } from '@common/interfaces';
 import { User } from '@modules/users/entities';
 
-import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 import {
   CreateMessageDto,
   FilterGetAllMessageDTO,
@@ -45,7 +45,7 @@ export class MessageController {
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() messageDto: UpdateMessageDto) {
-    return this.messageService.findOneAndUpdate(id, messageDto);
+    return await this.messageService.findOneAndUpdate(id, messageDto);
   }
 
   @Delete(':id')

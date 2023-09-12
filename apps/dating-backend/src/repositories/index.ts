@@ -8,3 +8,4 @@ export * from './action.repo';
 export * from './report.repo';
 export * from './relationship.repo';
 export * from './match-request.repo';
+export * from './notification.repo';
