@@ -150,13 +150,17 @@ export class SocketGateway
   @UseGuards(WsGuard)
   async seenMessage(
     @MessageBody() data: SeenMessage,
+    @ConnectedSocket() client: Socket,
     // @CurrentUserWS() user: User,
   ) {
     console.log('========================seenMessage========================');
     await this.messageService.seenMessage(data);
-    const socketIds = await this.socketService.getSocketIdsByUser(data.sender);
+    const senderIds = await this.socketService.getSocketIdsByUser(data.sender);
+    const receiverIds = (
+      await this.socketService.getSocketIdsByUser(data.receiver)
+    ).filter(id => id !== client.id);
 
-    this.sendEventToClient(socketIds, 'seenMessage', data);
+    this.sendEventToClient([...senderIds, ...receiverIds], 'seenMessage', data);
     return data;
   }
 

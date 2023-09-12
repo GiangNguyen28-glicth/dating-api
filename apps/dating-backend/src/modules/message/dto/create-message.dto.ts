@@ -34,4 +34,5 @@ export class SeenMessage {
   seenAt: Date;
   messageID: string;
   sender: string;
+  receiver: string;
 }
