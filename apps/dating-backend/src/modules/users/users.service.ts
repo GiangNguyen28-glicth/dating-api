@@ -86,6 +86,7 @@ export class UserService implements OnModuleInit {
         finalCond.$match = queryByDistance;
         finalStage.push(finalCond.$match);
       }
+      const cloneFinalStage = [...finalStage];
       finalStage.push(
         {
           $lookup: {
@@ -150,7 +151,7 @@ export class UserService implements OnModuleInit {
         },
       );
       const [totalCount, results] = await Promise.all([
-        this.userRepo.count(),
+        this.userRepo.countRecommendation(cloneFinalStage),
         this.userRepo.recommendation(finalStage),
       ]);
       return formatResult(results, totalCount, pagination);

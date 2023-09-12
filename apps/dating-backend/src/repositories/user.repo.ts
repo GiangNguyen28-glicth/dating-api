@@ -12,6 +12,7 @@ import { PipelineStage } from 'mongoose';
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface UserRepo extends CrudRepo<User> {
   recommendation(filter: PipelineStage[]);
+  countRecommendation(filter: PipelineStage[]): number;
   deleteManyUser();
   migrateData();
 }
@@ -26,6 +27,10 @@ export class UserMongoRepo extends MongoRepo<User> {
   async recommendation(finalCond: PipelineStage[]): Promise<User[]> {
     const results: User[] = await this.userModel.aggregate(finalCond);
     return results;
+  }
+
+  async countRecommendation(finalCond: PipelineStage[]): Promise<number> {
+    return (await this.userModel.aggregate(finalCond)).length;
   }
 
   async deleteManyUser() {
