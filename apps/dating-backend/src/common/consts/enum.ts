@@ -104,3 +104,17 @@ export enum JobStatus {
   DONE = 'Done',
   ERROR = 'Error',
 }
+
+export enum NotificationType {
+  SYSTEM = 'System',
+  MESSAGE = 'Message',
+  PROMOTION = 'Promotion',
+  LIKE = 'Like',
+  MATCH = 'Match',
+}
+
+export enum NotificationStatus {
+  SEEN = 'Seen',
+  NOT_SEEN = 'Not seen',
+  RECEIVED = 'Received',
+}

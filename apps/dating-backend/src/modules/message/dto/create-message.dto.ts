@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { MessageType } from '@common/consts';
-import { Message } from '../entities/message.entity';
+import { Message } from '../entities';
 import { ImageDTO } from '@modules/users/dto';
 import { IsNotEmpty } from 'class-validator';
 
@@ -21,6 +21,9 @@ export class CreateMessageDto implements Partial<Message> {
   @ApiProperty()
   @IsNotEmpty()
   conversation?: string;
+
+  @ApiProperty()
+  createdAt?: Date;
 
   @ApiProperty()
   uuid: string;

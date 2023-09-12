@@ -43,6 +43,7 @@ export class Message implements IEntity {
   @Prop({ type: Boolean, default: false })
   isDeleted: boolean;
 
+  @Prop({ default: new Date() })
   createdAt: Date;
 
   updatedAt: Date;

@@ -14,6 +14,7 @@ import {
   MailModule,
   MatchRequestModule,
   MessageModule,
+  NotificationModule,
   OfferingModule,
   PaymentModule,
   RelationshipModule,
@@ -59,6 +60,7 @@ import { UsersModule } from '@modules/users/users.module';
     ReportModule,
     MatchRequestModule,
     RelationshipModule,
+    NotificationModule,
   ],
   providers: [
     {

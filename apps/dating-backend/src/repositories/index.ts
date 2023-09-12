@@ -7,3 +7,4 @@ export * from './offering.repo';
 export * from './action.repo';
 export * from './report.repo';
 export * from './relationship.repo';
+export * from './notification.repo';
