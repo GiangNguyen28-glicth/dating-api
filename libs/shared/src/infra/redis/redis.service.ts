@@ -11,4 +11,12 @@ export class RedisService {
   getRedisClient() {
     return this.redisClient;
   }
+
+  async smembers(key: string): Promise<any[]> {
+    return new Promise(resolve => {
+      this.redisClient.smembers(key, async (err, value: [] = []) => {
+        resolve(value);
+      });
+    });
+  }
 }

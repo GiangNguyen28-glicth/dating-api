@@ -1,15 +1,4 @@
 import {
-  CurrentUserWS,
-  ISocketIdsClient,
-  SOCKET,
-  WebsocketExceptionsFilter,
-  WsGuard,
-} from '@dating/common';
-import { CreateMessageDto, SeenMessage } from '@modules/message/dto';
-import { MessageService } from '@modules/message/message.service';
-import { User } from '@modules/users/entities';
-import { UserService } from '@modules/users/users.service';
-import {
   Inject,
   UseFilters,
   UseGuards,
@@ -30,9 +19,20 @@ import {
 } from '@nestjs/websockets';
 import Redis from 'ioredis';
 import { Server, Socket } from 'socket.io';
-import { SocketService } from './socket.service';
-import { Message } from '@modules/message/entities';
 
+import { Message } from '@modules/message/entities';
+import { RedisService } from '@app/shared';
+import {
+  CurrentUserWS,
+  ISocketIdsClient,
+  SOCKET,
+  WebsocketExceptionsFilter,
+  WsGuard,
+} from '@dating/common';
+import { CreateMessageDto, SeenMessage } from '@modules/message/dto';
+import { MessageService } from '@modules/message/message.service';
+import { User } from '@modules/users/entities';
+import { UserService } from '@modules/users/users.service';
 @WebSocketGateway({
   cors: {
     origin: [
@@ -52,12 +52,12 @@ export class SocketGateway
 {
   private redisClient: Redis;
   constructor(
-    private socketService: SocketService,
+    private redisService: RedisService,
     @Inject(forwardRef(() => UserService))
     private userService: UserService,
     private messageService: MessageService,
   ) {
-    this.redisClient = socketService.getRedisClient();
+    this.redisClient = redisService.getRedisClient();
   }
 
   @WebSocketServer()
@@ -79,7 +79,7 @@ export class SocketGateway
       const userId = socket['userId'];
       const socketKey = SOCKET + userId;
       await this.redisClient.srem(socketKey, socket.id);
-      const socketIds = await this.socketService.getSocketIdsByUser(userId);
+      const socketIds: string[] = await this.redisService.smembers(userId);
       console.log(
         '========================Disconnection========================',
       );
@@ -125,9 +125,11 @@ export class SocketGateway
 
     try {
       const message = await this.messageService.create(data, user);
+      const senderKey = SOCKET + (message.sender as string);
+      const receiverKey = SOCKET + (message.receiver as string);
       const [socketIdsSender, socketIdsReceiver] = await Promise.all([
-        this.socketService.getSocketIdsByUser(message.sender as string),
-        this.socketService.getSocketIdsByUser(message.receiver as string),
+        this.getSocketIdsByUser(senderKey),
+        this.getSocketIdsByUser(receiverKey),
       ]);
 
       // This event emit to all tab of user sent the message in order to those tabs update new message
@@ -155,10 +157,10 @@ export class SocketGateway
   ) {
     console.log('========================seenMessage========================');
     await this.messageService.seenMessage(data);
-    const senderIds = await this.socketService.getSocketIdsByUser(data.sender);
-    const receiverIds = (
-      await this.socketService.getSocketIdsByUser(data.receiver)
-    ).filter(id => id !== client.id);
+    const senderIds = await this.getSocketIdsByUser(data.sender);
+    const receiverIds = (await this.getSocketIdsByUser(data.receiver)).filter(
+      id => id !== client.id,
+    );
 
     this.sendEventToClient([...senderIds, ...receiverIds], 'seenMessage', data);
     return data;
@@ -173,7 +175,7 @@ export class SocketGateway
   }
 
   async getSocketIdsByUser(userId: string): Promise<string[]> {
-    return await this.socketService.getSocketIdsByUser(userId);
+    return await this.redisService.smembers(SOCKET + userId);
   }
 
   async getSocketIdsMatchedUser(
