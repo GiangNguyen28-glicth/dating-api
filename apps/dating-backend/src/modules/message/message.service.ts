@@ -11,7 +11,8 @@ import { IResponse, IResult } from '@common/interfaces';
 import { MessageRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
 import { ConversationService } from '@modules/conversation/conversation.service';
-import { Image, User } from '@modules/users/entities';
+import { User } from '@modules/users/entities';
+import { RabbitService } from '@app/shared';
 
 import { Message } from './entities';
 import {
@@ -20,7 +21,6 @@ import {
   SeenMessage,
   UpdateMessageDto,
 } from './dto';
-import { RabbitService } from '@app/shared';
 
 @Injectable()
 export class MessageService implements OnModuleInit {
