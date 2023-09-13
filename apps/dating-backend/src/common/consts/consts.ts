@@ -25,12 +25,14 @@ export const QUEUE_NAME = {
   UPDATE_FEATURE_ACCESS: 'update_user_feature_access',
   USER_IMAGES_BUILDER: 'user_images_builder',
   MESSAGE_IMAGES_BUILDER: 'message_images_builder',
+  NOTIFICATION_UPDATER: 'notification_updater',
 };
 
 export const RMQ_CHANNEL = {
   USER_CHANNEL: 'user_channel',
   PAYMENT_CHANNEL: 'payment_channel',
   MESSAGE_CHANNEL: 'message_channel',
+  NOTIFICATION_CHANNEL: 'notification_channel',
 };
 
 export const LANGUAGE = {

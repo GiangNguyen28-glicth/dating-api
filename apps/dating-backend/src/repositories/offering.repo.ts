@@ -1,3 +1,4 @@
+import { InjectModel } from '@nestjs/mongoose';
 import {
   CrudRepo,
   DATABASE_TYPE,
@@ -5,8 +6,7 @@ import {
   PROVIDER_REPO,
 } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
-import { Offering } from '@modules/offering/entities/offering.entity';
-import { InjectModel } from '@nestjs/mongoose';
+import { Offering } from '@modules/offering/entities';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface OfferingRepo extends CrudRepo<Offering> {}

@@ -1,3 +1,5 @@
+import { InjectModel } from '@nestjs/mongoose';
+
 import {
   BillingModelType,
   CrudRepo,
@@ -5,14 +7,13 @@ import {
   PROVIDER_REPO,
 } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
-import { Billing } from '@modules/billing/entities/billing.entity';
-import { InjectModel } from '@nestjs/mongoose';
+import { Billing } from '@modules/billing/entities';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface BillingRepo extends CrudRepo<Billing> {}
 export class BillingMongoRepo extends MongoRepo<Billing> {
   constructor(
-    @InjectModel('Billing')
+    @InjectModel(Billing.name)
     protected billingModel: BillingModelType,
   ) {
     super(billingModel);

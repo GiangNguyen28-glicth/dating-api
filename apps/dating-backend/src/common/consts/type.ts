@@ -9,7 +9,7 @@ import { User } from '@modules/users/entities';
 import { Conversation } from '@modules/conversation/entities';
 import { Message } from '@modules/message/entities';
 import { Relationship } from '@modules/relationship/entities';
-import { Notification } from '@modules/notification';
+import { Notification } from '@modules/notification/entities';
 
 export type SortQuery = { [key: string]: SortOrder };
 export type TagModelType = Model<Tag>;

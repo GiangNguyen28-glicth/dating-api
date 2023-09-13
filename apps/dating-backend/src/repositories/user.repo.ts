@@ -1,3 +1,6 @@
+import { InjectModel } from '@nestjs/mongoose';
+import { PipelineStage } from 'mongoose';
+
 import {
   CrudRepo,
   DATABASE_TYPE,
@@ -7,8 +10,6 @@ import {
 import { MongoRepo } from '@dating/infra';
 import { User } from '@modules/users/entities';
 import { UserHelper } from '@modules/users/helper/user.helper';
-import { InjectModel } from '@nestjs/mongoose';
-import { PipelineStage } from 'mongoose';
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface UserRepo extends CrudRepo<User> {
   recommendation(filter: PipelineStage[]);

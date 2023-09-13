@@ -11,7 +11,7 @@ import {
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
 
 import { IResponse, IResult } from '@common/interfaces';
-import { Relationship } from './entities/relationship.entity';
+import { Relationship } from './entities';
 import { PaginationDTO } from '@common/dto';
 import { RelationshipType } from '@common/consts';
 

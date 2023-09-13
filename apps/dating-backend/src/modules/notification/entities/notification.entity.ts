@@ -3,6 +3,8 @@ import { Transform } from 'class-transformer';
 
 import { MongoID, NotificationStatus, NotificationType } from '@common/consts';
 import { User } from '@modules/users/entities';
+import { Conversation } from '@modules/conversation/entities';
+import { Message } from '@modules/message/entities';
 
 @Schema({ timestamps: true })
 export class Notification {
@@ -17,6 +19,12 @@ export class Notification {
 
   @Prop({ type: MongoID, ref: User.name })
   receiver: User;
+
+  @Prop({ type: MongoID, ref: Conversation.name })
+  conversation: Conversation;
+
+  @Prop({ type: MongoID, ref: Message.name, autopopulate: { maxDepth: 1 } })
+  message: Message;
 
   @Prop({ type: String, enum: Object.values(NotificationType), required: true })
   type: NotificationType;

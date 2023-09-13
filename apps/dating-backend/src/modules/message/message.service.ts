@@ -129,6 +129,14 @@ export class MessageService implements OnModuleInit {
     }
   }
 
+  async updateMessageToReceived(ids: string[]): Promise<void> {
+    try {
+      await this.messageRepo.updateMessageToReceived(ids);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async remove(_id: string): Promise<IResponse> {
     try {
       const message = await this.messageRepo.findOneAndUpdate(_id, {

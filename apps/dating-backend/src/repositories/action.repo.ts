@@ -1,3 +1,4 @@
+import { InjectModel } from '@nestjs/mongoose';
 import {
   ActionModelType,
   CrudRepo,
@@ -6,9 +7,8 @@ import {
   PROVIDER_REPO,
 } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
-import { Action } from '@modules/action/entities/action.entity';
-import { User } from '@modules/users/entities/user.entity';
-import { InjectModel } from '@nestjs/mongoose';
+import { Action } from '@modules/action/entities';
+import { User } from '@modules/users/entities';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ActionRepo extends CrudRepo<Action> {

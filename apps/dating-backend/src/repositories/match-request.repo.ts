@@ -1,3 +1,5 @@
+import { InjectModel } from '@nestjs/mongoose';
+
 import {
   MatchRequestModelType,
   CrudRepo,
@@ -5,8 +7,7 @@ import {
   PROVIDER_REPO,
 } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
-import { MatchRequest } from '@modules/match-request/entities/match-request.entity';
-import { InjectModel } from '@nestjs/mongoose';
+import { MatchRequest } from '@modules/match-request/entities';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface MatchRequestRepo extends CrudRepo<MatchRequest> {}

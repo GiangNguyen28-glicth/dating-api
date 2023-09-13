@@ -14,6 +14,7 @@ import { InjectModel } from '@nestjs/mongoose';
 export interface MessageRepo extends CrudRepo<Message> {
   seenMessage(seenMessage: SeenMessage): void;
   receivedMessage(receiverId: string): void;
+  updateMessageToReceived(ids: string[]): void;
 }
 export class MessageMongoRepo extends MongoRepo<Message> {
   constructor(
@@ -28,6 +29,13 @@ export class MessageMongoRepo extends MongoRepo<Message> {
       { conversation, status: MessageStatus.SENT, createdAt: { $lte: seenAt } },
       { $set: { status: MessageStatus.SEEN, seenAt } },
       { returnDocument: 'after', rawResult: true },
+    );
+  }
+
+  async updateMessageToReceived(ids: string[]): Promise<void> {
+    await this.messageModel.updateMany(
+      { _id: { $in: ids }, status: MessageStatus.SENT },
+      { $set: { status: MessageStatus.RECEIVED } },
     );
   }
 

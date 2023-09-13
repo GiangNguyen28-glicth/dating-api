@@ -6,7 +6,7 @@ import {
   PROVIDER_REPO,
 } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
-import { Notification } from '@modules/notification';
+import { Notification } from '@modules/notification/entities';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface NotificationRepo extends CrudRepo<Notification> {}

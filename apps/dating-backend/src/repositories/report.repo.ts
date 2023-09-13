@@ -1,3 +1,5 @@
+import { InjectModel } from '@nestjs/mongoose';
+
 import {
   CrudRepo,
   DATABASE_TYPE,
@@ -5,8 +7,7 @@ import {
   ReportModelType,
 } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
-import { Report } from '@modules/report/entities/report.entity';
-import { InjectModel } from '@nestjs/mongoose';
+import { Report } from '@modules/report/entities';
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ReportRepo extends CrudRepo<Report> {}
 export class ReportMongoRepo extends MongoRepo<Report> {

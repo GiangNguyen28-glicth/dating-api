@@ -1,3 +1,4 @@
+import { InjectModel } from '@nestjs/mongoose';
 import {
   CrudRepo,
   DATABASE_TYPE,
@@ -5,8 +6,7 @@ import {
   RelationshipModelType,
 } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
-import { Relationship } from '@modules/relationship/entities/relationship.entity';
-import { InjectModel } from '@nestjs/mongoose';
+import { Relationship } from '@modules/relationship/entities';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface RelationshipRepo extends CrudRepo<Relationship> {}
