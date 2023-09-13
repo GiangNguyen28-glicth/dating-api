@@ -13,11 +13,11 @@ import { IResponse } from '@common/interfaces';
 import { NotificationRepo } from '@dating/repositories';
 import { FilterBuilder, throwIfNotExists } from '@dating/utils';
 import { User } from '@modules/users/entities';
+import { RabbitService } from '@app/shared';
 
 import { CreateNotificationDto, FilterGetAllNotification } from './dto';
 import { Notification } from './entities';
 import { INotificationResult } from './interfaces';
-import { RabbitService } from '@app/shared';
 
 @Injectable()
 export class NotificationService implements OnModuleInit {
@@ -29,9 +29,10 @@ export class NotificationService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    // return;
     await this.rabbitService.connectRmq();
     this.channel = await this.rabbitService.createChannel(
-      RMQ_CHANNEL.USER_CHANNEL,
+      RMQ_CHANNEL.NOTIFICATION_CHANNEL,
     );
     await this.rabbitService.assertQueue(
       {

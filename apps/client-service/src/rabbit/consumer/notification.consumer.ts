@@ -1,5 +1,6 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
+import Redis from 'ioredis';
 
 import { RabbitService } from '@app/shared';
 import { NotificationType, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
@@ -10,6 +11,7 @@ import { MessageService } from '@modules/message/message.service';
 @Injectable()
 export class NotificationConsumer implements OnModuleInit, OnModuleDestroy {
   private channel: ConfirmChannel;
+  private redisClient: Redis;
 
   constructor(
     private rabbitService: RabbitService,
