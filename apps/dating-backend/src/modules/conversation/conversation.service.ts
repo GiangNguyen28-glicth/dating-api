@@ -111,6 +111,9 @@ export class ConversationService {
         options.populate.push({
           path: 'members',
           select: EXCLUDE_FIELDS.USER,
+          populate: {
+            path: 'tags',
+          },
         });
       }
       const conversation = await this.conversationRepo.findOne(options);
