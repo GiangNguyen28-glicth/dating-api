@@ -18,8 +18,10 @@ export class ActionService {
   constructor(
     @Inject(PROVIDER_REPO.ACTION + DATABASE_TYPE.MONGO)
     private actionRepo: ActionRepo,
+
     @Inject(forwardRef(() => SocketGateway))
     private socketGateway: SocketGateway,
+
     @Inject(forwardRef(() => UserService))
     private userService: UserService,
 
@@ -43,7 +45,7 @@ export class ActionService {
   async like(sender: User, receiverId: string): Promise<IResponse> {
     try {
       const receiver = await this.userService.findOne({ _id: receiverId });
-      throwIfNotExists(receiver, 'User không tồn tại');
+      throwIfNotExists(receiver, 'Receiver không tồn tại');
       const matchRq = await this.matchReqService.findOne({
         sender: sender._id,
         receiver: receiverId,
@@ -54,19 +56,18 @@ export class ActionService {
       );
       if (matchRq) {
         await this.matched(sender, receiver, socketIdsClient, matchRq._id);
-        // await this.actionRepo.
       } else {
         this.socketGateway.sendEventToClient(
           socketIdsClient.receiver,
           'matchRequest',
           receiver,
         );
+        await this.matchReqService.create({
+          sender: sender._id,
+          receiver: receiverId,
+        });
       }
       await this.actionRepo.like(sender, receiverId);
-      await this.matchReqService.create({
-        sender: sender._id,
-        receiver: receiverId,
-      });
       const resp: IResponse = {
         success: true,
         message: 'Like thành công',
@@ -104,16 +105,27 @@ export class ActionService {
     const conversation = await this.conversationService.create({
       members: [sender, receiver],
     });
+    const senderConversation = { ...conversation };
+    senderConversation.user = this.conversationService.getReceiver(
+      conversation,
+      sender._id.toString(),
+      true,
+    ) as User;
+    conversation.user = this.conversationService.getReceiver(
+      conversation,
+      receiver._id.toString(),
+      true,
+    ) as User;
     await this.matchReqService.remove(matchRqId);
     this.socketGateway.sendEventToClient(
       socketIdsClient.sender,
-      'notificationOwner',
-      'HelloWorld',
+      'notificationToSender',
+      senderConversation,
     );
     this.socketGateway.sendEventToClient(
       socketIdsClient.receiver,
-      'notificationReceiver',
-      'HelloWorld',
+      'notificationToReceiver',
+      conversation,
     );
   }
 
