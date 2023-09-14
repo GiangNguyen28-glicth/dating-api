@@ -1,12 +1,13 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateOfferingDto } from './dto/create-offering.dto';
-import { UpdateOfferingDto } from './dto/update-offering.dto';
+
 import { DATABASE_TYPE, PROVIDER_REPO } from '@common/consts';
 import { OfferingRepo } from '@dating/repositories';
-import { IResponse, IResult } from '@common/interfaces';
-import { Offering, Package } from './entities/offering.entity';
-import { formatResult, throwIfNotExists } from '@dating/utils';
 import { PaginationDTO } from '@common/dto';
+import { formatResult, throwIfNotExists } from '@dating/utils';
+import { IResponse, IResult } from '@common/interfaces';
+
+import { Offering, Package } from './entities';
+import { CreateOfferingDto } from './dto';
 
 @Injectable()
 export class OfferingService {
