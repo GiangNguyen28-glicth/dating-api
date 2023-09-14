@@ -1,7 +1,7 @@
-import { MatchRequest } from '../entities/match-request.entity';
+import { MatchRequest } from '../entities';
 
 export class CreateMatchRequestDto implements Partial<MatchRequest> {
-  requestBy: string;
-  owner: string;
+  sender?: string;
+  receiver?: string;
   isBoosts?: boolean;
 }

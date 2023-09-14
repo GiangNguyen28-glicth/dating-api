@@ -49,7 +49,7 @@ export class MatchRequestService {
         });
       }
       const [queryFilter] = new FilterBuilder<MatchRequest>()
-        .setFilterItem('owner', '$eq', user?._id.toString())
+        .setFilterItem('receiver', '$eq', user._id.toString())
         .buildQuery();
       const [results, totalCount] = await Promise.all([
         this.matchRequestRepo.findAll({ queryFilter, populate, pagination }),
@@ -64,8 +64,8 @@ export class MatchRequestService {
   async findOne(filter: FilterGetOneMq): Promise<MatchRequest> {
     try {
       const [queryFilter] = new FilterBuilder<MatchRequest>()
-        .setFilterItem('owner', '$eq', filter?.owner)
-        .setFilterItem('requestBy', '$eq', filter?.requestBy)
+        .setFilterItem('receiver', '$eq', filter?.receiver)
+        .setFilterItem('sender', '$eq', filter?.sender)
         .buildQuery();
       return await this.matchRequestRepo.findOne({ queryFilter });
     } catch (error) {

@@ -8,7 +8,7 @@ import { MatchRequestModule } from '@modules/match-request';
 import { UsersModule } from '@modules/users';
 
 import { ActionService } from './action.service';
-import { Action, ActionSchema } from './entities/action.entity';
+import { Action, ActionSchema } from './entities';
 import { ActionController } from './action.controller';
 
 @Module({

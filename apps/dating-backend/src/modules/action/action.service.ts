@@ -2,16 +2,16 @@ import { Inject, Injectable, forwardRef } from '@nestjs/common';
 
 import { DATABASE_TYPE, PROVIDER_REPO } from '@common/consts';
 import { IResponse, ISocketIdsClient } from '@common/interfaces';
-import { ActionRepo } from '@dating/repositories/action.repo';
-import { FilterBuilder, throwIfNotExists } from '@dating/utils';
+import { ActionRepo } from '@dating/repositories';
 import { SocketGateway } from '@modules/socket/socket.gateway';
 import { User } from '@modules/users/entities';
-
-import { FilterGetOneActionDTO } from './dto/action.dto';
-import { Action } from './entities/action.entity';
 import { MatchRequestService } from '@modules/match-request/match-request.service';
 import { ConversationService } from '@modules/conversation/conversation.service';
 import { UserService } from '@modules/users/users.service';
+
+import { FilterGetOneActionDTO } from './dto';
+import { Action } from './entities';
+import { FilterBuilder, throwIfNotExists } from '@dating/utils';
 
 @Injectable()
 export class ActionService {
@@ -22,6 +22,7 @@ export class ActionService {
     private socketGateway: SocketGateway,
     @Inject(forwardRef(() => UserService))
     private userService: UserService,
+
     private matchReqService: MatchRequestService,
     private conversationService: ConversationService,
   ) {}
@@ -39,51 +40,51 @@ export class ActionService {
     } catch (error) {}
   }
 
-  async like(owner: User, userId: string): Promise<IResponse> {
+  async like(sender: User, receiverId: string): Promise<IResponse> {
     try {
-      const user = await this.userService.findOne({ _id: userId });
-      throwIfNotExists(user, 'User không tồn tại');
+      const receiver = await this.userService.findOne({ _id: receiverId });
+      throwIfNotExists(receiver, 'User không tồn tại');
       const matchRq = await this.matchReqService.findOne({
-        owner: owner._id.toString(),
-        requestBy: userId,
+        sender: sender._id,
+        receiver: receiverId,
       });
       const socketIdsClient = await this.socketGateway.getSocketIdsMatchedUser(
-        owner._id.toString(),
-        userId,
+        sender._id.toString(),
+        receiverId,
       );
       if (matchRq) {
-        await this.matched(owner, user, socketIdsClient, matchRq._id);
+        await this.matched(sender, receiver, socketIdsClient, matchRq._id);
         // await this.actionRepo.
       } else {
         this.socketGateway.sendEventToClient(
           socketIdsClient.receiver,
           'matchRequest',
-          owner,
+          receiver,
         );
       }
-      await this.actionRepo.like(owner, userId);
+      await this.actionRepo.like(sender, receiverId);
       await this.matchReqService.create({
-        requestBy: owner._id,
-        owner: userId,
+        sender: sender._id,
+        receiver: receiverId,
       });
       const resp: IResponse = {
         success: true,
         message: 'Like thành công',
       };
-      if (!owner.featureAccess.likes.unlimited) {
-        await this.userService.findOneAndUpdate(owner._id, {
+      if (!sender.featureAccess.likes.unlimited) {
+        await this.userService.findOneAndUpdate(sender._id, {
           featureAccess: {
             likes: {
               unlimited: false,
-              amount: owner.featureAccess.likes.amount - 1,
+              amount: sender.featureAccess.likes.amount - 1,
             },
-            rewind: owner.featureAccess.rewind,
+            rewind: sender.featureAccess.rewind,
           },
         });
         resp['data'] = {
           featureAccess: {
             likes: {
-              amount: owner.featureAccess.likes.amount - 1,
+              amount: sender.featureAccess.likes.amount - 1,
             },
           },
         };
@@ -95,13 +96,13 @@ export class ActionService {
   }
 
   async matched(
-    owner: User,
-    user: User,
+    sender: User,
+    receiver: User,
     socketIdsClient: ISocketIdsClient,
     matchRqId: string,
   ): Promise<void> {
-    await this.conversationService.create({
-      members: [owner, user],
+    const conversation = await this.conversationService.create({
+      members: [sender, receiver],
     });
     await this.matchReqService.remove(matchRqId);
     this.socketGateway.sendEventToClient(

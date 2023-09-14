@@ -1,8 +1,9 @@
-import { MongoID } from '@common/consts';
-import { IEntity } from '@common/interfaces';
-import { User } from '@modules/users/entities/user.entity';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
+
+import { MongoID } from '@common/consts';
+import { IEntity } from '@common/interfaces';
+import { User } from '@modules/users/entities';
 
 @Schema({ timestamps: true })
 export class MatchRequest implements IEntity {
@@ -10,10 +11,10 @@ export class MatchRequest implements IEntity {
   _id?: string;
 
   @Prop({ type: MongoID, ref: User.name })
-  owner: User | string;
+  sender: User | string;
 
   @Prop({ type: MongoID, ref: User.name })
-  requestBy: User | string;
+  receiver: User | string;
 
   @Prop({ default: false })
   isBoosts: boolean;
