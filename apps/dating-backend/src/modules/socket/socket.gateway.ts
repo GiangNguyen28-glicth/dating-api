@@ -1,11 +1,4 @@
-import {
-  Inject,
-  UseFilters,
-  UseGuards,
-  UsePipes,
-  ValidationPipe,
-  forwardRef,
-} from '@nestjs/common';
+import { Inject, UseFilters, UseGuards, UsePipes, ValidationPipe, forwardRef } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -22,13 +15,7 @@ import { Server, Socket } from 'socket.io';
 
 import { Message } from '@modules/message/entities';
 import { RedisService } from '@app/shared';
-import {
-  CurrentUserWS,
-  ISocketIdsClient,
-  SOCKET,
-  WebsocketExceptionsFilter,
-  WsGuard,
-} from '@dating/common';
+import { CurrentUserWS, ISocketIdsClient, SOCKET, WebsocketExceptionsFilter, WsGuard } from '@dating/common';
 import { CreateMessageDto, SeenMessage } from '@modules/message/dto';
 import { MessageService } from '@modules/message/message.service';
 import { User } from '@modules/users/entities';
@@ -47,9 +34,7 @@ import { UserService } from '@modules/users/users.service';
 })
 @UseFilters(WebsocketExceptionsFilter)
 @UsePipes(new ValidationPipe({ transform: true }))
-export class SocketGateway
-  implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
-{
+export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
   private redisClient: Redis;
   constructor(
     private redisService: RedisService,
@@ -64,9 +49,7 @@ export class SocketGateway
   public server: Server;
 
   handleConnection(client: any, ...args: any[]) {
-    console.log(
-      '========================Connection Done========================',
-    );
+    console.log('========================Connection Done========================');
   }
 
   afterInit(server: Server) {
@@ -80,9 +63,7 @@ export class SocketGateway
       const socketKey = SOCKET + userId;
       await this.redisClient.srem(socketKey, socket.id);
       const socketIds: string[] = await this.redisService.smembers(userId);
-      console.log(
-        '========================Disconnection========================',
-      );
+      console.log('========================Disconnection========================');
       if (!socketIds.length) {
         await this.userService.findOneAndUpdate(userId, { onlineNow: false });
         return;
@@ -94,13 +75,8 @@ export class SocketGateway
 
   @SubscribeMessage('verifyFirstConnection')
   @UseGuards(WsGuard)
-  async verifyFirstConnection(
-    @ConnectedSocket() socket: Socket,
-    @CurrentUserWS() user: User,
-  ) {
-    console.log(
-      '========================verifyFirstConnection========================',
-    );
+  async verifyFirstConnection(@ConnectedSocket() socket: Socket, @CurrentUserWS() user: User) {
+    console.log('========================verifyFirstConnection========================');
     try {
       (socket as any).userId = user._id.toString();
       const socketKey = SOCKET + user._id.toString();
@@ -158,9 +134,7 @@ export class SocketGateway
     console.log('========================seenMessage========================');
     await this.messageService.seenMessage(data);
     const senderIds = await this.getSocketIdsByUser(data.sender);
-    const receiverIds = (await this.getSocketIdsByUser(data.receiver)).filter(
-      id => id !== client.id,
-    );
+    const receiverIds = (await this.getSocketIdsByUser(data.receiver)).filter(id => id !== client.id);
 
     this.sendEventToClient([...senderIds, ...receiverIds], 'seenMessage', data);
     return data;
@@ -178,14 +152,8 @@ export class SocketGateway
     return await this.redisService.smembers(SOCKET + userId);
   }
 
-  async getSocketIdsMatchedUser(
-    userId1: string,
-    userId2: string,
-  ): Promise<ISocketIdsClient> {
-    const [sender, receiver] = await Promise.all([
-      this.getSocketIdsByUser(userId1),
-      this.getSocketIdsByUser(userId2),
-    ]);
+  async getSocketIdsMatchedUser(userId1: string, userId2: string): Promise<ISocketIdsClient> {
+    const [sender, receiver] = await Promise.all([this.getSocketIdsByUser(userId1), this.getSocketIdsByUser(userId2)]);
     return { sender, receiver };
   }
 }

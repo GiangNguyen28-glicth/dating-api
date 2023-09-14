@@ -1,12 +1,7 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
 
-import {
-  DATABASE_TYPE,
-  PROVIDER_REPO,
-  QUEUE_NAME,
-  RMQ_CHANNEL,
-} from '@common/consts';
+import { DATABASE_TYPE, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
 import { IResponse, IResult } from '@common/interfaces';
 import { MessageRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
@@ -15,12 +10,7 @@ import { User } from '@modules/users/entities';
 import { RabbitService } from '@app/shared';
 
 import { Message } from './entities';
-import {
-  CreateMessageDto,
-  FilterGetAllMessageDTO,
-  SeenMessage,
-  UpdateMessageDto,
-} from './dto';
+import { CreateMessageDto, FilterGetAllMessageDTO, SeenMessage, UpdateMessageDto } from './dto';
 
 @Injectable()
 export class MessageService implements OnModuleInit {
@@ -35,9 +25,7 @@ export class MessageService implements OnModuleInit {
 
   async onModuleInit() {
     await this.rabbitService.connectRmq();
-    this.channel = await this.rabbitService.createChannel(
-      RMQ_CHANNEL.MESSAGE_CHANNEL,
-    );
+    this.channel = await this.rabbitService.createChannel(RMQ_CHANNEL.MESSAGE_CHANNEL);
     await this.rabbitService.assertQueue(
       {
         queue: QUEUE_NAME.MESSAGE_IMAGES_BUILDER,
@@ -58,20 +46,16 @@ export class MessageService implements OnModuleInit {
       messageDto['sender'] = user._id.toString();
 
       const message = await this.messageRepo.insert(messageDto);
-      const conversation = await this.conversationService.findOneAndUpdate(
-        messageDto.conversation,
-        { lastMessage: message },
-      );
+      const conversation = await this.conversationService.findOneAndUpdate(messageDto.conversation, {
+        lastMessage: message,
+      });
       throwIfNotExists(conversation, 'Không tìm thấy cuộc hội thoại');
       await this.messageRepo.save(message);
       if (messageDto.images && messageDto.images.length) {
-        await this.rabbitService.sendToQueue(
-          QUEUE_NAME.MESSAGE_IMAGES_BUILDER,
-          {
-            messageId: message._id,
-            images: messageDto.images,
-          },
-        );
+        await this.rabbitService.sendToQueue(QUEUE_NAME.MESSAGE_IMAGES_BUILDER, {
+          messageId: message._id,
+          images: messageDto.images,
+        });
       }
       return this.messageRepo.toJSON(message);
     } catch (error) {
@@ -104,10 +88,7 @@ export class MessageService implements OnModuleInit {
     }
   }
 
-  async findOneAndUpdate(
-    id: string,
-    messageDto: UpdateMessageDto,
-  ): Promise<Message> {
+  async findOneAndUpdate(id: string, messageDto: UpdateMessageDto): Promise<Message> {
     const message = await this.messageRepo.findOneAndUpdate(id, messageDto);
     throwIfNotExists(message, 'Message không tồn tại');
     return message;

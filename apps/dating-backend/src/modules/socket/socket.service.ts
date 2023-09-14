@@ -13,12 +13,9 @@ export class SocketService {
   async getSocketIdsByUser(userId: string): Promise<string[]> {
     const REDIS_KEY = SOCKET + userId;
     return new Promise(resolve => {
-      this.redisClient.smembers(
-        REDIS_KEY,
-        async (err, socketIds: string[] = []) => {
-          resolve(socketIds);
-        },
-      );
+      this.redisClient.smembers(REDIS_KEY, async (err, socketIds: string[] = []) => {
+        resolve(socketIds);
+      });
     });
   }
 

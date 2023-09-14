@@ -6,11 +6,7 @@ import { ConversationController } from './conversation.controller';
 import { Conversation, ConversationSchema } from './entities';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      { name: Conversation.name, schema: ConversationSchema },
-    ]),
-  ],
+  imports: [MongooseModule.forFeature([{ name: Conversation.name, schema: ConversationSchema }])],
   controllers: [ConversationController],
   providers: [ConversationService, ConversationMongoRepoProvider],
   exports: [ConversationService, ConversationMongoRepoProvider],

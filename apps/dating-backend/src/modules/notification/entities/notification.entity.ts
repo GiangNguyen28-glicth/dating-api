@@ -29,7 +29,11 @@ export class Notification {
   @Prop({ type: String, enum: Object.values(NotificationType), required: true })
   type: NotificationType;
 
-  @Prop({ type: String, enum: Object.values(NotificationStatus) })
+  @Prop({
+    type: String,
+    enum: Object.values(NotificationStatus),
+    default: NotificationStatus.NOT_RECEIVED,
+  })
   status: NotificationStatus;
 
   @Prop({ type: Boolean, default: false })

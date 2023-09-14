@@ -8,11 +8,7 @@ import { OfferingController } from './offering.controller';
 import { Offering, OfferingSchema } from './entities';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      { name: Offering.name, schema: OfferingSchema },
-    ]),
-  ],
+  imports: [MongooseModule.forFeature([{ name: Offering.name, schema: OfferingSchema }])],
   controllers: [OfferingController],
   providers: [OfferingService, OfferingMongoRepoProvider],
   exports: [OfferingService, OfferingMongoRepoProvider],

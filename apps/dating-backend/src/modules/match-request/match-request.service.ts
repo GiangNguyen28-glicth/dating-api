@@ -3,22 +3,24 @@ import { PopulateOptions } from 'mongoose';
 
 import { DATABASE_TYPE, PROVIDER_REPO } from '@common/consts';
 import { PaginationDTO } from '@common/dto';
-import { IResponse, IResult } from '@common/interfaces';
+import { IResponse, IResult, ISocketIdsClient } from '@common/interfaces';
 import { MatchRequestRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult } from '@dating/utils';
-import { MatchRequest } from './entities';
 import { User } from '@modules/users/entities';
-import {
-  CreateMatchRequestDto,
-  FilterGelAllMqDTO,
-  FilterGetOneMq,
-} from './dto';
+import { ConversationService } from '@modules/conversation/conversation.service';
+
+import { MatchRequest } from './entities';
+import { CreateMatchRequestDto, FilterGelAllMqDTO, FilterGetOneMq } from './dto';
+import { SocketGateway } from '@modules/socket/socket.gateway';
 
 @Injectable()
 export class MatchRequestService {
   constructor(
     @Inject(PROVIDER_REPO.MATCH_REQUEST + DATABASE_TYPE.MONGO)
     private matchRequestRepo: MatchRequestRepo,
+
+    private conversationService: ConversationService,
+    private socketGateway: SocketGateway,
   ) {}
   async create(matchRequestDto: CreateMatchRequestDto): Promise<MatchRequest> {
     try {
@@ -30,11 +32,7 @@ export class MatchRequestService {
     }
   }
 
-  async findAll(
-    filter: FilterGelAllMqDTO,
-    user: User,
-    isPopulate = false,
-  ): Promise<IResult<MatchRequest>> {
+  async findAll(filter: FilterGelAllMqDTO, user: User, isPopulate = false): Promise<IResult<MatchRequest>> {
     try {
       const pagination: PaginationDTO = {
         size: filter?.size,
@@ -83,5 +81,17 @@ export class MatchRequestService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async matched(sender: User, receiver: User, socketIdsClient: ISocketIdsClient, matchRqId: string): Promise<void> {
+    const conversation = await this.conversationService.create({
+      members: [sender, receiver],
+    });
+    const senderConversation = { ...conversation };
+    senderConversation.user = this.conversationService.getReceiver(conversation, sender._id.toString(), true) as User;
+    conversation.user = this.conversationService.getReceiver(conversation, receiver._id.toString(), true) as User;
+    await this.remove(matchRqId);
+    this.socketGateway.sendEventToClient(socketIdsClient.sender, 'notificationToSender', senderConversation);
+    this.socketGateway.sendEventToClient(socketIdsClient.receiver, 'notificationToReceiver', conversation);
   }
 }

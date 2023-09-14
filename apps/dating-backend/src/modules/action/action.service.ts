@@ -1,17 +1,16 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 
 import { DATABASE_TYPE, PROVIDER_REPO } from '@common/consts';
-import { IResponse, ISocketIdsClient } from '@common/interfaces';
+import { IResponse } from '@common/interfaces';
 import { ActionRepo } from '@dating/repositories';
+import { MatchRequestService } from '@modules/match-request/match-request.service';
 import { SocketGateway } from '@modules/socket/socket.gateway';
 import { User } from '@modules/users/entities';
-import { MatchRequestService } from '@modules/match-request/match-request.service';
-import { ConversationService } from '@modules/conversation/conversation.service';
 import { UserService } from '@modules/users/users.service';
+import { FilterBuilder, throwIfNotExists } from '@dating/utils';
 
 import { FilterGetOneActionDTO } from './dto';
 import { Action } from './entities';
-import { FilterBuilder, throwIfNotExists } from '@dating/utils';
 
 @Injectable()
 export class ActionService {
@@ -26,7 +25,6 @@ export class ActionService {
     private userService: UserService,
 
     private matchReqService: MatchRequestService,
-    private conversationService: ConversationService,
   ) {}
 
   async findOne(filter: FilterGetOneActionDTO): Promise<Action> {
@@ -50,18 +48,11 @@ export class ActionService {
         sender: sender._id,
         receiver: receiverId,
       });
-      const socketIdsClient = await this.socketGateway.getSocketIdsMatchedUser(
-        sender._id.toString(),
-        receiverId,
-      );
+      const socketIdsClient = await this.socketGateway.getSocketIdsMatchedUser(sender._id.toString(), receiverId);
       if (matchRq) {
-        await this.matched(sender, receiver, socketIdsClient, matchRq._id);
+        await this.matchReqService.matched(sender, receiver, socketIdsClient, matchRq._id);
       } else {
-        this.socketGateway.sendEventToClient(
-          socketIdsClient.receiver,
-          'matchRequest',
-          receiver,
-        );
+        this.socketGateway.sendEventToClient(socketIdsClient.receiver, 'matchRequest', receiver);
         await this.matchReqService.create({
           sender: sender._id,
           receiver: receiverId,
@@ -96,44 +87,9 @@ export class ActionService {
     }
   }
 
-  async matched(
-    sender: User,
-    receiver: User,
-    socketIdsClient: ISocketIdsClient,
-    matchRqId: string,
-  ): Promise<void> {
-    const conversation = await this.conversationService.create({
-      members: [sender, receiver],
-    });
-    const senderConversation = { ...conversation };
-    senderConversation.user = this.conversationService.getReceiver(
-      conversation,
-      sender._id.toString(),
-      true,
-    ) as User;
-    conversation.user = this.conversationService.getReceiver(
-      conversation,
-      receiver._id.toString(),
-      true,
-    ) as User;
-    await this.matchReqService.remove(matchRqId);
-    this.socketGateway.sendEventToClient(
-      socketIdsClient.sender,
-      'notificationToSender',
-      senderConversation,
-    );
-    this.socketGateway.sendEventToClient(
-      socketIdsClient.receiver,
-      'notificationToReceiver',
-      conversation,
-    );
-  }
-
   async getAllIgnoreIdsUser(userId: string, key: string): Promise<string[]> {
     try {
-      const [queryFilter] = new FilterBuilder<Action>()
-        .setFilterItem('userId', '$eq', userId)
-        .buildQuery();
+      const [queryFilter] = new FilterBuilder<Action>().setFilterItem('userId', '$eq', userId).buildQuery();
       const userIds: string[] = await this.actionRepo.distinct(key, {
         queryFilter,
       });
@@ -145,13 +101,8 @@ export class ActionService {
 
   async getAllIdsLikedUser(userId: string): Promise<string[]> {
     try {
-      const [queryFilter] = new FilterBuilder<Action>()
-        .setFilterItem('userId', '$eq', userId)
-        .buildQuery();
-      const userIds: string[] = await this.actionRepo.distinct(
-        'likedUser',
-        queryFilter,
-      );
+      const [queryFilter] = new FilterBuilder<Action>().setFilterItem('userId', '$eq', userId).buildQuery();
+      const userIds: string[] = await this.actionRepo.distinct('likedUser', queryFilter);
       return userIds;
     } catch (error) {
       throw error;

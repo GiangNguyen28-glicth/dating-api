@@ -23,10 +23,7 @@ export class MatchRequestController {
   }
 
   @Get()
-  async findAll(
-    @Query() filter: FilterGelAllMqDTO,
-    @CurrentUser() user: User,
-  ): Promise<IResult<MatchRequest>> {
+  async findAll(@Query() filter: FilterGelAllMqDTO, @CurrentUser() user: User): Promise<IResult<MatchRequest>> {
     return await this.matchRequestService.findAll(filter, user, true);
   }
 }

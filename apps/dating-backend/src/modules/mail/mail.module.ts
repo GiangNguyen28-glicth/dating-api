@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+
 import { MailService } from './mail.service';
 import { MailController } from './mail.controller';
-import { JwtService } from '@nestjs/jwt';
 
 @Module({
   controllers: [MailController],

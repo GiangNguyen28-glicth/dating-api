@@ -1,9 +1,11 @@
 import { CloudinaryProvider } from '@common/provider';
-import { UserMongoRepoProvider } from '@dating/repositories';
-import { ActionModule } from '@modules/action';
 import { Global, Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from './entities/user.entity';
+
+import { ActionModule } from '@modules/action';
+import { UserMongoRepoProvider } from '@dating/repositories';
+
+import { User, UserSchema } from './entities';
 import { HelperController } from './helper.controller';
 import { UserHelper } from './helper/user.helper';
 import { UsersController } from './users.controller';
@@ -19,8 +21,7 @@ import { UserService } from './users.service';
           UserSchema.pre('save', function (next) {
             if (this.birthDate && !this.age) {
               const currentDate = new Date();
-              this.age =
-                currentDate.getFullYear() - this.birthDate.getFullYear();
+              this.age = currentDate.getFullYear() - this.birthDate.getFullYear();
             }
             return next();
           });
