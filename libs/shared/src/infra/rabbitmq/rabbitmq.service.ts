@@ -23,36 +23,19 @@ export class RabbitService implements OnModuleInit, OnModuleDestroy {
     await this.createChannel();
   }
 
-  async exchange(
-    exchangeRb: IExchangeRb,
-    channelId: string = DEFAULT_CHANNEL_ID,
-  ): Promise<RabbitAssertExchange> {
+  async exchange(exchangeRb: IExchangeRb, channelId: string = DEFAULT_CHANNEL_ID): Promise<RabbitAssertExchange> {
     const { exchange, type, options } = exchangeRb;
-    return await this.channels[channelId].assertExchange(
-      exchange,
-      type,
-      options,
-    );
+    return await this.channels[channelId].assertExchange(exchange, type, options);
   }
 
-  async bindQueue(
-    bindQueue: IQueueBinding,
-    channelId: string = DEFAULT_CHANNEL_ID,
-  ) {
+  async bindQueue(bindQueue: IQueueBinding, channelId: string = DEFAULT_CHANNEL_ID) {
     const { queue, exchange, routingKey } = bindQueue;
     await this.exchange({ exchange, type: 'direct' });
     await this.assertQueue({ queue });
-    return await this.channels[channelId].bindQueue(
-      queue,
-      exchange,
-      routingKey,
-    );
+    return await this.channels[channelId].bindQueue(queue, exchange, routingKey);
   }
 
-  async assertQueue(
-    queueOptions: IQueue,
-    channelId: string = DEFAULT_CHANNEL_ID,
-  ): Promise<RabbitAssertQueue> {
+  async assertQueue(queueOptions: IQueue, channelId: string = DEFAULT_CHANNEL_ID): Promise<RabbitAssertQueue> {
     const { queue, options } = queueOptions;
     return await this.channels[channelId].assertQueue(queue, options);
   }
@@ -95,30 +78,15 @@ export class RabbitService implements OnModuleInit, OnModuleDestroy {
     return this.channels[channelId];
   }
 
-  async sendToQueue(
-    queue: string,
-    msg: any,
-    channelId: string = DEFAULT_CHANNEL_ID,
-  ) {
-    this.channels[channelId].sendToQueue(
-      queue,
-      Buffer.from(JSON.stringify(msg)),
-      { persistent: true },
-    );
+  async sendToQueue(queue: string, msg: any, channelId: string = DEFAULT_CHANNEL_ID) {
+    this.channels[channelId].sendToQueue(queue, Buffer.from(JSON.stringify(msg)), { persistent: true });
   }
 
-  async reject(
-    msg: ConsumeMessage,
-    requeue?: boolean,
-    channelId: string = DEFAULT_CHANNEL_ID,
-  ) {
+  async reject(msg: ConsumeMessage, requeue?: boolean, channelId: string = DEFAULT_CHANNEL_ID) {
     await this.channels[channelId].reject(msg, requeue ?? true);
   }
 
-  async pushToHooks(
-    channelId: string = DEFAULT_CHANNEL_ID,
-    hook: () => Promise<void>,
-  ) {
+  async pushToHooks(channelId: string = DEFAULT_CHANNEL_ID, hook: () => Promise<void>) {
     if (!this.hooks[channelId]) {
       this.hooks[channelId] = [];
     }

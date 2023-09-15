@@ -1,5 +1,6 @@
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
+import { IRedisSet } from './redis.interfaces';
 
 @Injectable()
 export class RedisService {
@@ -16,6 +17,18 @@ export class RedisService {
     return new Promise(resolve => {
       this.redisClient.smembers(key, async (err, value: [] = []) => {
         resolve(value);
+      });
+    });
+  }
+
+  async set(redisSet: IRedisSet): Promise<string> {
+    const { ttl, key, data } = redisSet;
+    return new Promise((resolve, reject) => {
+      this.redisClient.set(key, ttl, data, err => {
+        if (err) {
+          reject(err);
+        }
+        resolve('OK');
       });
     });
   }

@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PopulateOptions } from 'mongoose';
 
-import { DATABASE_TYPE, PROVIDER_REPO } from '@common/consts';
+import { DATABASE_TYPE, NotificationType, PROVIDER_REPO } from '@common/consts';
 import { PaginationDTO } from '@common/dto';
 import { IResponse, IResult, ISocketIdsClient } from '@common/interfaces';
 import { MatchRequestRepo } from '@dating/repositories';
@@ -12,6 +12,7 @@ import { ConversationService } from '@modules/conversation/conversation.service'
 import { MatchRequest } from './entities';
 import { CreateMatchRequestDto, FilterGelAllMqDTO, FilterGetOneMq } from './dto';
 import { SocketGateway } from '@modules/socket/socket.gateway';
+import { NotificationService } from '@modules/notification/notification.service';
 
 @Injectable()
 export class MatchRequestService {
@@ -21,6 +22,7 @@ export class MatchRequestService {
 
     private conversationService: ConversationService,
     private socketGateway: SocketGateway,
+    private notfiService: NotificationService,
   ) {}
   async create(matchRequestDto: CreateMatchRequestDto): Promise<MatchRequest> {
     try {
@@ -87,6 +89,7 @@ export class MatchRequestService {
     const conversation = await this.conversationService.create({
       members: [sender, receiver],
     });
+    await this.notfiService.create({ sender, receiver, type: NotificationType.MATCHED, conversation });
     const newConversation = await this.conversationService.toJSON(conversation);
     newConversation.members = [sender, receiver];
     await this.remove(matchRqId);

@@ -31,9 +31,7 @@ export class NotificationService implements OnModuleInit {
   async onModuleInit() {
     // return;
     await this.rabbitService.connectRmq();
-    this.channel = await this.rabbitService.createChannel(
-      RMQ_CHANNEL.NOTIFICATION_CHANNEL,
-    );
+    this.channel = await this.rabbitService.createChannel(RMQ_CHANNEL.NOTIFICATION_CHANNEL);
     await this.rabbitService.assertQueue(
       {
         queue: QUEUE_NAME.NOTIFICATION_UPDATER,
@@ -57,10 +55,7 @@ export class NotificationService implements OnModuleInit {
     }
   }
 
-  async findAll(
-    user: User,
-    filter: FilterGetAllNotification,
-  ): Promise<INotificationResult> {
+  async findAll(user: User, filter: FilterGetAllNotification): Promise<INotificationResult> {
     try {
       const [queryFilter, sortOption] = new FilterBuilder<Notification>()
         .setFilterItem('receiver', '$eq', user._id)
