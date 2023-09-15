@@ -122,6 +122,7 @@ export class MessageService implements OnModuleInit {
     try {
       const message = await this.messageRepo.findOneAndUpdate(_id, {
         isDeleted: true,
+        text: 'Tin nhan da bi xoa',
       });
       if (!message) {
         throwIfNotExists(message, 'Message không tông tại');
