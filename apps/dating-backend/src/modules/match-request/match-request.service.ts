@@ -8,12 +8,12 @@ import { MatchRequestRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult } from '@dating/utils';
 import { User } from '@modules/users/entities';
 import { ConversationService } from '@modules/conversation/conversation.service';
-
-import { MatchRequest } from './entities';
-import { CreateMatchRequestDto, FilterGelAllMqDTO, FilterGetOneMq } from './dto';
 import { SocketGateway } from '@modules/socket/socket.gateway';
 import { NotificationService } from '@modules/notification/notification.service';
 import { RedisService } from '@app/shared';
+
+import { MatchRequest } from './entities';
+import { CreateMatchRequestDto, FilterGelAllMqDTO, FilterGetOneMq } from './dto';
 
 @Injectable()
 export class MatchRequestService {
