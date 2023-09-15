@@ -43,16 +43,15 @@ export class ActionService {
   async like(sender: User, receiverId: string): Promise<IResponse> {
     try {
       const receiver = await this.userService.findOne({ _id: receiverId });
-      throwIfNotExists(receiver, 'Receiver không tồn tại');
       const matchRq = await this.matchReqService.findOne({
-        sender: sender._id,
-        receiver: receiverId,
+        sender: receiverId,
+        receiver: sender._id.toString(),
       });
       const socketIdsClient = await this.socketGateway.getSocketIdsMatchedUser(sender._id.toString(), receiverId);
       if (matchRq) {
         await this.matchReqService.matched(sender, receiver, socketIdsClient, matchRq._id);
       } else {
-        this.socketGateway.sendEventToClient(socketIdsClient.receiver, 'matchRequest', receiver);
+        this.socketGateway.sendEventToClient(socketIdsClient.receiver, 'newMatchRequest', receiver);
         await this.matchReqService.create({
           sender: sender._id,
           receiver: receiverId,
@@ -118,6 +117,18 @@ export class ActionService {
       };
     } catch (error) {
       throw error;
+    }
+  }
+
+  async sampleData(): Promise<void> {
+    const users = await this.userService.findAll();
+    for (const user of users) {
+      if (user._id.toString() != '64f08a5118c177fcf6952244') {
+        await this.matchReqService.create({
+          sender: user._id,
+          receiver: '64f08a5118c177fcf6952244',
+        });
+      }
     }
   }
 }

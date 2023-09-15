@@ -1,13 +1,5 @@
 import { AtGuard, CurrentUser, IResult } from '@dating/common';
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
 
 import { User } from '@modules/users/entities';
@@ -37,13 +29,7 @@ export class ConversationController {
   }
 
   @Get(':id')
-  async findOne(
-    @Param('id') id: string,
-    @CurrentUser() user: User,
-  ): Promise<Conversation> {
-    return await this.conversationService.findOne(
-      { _id: id, toJSON: true, populate: true },
-      user,
-    );
+  async findOne(@Param('id') id: string, @CurrentUser() user: User): Promise<Conversation> {
+    return await this.conversationService.findOne({ _id: id, toJSON: true, populate: true }, user);
   }
 }

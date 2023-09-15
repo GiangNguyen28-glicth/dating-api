@@ -1,10 +1,4 @@
-import {
-  Gender,
-  IResult,
-  LANGUAGE,
-  PaginationDTO,
-  RegisterType,
-} from '@dating/common';
+import { Gender, IResult, LANGUAGE, PaginationDTO, RegisterType } from '@dating/common';
 import { NotFoundException } from '@nestjs/common';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const dayjs = require('dayjs');
@@ -72,31 +66,25 @@ export async function hash(value: string): Promise<string> {
   }
 }
 
-export async function compareHashValue(
-  value: string,
-  hashValue: string,
-): Promise<boolean> {
+export async function compareHashValue(value: string, hashValue: string): Promise<boolean> {
   const correct = await bcrypt.compare(value, hashValue);
   return correct ? true : false;
 }
 
-export function formatResult<T>(
-  data: T[],
-  totalCount: number,
-  pagination: PaginationDTO,
-): IResult<T> {
+export function formatResult<T>(data: T[], totalCount: number, pagination: PaginationDTO): IResult<T> {
   const results: IResult<T> = {
     results: data,
     pagination: {
       currentPage: pagination.page,
       currentSize: pagination.size,
       totalCount: totalCount,
-      totalPage: Math.floor(totalCount / pagination.size) + 1,
     },
   };
   const totalPage = totalCount / pagination.size;
-  results.pagination.totalPage =
-    totalPage > 0 ? Math.floor(totalPage) + 1 : totalPage;
+  results.pagination.totalPage = totalPage + 1;
+  if (totalPage % 1 === 0) {
+    results.pagination.totalPage = totalPage;
+  }
   if (pagination.page > 1) {
     results.pagination.prevPage = pagination.page - 1;
   } else {
@@ -118,10 +106,7 @@ export async function downloadImage(url: string, image_name: string) {
   try {
     const response = await axios.get(url, { responseType: 'arraybuffer' });
     // Ghi dữ liệu hình ảnh vào tệp'
-    fs.writeFileSync(
-      `E:/Nestjs/dating-api/apps/dating-backend/images/${image_name}.jpg`,
-      response.data,
-    );
+    fs.writeFileSync(`E:/Nestjs/dating-api/apps/dating-backend/images/${image_name}.jpg`, response.data);
     console.log('Hình ảnh đã được tải xuống và lưu thành công.');
   } catch (error) {
     console.error('Lỗi khi tải xuống hình ảnh:', error);
@@ -370,11 +355,9 @@ export function mappingData(): User[] {
             selected_descriptors: [
               {
                 id: 'de_30',
-                prompt:
-                  'Đây là lúc để thêm thông tin chiều cao của bạn vào hồ sơ.',
+                prompt: 'Đây là lúc để thêm thông tin chiều cao của bạn vào hồ sơ.',
                 type: 'measurement',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/height@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/height@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/height@1x.png',
@@ -409,8 +392,7 @@ export function mappingData(): User[] {
                 name: 'Cung Hoàng Đạo',
                 prompt: 'Cung hoàng đạo của bạn là gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@1x.png',
@@ -445,8 +427,7 @@ export function mappingData(): User[] {
                 name: 'Giáo dục',
                 prompt: 'Trình độ học vấn của bạn?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/education@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/education@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/education@1x.png',
@@ -809,8 +790,7 @@ export function mappingData(): User[] {
                 name: 'Thú cưng',
                 prompt: 'Bạn có nuôi thú cưng không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/pets@1x.png',
@@ -845,8 +825,7 @@ export function mappingData(): User[] {
                 name: 'Về việc uống bia rượu',
                 prompt: 'Bạn thường uống rượu bia như thế nào?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/drink_of_choice@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/drink_of_choice@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/drink_of_choice@1x.png',
@@ -881,8 +860,7 @@ export function mappingData(): User[] {
                 name: 'Bạn có hay hút thuốc không?',
                 prompt: 'Bạn có hay hút thuốc không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/smoking@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/smoking@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/smoking@1x.png',
@@ -917,8 +895,7 @@ export function mappingData(): User[] {
                 name: 'Tập luyện',
                 prompt: 'Bạn có tập thể dục không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/workout@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/workout@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/workout@1x.png',
@@ -953,8 +930,7 @@ export function mappingData(): User[] {
                 name: 'Chế độ ăn uống',
                 prompt: 'Bạn có theo chế độ ăn uống nào không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/appetite@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/appetite@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/appetite@1x.png',
@@ -989,8 +965,7 @@ export function mappingData(): User[] {
                 name: 'Truyền thông xã hội',
                 prompt: 'Mức độ hoạt động của bạn trên mạng xã hội?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/social_media@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/social_media@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/social_media@1x.png',
@@ -1025,8 +1000,7 @@ export function mappingData(): User[] {
                 name: 'Thói quen ngủ',
                 prompt: 'Thói quen ngủ của bạn thế nào?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/sleeping_habits@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/sleeping_habits@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/sleeping_habits@1x.png',
@@ -1058,11 +1032,9 @@ export function mappingData(): User[] {
               },
               {
                 id: 'de_30',
-                prompt:
-                  'Đây là lúc để thêm thông tin chiều cao của bạn vào hồ sơ.',
+                prompt: 'Đây là lúc để thêm thông tin chiều cao của bạn vào hồ sơ.',
                 type: 'measurement',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/height@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/height@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/height@1x.png',
@@ -1097,8 +1069,7 @@ export function mappingData(): User[] {
                 name: 'Giáo dục',
                 prompt: 'Trình độ học vấn của bạn?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/education@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/education@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/education@1x.png',
@@ -1133,8 +1104,7 @@ export function mappingData(): User[] {
                 name: 'Gia đình tương lai',
                 prompt: 'Bạn có muốn có con không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/kids@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/kids@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/kids@1x.png',
@@ -1169,8 +1139,7 @@ export function mappingData(): User[] {
                 name: 'Vắc xin COVID',
                 prompt: 'Bạn tiêm vắc xin chưa??',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/covid_comfort@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/covid_comfort@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/covid_comfort@1x.png',
@@ -1205,8 +1174,7 @@ export function mappingData(): User[] {
                 name: 'Phong cách giao tiếp',
                 prompt: 'Phong cách giao tiếp của bạn là gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/communication_style@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/communication_style@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/communication_style@1x.png',
@@ -1241,8 +1209,7 @@ export function mappingData(): User[] {
                 name: 'Ngôn ngữ tình yêu',
                 prompt: 'Khi yêu, bạn thích nhận được điều gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/love_language@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/love_language@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/love_language@1x.png',
@@ -1276,15 +1243,13 @@ export function mappingData(): User[] {
             relationship_intent: {
               descriptor_choice_id: 'de_29_2',
               emoji: '\uD83D\uDE0D',
-              image_url:
-                'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_heart_eyes@3x.png',
+              image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_heart_eyes@3x.png',
               title_text: 'Mình đang tìm',
               body_text: 'Bạn hẹn hò lâu dài',
               style: 'pink',
               hidden_intent: {
                 emoji: '\uD83D\uDC40',
-                image_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
+                image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
                 title_text: 'Mục đích hẹn hò bị ẩn',
                 body_text: 'TRẢ LỜI ĐỂ KHÁM PHÁ',
               },
@@ -1761,8 +1726,7 @@ export function mappingData(): User[] {
               {
                 id: 'de_37',
                 type: 'multi_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/language@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/language@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/language@1x.png',
@@ -1801,8 +1765,7 @@ export function mappingData(): User[] {
                 name: 'Cung Hoàng Đạo',
                 prompt: 'Cung hoàng đạo của bạn là gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@1x.png',
@@ -1837,8 +1800,7 @@ export function mappingData(): User[] {
                 name: 'Giáo dục',
                 prompt: 'Trình độ học vấn của bạn?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/education@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/education@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/education@1x.png',
@@ -1873,8 +1835,7 @@ export function mappingData(): User[] {
                 name: 'Gia đình tương lai',
                 prompt: 'Bạn có muốn có con không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/kids@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/kids@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/kids@1x.png',
@@ -1909,8 +1870,7 @@ export function mappingData(): User[] {
                 name: 'Vắc xin COVID',
                 prompt: 'Bạn tiêm vắc xin chưa??',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/covid_comfort@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/covid_comfort@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/covid_comfort@1x.png',
@@ -1945,8 +1905,7 @@ export function mappingData(): User[] {
                 name: 'Ngôn ngữ tình yêu',
                 prompt: 'Khi yêu, bạn thích nhận được điều gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/love_language@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/love_language@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/love_language@1x.png',
@@ -1981,8 +1940,7 @@ export function mappingData(): User[] {
                 name: 'Thú cưng',
                 prompt: 'Bạn có nuôi thú cưng không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/pets@1x.png',
@@ -2017,8 +1975,7 @@ export function mappingData(): User[] {
                 name: 'Về việc uống bia rượu',
                 prompt: 'Bạn thường uống rượu bia như thế nào?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/drink_of_choice@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/drink_of_choice@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/drink_of_choice@1x.png',
@@ -2053,8 +2010,7 @@ export function mappingData(): User[] {
                 name: 'Bạn có hay hút thuốc không?',
                 prompt: 'Bạn có hay hút thuốc không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/smoking@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/smoking@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/smoking@1x.png',
@@ -2089,8 +2045,7 @@ export function mappingData(): User[] {
                 name: 'Tập luyện',
                 prompt: 'Bạn có tập thể dục không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/workout@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/workout@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/workout@1x.png',
@@ -2125,8 +2080,7 @@ export function mappingData(): User[] {
                 name: 'Chế độ ăn uống',
                 prompt: 'Bạn có theo chế độ ăn uống nào không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/appetite@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/appetite@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/appetite@1x.png',
@@ -2161,8 +2115,7 @@ export function mappingData(): User[] {
                 name: 'Truyền thông xã hội',
                 prompt: 'Mức độ hoạt động của bạn trên mạng xã hội?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/social_media@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/social_media@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/social_media@1x.png',
@@ -2197,8 +2150,7 @@ export function mappingData(): User[] {
                 name: 'Thói quen ngủ',
                 prompt: 'Thói quen ngủ của bạn thế nào?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/sleeping_habits@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/sleeping_habits@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/sleeping_habits@1x.png',
@@ -2230,11 +2182,9 @@ export function mappingData(): User[] {
               },
               {
                 id: 'de_30',
-                prompt:
-                  'Đây là lúc để thêm thông tin chiều cao của bạn vào hồ sơ.',
+                prompt: 'Đây là lúc để thêm thông tin chiều cao của bạn vào hồ sơ.',
                 type: 'measurement',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/height@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/height@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/height@1x.png',
@@ -2275,8 +2225,7 @@ export function mappingData(): User[] {
               style: 'yellow',
               hidden_intent: {
                 emoji: '\uD83D\uDC40',
-                image_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
+                image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
                 title_text: 'Mục đích hẹn hò bị ẩn',
                 body_text: 'TRẢ LỜI ĐỂ KHÁM PHÁ',
               },
@@ -2693,8 +2642,7 @@ export function mappingData(): User[] {
                 name: 'Cung Hoàng Đạo',
                 prompt: 'Cung hoàng đạo của bạn là gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@1x.png',
@@ -2729,8 +2677,7 @@ export function mappingData(): User[] {
                 name: 'Giáo dục',
                 prompt: 'Trình độ học vấn của bạn?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/education@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/education@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/education@1x.png',
@@ -2765,8 +2712,7 @@ export function mappingData(): User[] {
                 name: 'Thú cưng',
                 prompt: 'Bạn có nuôi thú cưng không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/pets@1x.png',
@@ -2801,8 +2747,7 @@ export function mappingData(): User[] {
                 name: 'Bạn có hay hút thuốc không?',
                 prompt: 'Bạn có hay hút thuốc không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/smoking@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/smoking@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/smoking@1x.png',
@@ -2837,8 +2782,7 @@ export function mappingData(): User[] {
                 name: 'Chế độ ăn uống',
                 prompt: 'Bạn có theo chế độ ăn uống nào không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/appetite@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/appetite@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/appetite@1x.png',
@@ -2873,8 +2817,7 @@ export function mappingData(): User[] {
                 name: 'Thói quen ngủ',
                 prompt: 'Thói quen ngủ của bạn thế nào?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/sleeping_habits@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/sleeping_habits@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/sleeping_habits@1x.png',
@@ -2908,15 +2851,13 @@ export function mappingData(): User[] {
             relationship_intent: {
               descriptor_choice_id: 'de_29_1',
               emoji: '\uD83D\uDC98',
-              image_url:
-                'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_cupid@3x.png',
+              image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_cupid@3x.png',
               title_text: 'Mình đang tìm',
               body_text: 'Người yêu',
               style: 'purple',
               hidden_intent: {
                 emoji: '\uD83D\uDC40',
-                image_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
+                image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
                 title_text: 'Mục đích hẹn hò bị ẩn',
                 body_text: 'TRẢ LỜI ĐỂ KHÁM PHÁ',
               },
@@ -3316,8 +3257,7 @@ export function mappingData(): User[] {
                 name: 'Cung Hoàng Đạo',
                 prompt: 'Cung hoàng đạo của bạn là gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@1x.png',
@@ -3352,8 +3292,7 @@ export function mappingData(): User[] {
                 name: 'Thú cưng',
                 prompt: 'Bạn có nuôi thú cưng không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/pets@1x.png',
@@ -3387,15 +3326,13 @@ export function mappingData(): User[] {
             relationship_intent: {
               descriptor_choice_id: 'de_29_1',
               emoji: '\uD83D\uDC98',
-              image_url:
-                'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_cupid@3x.png',
+              image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_cupid@3x.png',
               title_text: 'Mình đang tìm',
               body_text: 'Người yêu',
               style: 'purple',
               hidden_intent: {
                 emoji: '\uD83D\uDC40',
-                image_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
+                image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
                 title_text: 'Mục đích hẹn hò bị ẩn',
                 body_text: 'TRẢ LỜI ĐỂ KHÁM PHÁ',
               },
@@ -3422,14 +3359,12 @@ export function mappingData(): User[] {
           s_number: 8215002317977449,
           teaser: {
             type: 'school',
-            string:
-              'Đại Học Quốc Gia Tp. Hồ Chí Minh - Trường Đại Học Khoa Học Tự Nhiên',
+            string: 'Đại Học Quốc Gia Tp. Hồ Chí Minh - Trường Đại Học Khoa Học Tự Nhiên',
           },
           teasers: [
             {
               type: 'school',
-              string:
-                'Đại Học Quốc Gia Tp. Hồ Chí Minh - Trường Đại Học Khoa Học Tự Nhiên',
+              string: 'Đại Học Quốc Gia Tp. Hồ Chí Minh - Trường Đại Học Khoa Học Tự Nhiên',
             },
           ],
           experiment_info: {
@@ -3772,8 +3707,7 @@ export function mappingData(): User[] {
               {
                 id: 'de_37',
                 type: 'multi_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/language@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/language@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/language@1x.png',
@@ -3807,15 +3741,13 @@ export function mappingData(): User[] {
             relationship_intent: {
               descriptor_choice_id: 'de_29_4',
               emoji: '\uD83C\uDF89',
-              image_url:
-                'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_tada@3x.png',
+              image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_tada@3x.png',
               title_text: 'Mình đang tìm',
               body_text: 'Quan hệ không ràng buộc',
               style: 'green',
               hidden_intent: {
                 emoji: '\uD83D\uDC40',
-                image_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
+                image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
                 title_text: 'Mục đích hẹn hò bị ẩn',
                 body_text: 'TRẢ LỜI ĐỂ KHÁM PHÁ',
               },
@@ -4355,8 +4287,7 @@ export function mappingData(): User[] {
                 name: 'Cung Hoàng Đạo',
                 prompt: 'Cung hoàng đạo của bạn là gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@1x.png',
@@ -4391,8 +4322,7 @@ export function mappingData(): User[] {
                 name: 'Giáo dục',
                 prompt: 'Trình độ học vấn của bạn?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/education@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/education@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/education@1x.png',
@@ -4427,8 +4357,7 @@ export function mappingData(): User[] {
                 name: 'Gia đình tương lai',
                 prompt: 'Bạn có muốn có con không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/kids@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/kids@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/kids@1x.png',
@@ -4463,8 +4392,7 @@ export function mappingData(): User[] {
                 name: 'Vắc xin COVID',
                 prompt: 'Bạn tiêm vắc xin chưa??',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/covid_comfort@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/covid_comfort@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/covid_comfort@1x.png',
@@ -4499,8 +4427,7 @@ export function mappingData(): User[] {
                 name: 'Phong cách giao tiếp',
                 prompt: 'Phong cách giao tiếp của bạn là gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/communication_style@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/communication_style@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/communication_style@1x.png',
@@ -4535,8 +4462,7 @@ export function mappingData(): User[] {
                 name: 'Ngôn ngữ tình yêu',
                 prompt: 'Khi yêu, bạn thích nhận được điều gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/love_language@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/love_language@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/love_language@1x.png',
@@ -4571,8 +4497,7 @@ export function mappingData(): User[] {
                 name: 'Thú cưng',
                 prompt: 'Bạn có nuôi thú cưng không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/pets@1x.png',
@@ -4607,8 +4532,7 @@ export function mappingData(): User[] {
                 name: 'Về việc uống bia rượu',
                 prompt: 'Bạn thường uống rượu bia như thế nào?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/drink_of_choice@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/drink_of_choice@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/drink_of_choice@1x.png',
@@ -4643,8 +4567,7 @@ export function mappingData(): User[] {
                 name: 'Bạn có hay hút thuốc không?',
                 prompt: 'Bạn có hay hút thuốc không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/smoking@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/smoking@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/smoking@1x.png',
@@ -4679,8 +4602,7 @@ export function mappingData(): User[] {
                 name: 'Tập luyện',
                 prompt: 'Bạn có tập thể dục không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/workout@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/workout@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/workout@1x.png',
@@ -4715,8 +4637,7 @@ export function mappingData(): User[] {
                 name: 'Chế độ ăn uống',
                 prompt: 'Bạn có theo chế độ ăn uống nào không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/appetite@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/appetite@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/appetite@1x.png',
@@ -4751,8 +4672,7 @@ export function mappingData(): User[] {
                 name: 'Thói quen ngủ',
                 prompt: 'Thói quen ngủ của bạn thế nào?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/sleeping_habits@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/sleeping_habits@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/sleeping_habits@1x.png',
@@ -4786,15 +4706,13 @@ export function mappingData(): User[] {
             relationship_intent: {
               descriptor_choice_id: 'de_29_5',
               emoji: '\uD83D\uDC4B',
-              image_url:
-                'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_wave@3x.png',
+              image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_wave@3x.png',
               title_text: 'Mình đang tìm',
               body_text: 'Những người bạn mới',
               style: 'turquoise',
               hidden_intent: {
                 emoji: '\uD83D\uDC40',
-                image_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
+                image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
                 title_text: 'Mục đích hẹn hò bị ẩn',
                 body_text: 'TRẢ LỜI ĐỂ KHÁM PHÁ',
               },
@@ -5168,8 +5086,7 @@ export function mappingData(): User[] {
                 name: 'Cung Hoàng Đạo',
                 prompt: 'Cung hoàng đạo của bạn là gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@1x.png',
@@ -5204,8 +5121,7 @@ export function mappingData(): User[] {
                 name: 'Chế độ ăn uống',
                 prompt: 'Bạn có theo chế độ ăn uống nào không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/appetite@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/appetite@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/appetite@1x.png',
@@ -5240,8 +5156,7 @@ export function mappingData(): User[] {
                 name: 'Thú cưng',
                 prompt: 'Bạn có nuôi thú cưng không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/pets@1x.png',
@@ -5276,8 +5191,7 @@ export function mappingData(): User[] {
                 name: 'Giáo dục',
                 prompt: 'Trình độ học vấn của bạn?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/education@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/education@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/education@1x.png',
@@ -5312,8 +5226,7 @@ export function mappingData(): User[] {
                 name: 'Bạn có hay hút thuốc không?',
                 prompt: 'Bạn có hay hút thuốc không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/smoking@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/smoking@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/smoking@1x.png',
@@ -5347,15 +5260,13 @@ export function mappingData(): User[] {
             relationship_intent: {
               descriptor_choice_id: 'de_29_1',
               emoji: '\uD83D\uDC98',
-              image_url:
-                'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_cupid@3x.png',
+              image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_cupid@3x.png',
               title_text: 'Mình đang tìm',
               body_text: 'Người yêu',
               style: 'purple',
               hidden_intent: {
                 emoji: '\uD83D\uDC40',
-                image_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
+                image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
                 title_text: 'Mục đích hẹn hò bị ẩn',
                 body_text: 'TRẢ LỜI ĐỂ KHÁM PHÁ',
               },
@@ -6269,8 +6180,7 @@ export function mappingData(): User[] {
                 name: 'Cung Hoàng Đạo',
                 prompt: 'Cung hoàng đạo của bạn là gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@1x.png',
@@ -6305,8 +6215,7 @@ export function mappingData(): User[] {
                 name: 'Thú cưng',
                 prompt: 'Bạn có nuôi thú cưng không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/pets@1x.png',
@@ -6341,8 +6250,7 @@ export function mappingData(): User[] {
                 name: 'Giáo dục',
                 prompt: 'Trình độ học vấn của bạn?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/education@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/education@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/education@1x.png',
@@ -6377,8 +6285,7 @@ export function mappingData(): User[] {
                 name: 'Bạn có hay hút thuốc không?',
                 prompt: 'Bạn có hay hút thuốc không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/smoking@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/smoking@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/smoking@1x.png',
@@ -6412,15 +6319,13 @@ export function mappingData(): User[] {
             relationship_intent: {
               descriptor_choice_id: 'de_29_5',
               emoji: '\uD83D\uDC4B',
-              image_url:
-                'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_wave@3x.png',
+              image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_wave@3x.png',
               title_text: 'Mình đang tìm',
               body_text: 'Những người bạn mới',
               style: 'turquoise',
               hidden_intent: {
                 emoji: '\uD83D\uDC40',
-                image_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
+                image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
                 title_text: 'Mục đích hẹn hò bị ẩn',
                 body_text: 'TRẢ LỜI ĐỂ KHÁM PHÁ',
               },
@@ -7095,11 +7000,9 @@ export function mappingData(): User[] {
             selected_descriptors: [
               {
                 id: 'de_30',
-                prompt:
-                  'Đây là lúc để thêm thông tin chiều cao của bạn vào hồ sơ.',
+                prompt: 'Đây là lúc để thêm thông tin chiều cao của bạn vào hồ sơ.',
                 type: 'measurement',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/height@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/height@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/height@1x.png',
@@ -7134,8 +7037,7 @@ export function mappingData(): User[] {
                 name: 'Cung Hoàng Đạo',
                 prompt: 'Cung hoàng đạo của bạn là gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@1x.png',
@@ -7170,8 +7072,7 @@ export function mappingData(): User[] {
                 name: 'Giáo dục',
                 prompt: 'Trình độ học vấn của bạn?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/education@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/education@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/education@1x.png',
@@ -7206,8 +7107,7 @@ export function mappingData(): User[] {
                 name: 'Kiểu Tính Cách',
                 prompt: 'Kiểu Tính Cách của bạn là gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/mbti@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/mbti@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/mbti@1x.png',
@@ -7242,8 +7142,7 @@ export function mappingData(): User[] {
                 name: 'Phong cách giao tiếp',
                 prompt: 'Phong cách giao tiếp của bạn là gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/communication_style@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/communication_style@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/communication_style@1x.png',
@@ -7278,8 +7177,7 @@ export function mappingData(): User[] {
                 name: 'Ngôn ngữ tình yêu',
                 prompt: 'Khi yêu, bạn thích nhận được điều gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/love_language@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/love_language@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/love_language@1x.png',
@@ -7314,8 +7212,7 @@ export function mappingData(): User[] {
                 name: 'Thú cưng',
                 prompt: 'Bạn có nuôi thú cưng không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/pets@1x.png',
@@ -7350,8 +7247,7 @@ export function mappingData(): User[] {
                 name: 'Về việc uống bia rượu',
                 prompt: 'Bạn thường uống rượu bia như thế nào?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/drink_of_choice@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/drink_of_choice@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/drink_of_choice@1x.png',
@@ -7386,8 +7282,7 @@ export function mappingData(): User[] {
                 name: 'Bạn có hay hút thuốc không?',
                 prompt: 'Bạn có hay hút thuốc không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/smoking@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/smoking@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/smoking@1x.png',
@@ -7422,8 +7317,7 @@ export function mappingData(): User[] {
                 name: 'Tập luyện',
                 prompt: 'Bạn có tập thể dục không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/workout@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/workout@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/workout@1x.png',
@@ -7458,8 +7352,7 @@ export function mappingData(): User[] {
                 name: 'Chế độ ăn uống',
                 prompt: 'Bạn có theo chế độ ăn uống nào không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/appetite@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/appetite@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/appetite@1x.png',
@@ -7494,8 +7387,7 @@ export function mappingData(): User[] {
                 name: 'Thói quen ngủ',
                 prompt: 'Thói quen ngủ của bạn thế nào?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/sleeping_habits@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/sleeping_habits@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/sleeping_habits@1x.png',
@@ -7529,15 +7421,13 @@ export function mappingData(): User[] {
             relationship_intent: {
               descriptor_choice_id: 'de_29_5',
               emoji: '\uD83D\uDC4B',
-              image_url:
-                'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_wave@3x.png',
+              image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_wave@3x.png',
               title_text: 'Mình đang tìm',
               body_text: 'Những người bạn mới',
               style: 'turquoise',
               hidden_intent: {
                 emoji: '\uD83D\uDC40',
-                image_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
+                image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
                 title_text: 'Mục đích hẹn hò bị ẩn',
                 body_text: 'TRẢ LỜI ĐỂ KHÁM PHÁ',
               },
@@ -8081,8 +7971,7 @@ export function mappingData(): User[] {
               style: 'blue',
               hidden_intent: {
                 emoji: '\uD83D\uDC40',
-                image_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
+                image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
                 title_text: 'Mục đích hẹn hò bị ẩn',
                 body_text: 'TRẢ LỜI ĐỂ KHÁM PHÁ',
               },
@@ -8691,8 +8580,7 @@ export function mappingData(): User[] {
                 name: 'Thú cưng',
                 prompt: 'Bạn có nuôi thú cưng không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/pets@1x.png',
@@ -8727,8 +8615,7 @@ export function mappingData(): User[] {
                 name: 'Về việc uống bia rượu',
                 prompt: 'Bạn thường uống rượu bia như thế nào?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/drink_of_choice@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/drink_of_choice@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/drink_of_choice@1x.png',
@@ -8763,8 +8650,7 @@ export function mappingData(): User[] {
                 name: 'Tập luyện',
                 prompt: 'Bạn có tập thể dục không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/workout@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/workout@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/workout@1x.png',
@@ -8799,8 +8685,7 @@ export function mappingData(): User[] {
                 name: 'Cung Hoàng Đạo',
                 prompt: 'Cung hoàng đạo của bạn là gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@1x.png',
@@ -8835,8 +8720,7 @@ export function mappingData(): User[] {
                 name: 'Giáo dục',
                 prompt: 'Trình độ học vấn của bạn?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/education@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/education@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/education@1x.png',
@@ -8871,8 +8755,7 @@ export function mappingData(): User[] {
                 name: 'Gia đình tương lai',
                 prompt: 'Bạn có muốn có con không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/kids@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/kids@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/kids@1x.png',
@@ -8907,8 +8790,7 @@ export function mappingData(): User[] {
                 name: 'Vắc xin COVID',
                 prompt: 'Bạn tiêm vắc xin chưa??',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/covid_comfort@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/covid_comfort@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/covid_comfort@1x.png',
@@ -8943,8 +8825,7 @@ export function mappingData(): User[] {
                 name: 'Kiểu Tính Cách',
                 prompt: 'Kiểu Tính Cách của bạn là gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/mbti@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/mbti@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/mbti@1x.png',
@@ -8979,8 +8860,7 @@ export function mappingData(): User[] {
                 name: 'Phong cách giao tiếp',
                 prompt: 'Phong cách giao tiếp của bạn là gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/communication_style@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/communication_style@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/communication_style@1x.png',
@@ -9015,8 +8895,7 @@ export function mappingData(): User[] {
                 name: 'Ngôn ngữ tình yêu',
                 prompt: 'Khi yêu, bạn thích nhận được điều gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/love_language@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/love_language@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/love_language@1x.png',
@@ -9057,8 +8936,7 @@ export function mappingData(): User[] {
               style: 'yellow',
               hidden_intent: {
                 emoji: '\uD83D\uDC40',
-                image_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
+                image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
                 title_text: 'Mục đích hẹn hò bị ẩn',
                 body_text: 'TRẢ LỜI ĐỂ KHÁM PHÁ',
               },
@@ -9538,15 +9416,13 @@ export function mappingData(): User[] {
             relationship_intent: {
               descriptor_choice_id: 'de_29_4',
               emoji: '\uD83C\uDF89',
-              image_url:
-                'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_tada@3x.png',
+              image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_tada@3x.png',
               title_text: 'Mình đang tìm',
               body_text: 'Quan hệ không ràng buộc',
               style: 'green',
               hidden_intent: {
                 emoji: '\uD83D\uDC40',
-                image_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
+                image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
                 title_text: 'Mục đích hẹn hò bị ẩn',
                 body_text: 'TRẢ LỜI ĐỂ KHÁM PHÁ',
               },
@@ -9764,8 +9640,7 @@ export function mappingData(): User[] {
                 name: 'Thú cưng',
                 prompt: 'Bạn có nuôi thú cưng không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/pets@1x.png',
@@ -9800,8 +9675,7 @@ export function mappingData(): User[] {
                 name: 'Về việc uống bia rượu',
                 prompt: 'Bạn thường uống rượu bia như thế nào?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/drink_of_choice@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/drink_of_choice@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/drink_of_choice@1x.png',
@@ -9836,8 +9710,7 @@ export function mappingData(): User[] {
                 name: 'Bạn có hay hút thuốc không?',
                 prompt: 'Bạn có hay hút thuốc không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/smoking@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/smoking@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/smoking@1x.png',
@@ -9872,8 +9745,7 @@ export function mappingData(): User[] {
                 name: 'Tập luyện',
                 prompt: 'Bạn có tập thể dục không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/workout@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/workout@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/workout@1x.png',
@@ -9908,8 +9780,7 @@ export function mappingData(): User[] {
                 name: 'Chế độ ăn uống',
                 prompt: 'Bạn có theo chế độ ăn uống nào không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/appetite@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/appetite@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/appetite@1x.png',
@@ -9944,8 +9815,7 @@ export function mappingData(): User[] {
                 name: 'Truyền thông xã hội',
                 prompt: 'Mức độ hoạt động của bạn trên mạng xã hội?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/social_media@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/social_media@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/social_media@1x.png',
@@ -9980,8 +9850,7 @@ export function mappingData(): User[] {
                 name: 'Thói quen ngủ',
                 prompt: 'Thói quen ngủ của bạn thế nào?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/sleeping_habits@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/sleeping_habits@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/sleeping_habits@1x.png',
@@ -10016,8 +9885,7 @@ export function mappingData(): User[] {
                 name: 'Cung Hoàng Đạo',
                 prompt: 'Cung hoàng đạo của bạn là gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@1x.png',
@@ -10052,8 +9920,7 @@ export function mappingData(): User[] {
                 name: 'Giáo dục',
                 prompt: 'Trình độ học vấn của bạn?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/education@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/education@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/education@1x.png',
@@ -10088,8 +9955,7 @@ export function mappingData(): User[] {
                 name: 'Gia đình tương lai',
                 prompt: 'Bạn có muốn có con không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/kids@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/kids@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/kids@1x.png',
@@ -10130,8 +9996,7 @@ export function mappingData(): User[] {
               style: 'yellow',
               hidden_intent: {
                 emoji: '\uD83D\uDC40',
-                image_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
+                image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
                 title_text: 'Mục đích hẹn hò bị ẩn',
                 body_text: 'TRẢ LỜI ĐỂ KHÁM PHÁ',
               },
@@ -10569,8 +10434,7 @@ export function mappingData(): User[] {
                 name: 'Cung Hoàng Đạo',
                 prompt: 'Cung hoàng đạo của bạn là gì?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/astrological_sign@1x.png',
@@ -10611,8 +10475,7 @@ export function mappingData(): User[] {
               style: 'blue',
               hidden_intent: {
                 emoji: '\uD83D\uDC40',
-                image_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
+                image_url: 'https://static-assets.gotinder.com/icons/descriptors/relationship_intent_eyes.png',
                 title_text: 'Mục đích hẹn hò bị ẩn',
                 body_text: 'TRẢ LỜI ĐỂ KHÁM PHÁ',
               },
@@ -11001,8 +10864,7 @@ export function mappingData(): User[] {
                 name: 'Thú cưng',
                 prompt: 'Bạn có nuôi thú cưng không?',
                 type: 'single_selection_set',
-                icon_url:
-                  'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
+                icon_url: 'https://static-assets.gotinder.com/icons/descriptors/pets@3x.png',
                 icon_urls: [
                   {
                     url: 'https://static-assets.gotinder.com/icons/descriptors/pets@1x.png',

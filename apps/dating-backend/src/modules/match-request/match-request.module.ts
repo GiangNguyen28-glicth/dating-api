@@ -9,12 +9,7 @@ import { MatchRequestController } from './match-request.controller';
 import { MatchRequest, MatchRequestSchema } from './entities';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      { name: MatchRequest.name, schema: MatchRequestSchema },
-    ]),
-    ConversationModule,
-  ],
+  imports: [MongooseModule.forFeature([{ name: MatchRequest.name, schema: MatchRequestSchema }]), ConversationModule],
   controllers: [MatchRequestController],
   providers: [MatchRequestService, MatchRequestMongoRepoProvider],
   exports: [MatchRequestService, MatchRequestMongoRepoProvider],

@@ -87,11 +87,10 @@ export class MatchRequestService {
     const conversation = await this.conversationService.create({
       members: [sender, receiver],
     });
-    const senderConversation = { ...conversation };
-    senderConversation.user = this.conversationService.getReceiver(conversation, sender._id.toString(), true) as User;
-    conversation.user = this.conversationService.getReceiver(conversation, receiver._id.toString(), true) as User;
+    const newConversation = await this.conversationService.toJSON(conversation);
+    newConversation.members = [sender, receiver];
     await this.remove(matchRqId);
-    this.socketGateway.sendEventToClient(socketIdsClient.sender, 'notificationToSender', senderConversation);
-    this.socketGateway.sendEventToClient(socketIdsClient.receiver, 'notificationToReceiver', conversation);
+    const socketIds = socketIdsClient.receiver.concat(socketIdsClient.sender);
+    this.socketGateway.sendEventToClient(socketIds, 'newMatched', newConversation);
   }
 }

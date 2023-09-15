@@ -1,11 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import {
-  DATABASE_TYPE,
-  EXCLUDE_FIELDS,
-  MongoQuery,
-  PROVIDER_REPO,
-} from '@common/consts';
+import { DATABASE_TYPE, EXCLUDE_FIELDS, MongoQuery, PROVIDER_REPO } from '@common/consts';
 import { PaginationDTO } from '@common/dto';
 import { IOptionFilterGetOne, IResult } from '@common/interfaces';
 import { ConversationRepo } from '@dating/repositories';
@@ -13,11 +8,7 @@ import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
 import { User } from '@modules/users/entities';
 
 import { Conversation } from './entities';
-import {
-  CreateConversationDto,
-  FilterGetAllConversationDTO,
-  FilterGetOneConversationDTO,
-} from './dto';
+import { CreateConversationDto, FilterGetAllConversationDTO, FilterGetOneConversationDTO } from './dto';
 
 @Injectable()
 export class ConversationService {
@@ -30,10 +21,7 @@ export class ConversationService {
     return await this.conversationRepo.save(conversation);
   }
 
-  async findAll(
-    user: User,
-    filter: FilterGetAllConversationDTO,
-  ): Promise<IResult<Conversation>> {
+  async findAll(user: User, filter: FilterGetAllConversationDTO): Promise<IResult<Conversation>> {
     try {
       const query: MongoQuery = filter?.message != 0 ? '$ne' : '$eq';
 
@@ -80,29 +68,18 @@ export class ConversationService {
     });
   }
 
-  getReceiver(
-    conversation: Conversation,
-    userId: string,
-    isPopulate?: boolean,
-  ): User | string {
+  getReceiver(conversation: Conversation, userId: string, isPopulate?: boolean): User | string {
     if (!isPopulate) {
       return (conversation.members[0] as User)._id.toString() === userId
         ? (conversation.members[1] as User)
         : (conversation.members[0] as User);
     }
-    return conversation.members[0] === userId
-      ? conversation.members[1]
-      : conversation.members[0];
+    return conversation.members[0] === userId ? conversation.members[1] : conversation.members[0];
   }
 
-  async findOne(
-    filter: FilterGetOneConversationDTO,
-    user: User,
-  ): Promise<Conversation> {
+  async findOne(filter: FilterGetOneConversationDTO, user: User): Promise<Conversation> {
     try {
-      const [queryFilter] = new FilterBuilder<Conversation>()
-        .setFilterItem('_id', '$eq', filter?._id)
-        .buildQuery();
+      const [queryFilter] = new FilterBuilder<Conversation>().setFilterItem('_id', '$eq', filter?._id).buildQuery();
       const options: IOptionFilterGetOne<Conversation> = {
         queryFilter,
         populate: [],
@@ -122,10 +99,7 @@ export class ConversationService {
         return conversation;
       }
       const newConversation = this.conversationRepo.toJSON(conversation);
-      newConversation.user = this.getReceiver(
-        conversation,
-        user._id.toString(),
-      ) as User;
+      newConversation.user = this.getReceiver(conversation, user._id.toString()) as User;
 
       return newConversation;
     } catch (error) {
@@ -133,15 +107,9 @@ export class ConversationService {
     }
   }
 
-  async findOneAndUpdate(
-    _id: string,
-    entities?: Partial<Conversation>,
-  ): Promise<Conversation> {
+  async findOneAndUpdate(_id: string, entities?: Partial<Conversation>): Promise<Conversation> {
     try {
-      const conversation = await this.conversationRepo.findOneAndUpdate(
-        _id,
-        entities,
-      );
+      const conversation = await this.conversationRepo.findOneAndUpdate(_id, entities);
       return conversation;
     } catch (error) {
       throw error;
@@ -156,7 +124,7 @@ export class ConversationService {
     return query;
   }
 
-  async updateModel(conversation: Conversation): Promise<Conversation> {
-    return await this.conversationRepo.updateEntities(conversation);
+  async toJSON(conversation: Conversation): Promise<Conversation> {
+    return await this.conversationRepo.toJSON(conversation);
   }
 }
