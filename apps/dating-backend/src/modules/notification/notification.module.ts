@@ -12,5 +12,6 @@ import { NotificationController } from './notification.controller';
   imports: [MongooseModule.forFeature([{ name: Notification.name, schema: NotificationSchema }])],
   controllers: [NotificationController],
   providers: [NotificationService, NotificationMongoRepoProvider],
+  exports: [NotificationService],
 })
 export class NotificationModule {}
