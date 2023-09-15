@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { IResponse, IResult } from '@common/interfaces';
@@ -28,9 +19,7 @@ export class OfferingController {
   }
 
   @Get()
-  async findAll(
-    @Query() pagination: PaginationDTO,
-  ): Promise<IResult<Offering>> {
+  async findAll(@Query() pagination: PaginationDTO): Promise<IResult<Offering>> {
     return await this.offeringService.findAll(pagination);
   }
 
@@ -40,10 +29,7 @@ export class OfferingController {
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateOfferingDto: UpdateOfferingDto,
-  ) {
+  update(@Param('id') id: string, @Body() updateOfferingDto: UpdateOfferingDto) {
     return null;
   }
 

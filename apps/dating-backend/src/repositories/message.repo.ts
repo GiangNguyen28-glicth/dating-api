@@ -1,14 +1,8 @@
-import {
-  CrudRepo,
-  DATABASE_TYPE,
-  MessageModelType,
-  MessageStatus,
-  PROVIDER_REPO,
-} from '@dating/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { CrudRepo, DATABASE_TYPE, MessageModelType, MessageStatus, PROVIDER_REPO } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
 import { SeenMessage } from '@modules/message/dto';
 import { Message } from '@modules/message/entities';
-import { InjectModel } from '@nestjs/mongoose';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface MessageRepo extends CrudRepo<Message> {
@@ -17,9 +11,7 @@ export interface MessageRepo extends CrudRepo<Message> {
   updateMessageToReceived(ids: string[]): void;
 }
 export class MessageMongoRepo extends MongoRepo<Message> {
-  constructor(
-    @InjectModel(Message.name) protected messageModel: MessageModelType,
-  ) {
+  constructor(@InjectModel(Message.name) protected messageModel: MessageModelType) {
     super(messageModel);
   }
 

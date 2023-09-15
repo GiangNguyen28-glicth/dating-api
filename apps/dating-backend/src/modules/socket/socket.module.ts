@@ -9,6 +9,6 @@ import { SocketService } from './socket.service';
 @Module({
   imports: [MessageModule],
   providers: [SocketGateway, SocketService, WsStrategy],
-  exports: [SocketGateway],
+  exports: [SocketGateway, SocketService],
 })
 export class SocketModule {}

@@ -1,25 +1,18 @@
+import { RedisService } from '@app/shared';
 import { SOCKET } from '@common/consts';
-import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
-import Redis from 'ioredis';
-import { Cache } from 'cache-manager';
+import { ISocketIdsClient } from '@common/interfaces';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class SocketService {
-  private redisClient: Redis;
-  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
-    this.redisClient = (this.cacheManager as any).store.getClient() as Redis;
-  }
+  constructor(private redisService: RedisService) {}
 
   async getSocketIdsByUser(userId: string): Promise<string[]> {
-    const REDIS_KEY = SOCKET + userId;
-    return new Promise(resolve => {
-      this.redisClient.smembers(REDIS_KEY, async (err, socketIds: string[] = []) => {
-        resolve(socketIds);
-      });
-    });
+    return await this.redisService.smembers(SOCKET + userId);
   }
 
-  getRedisClient() {
-    return this.redisClient;
+  async getSocketIdsMatchedUser(userId1: string, userId2: string): Promise<ISocketIdsClient> {
+    const [sender, receiver] = await Promise.all([this.getSocketIdsByUser(userId1), this.getSocketIdsByUser(userId2)]);
+    return { sender, receiver };
   }
 }

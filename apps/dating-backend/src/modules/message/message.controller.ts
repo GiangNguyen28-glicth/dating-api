@@ -1,26 +1,10 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
-import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
 
-import { CurrentUser } from '@common/decorators';
 import { AtGuard } from '@common/guards';
 import { IResponse, IResult } from '@common/interfaces';
-import { User } from '@modules/users/entities';
 
-import {
-  CreateMessageDto,
-  FilterGetAllMessageDTO,
-  UpdateMessageDto,
-} from './dto';
+import { FilterGetAllMessageDTO, UpdateMessageDto } from './dto';
 import { Message } from './entities';
 import { MessageService } from './message.service';
 
@@ -30,16 +14,8 @@ import { MessageService } from './message.service';
 export class MessageController {
   constructor(private readonly messageService: MessageService) {}
 
-  @Post()
-  @ApiBody({ type: CreateMessageDto })
-  create(@Body() messageDto: CreateMessageDto, @CurrentUser() user: User) {
-    return this.messageService.create(messageDto, user);
-  }
-
   @Get()
-  async findAll(
-    @Query() filter: FilterGetAllMessageDTO,
-  ): Promise<IResult<Message>> {
+  async findAll(@Query() filter: FilterGetAllMessageDTO): Promise<IResult<Message>> {
     return await this.messageService.findAll(filter);
   }
 

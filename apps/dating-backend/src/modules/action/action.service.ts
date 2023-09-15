@@ -5,6 +5,7 @@ import { IResponse } from '@common/interfaces';
 import { ActionRepo } from '@dating/repositories';
 import { MatchRequestService } from '@modules/match-request/match-request.service';
 import { SocketGateway } from '@modules/socket/socket.gateway';
+import { SocketService } from '@modules/socket/socket.service';
 import { User } from '@modules/users/entities';
 import { UserService } from '@modules/users/users.service';
 import { FilterBuilder, throwIfNotExists } from '@dating/utils';
@@ -20,6 +21,9 @@ export class ActionService {
 
     @Inject(forwardRef(() => SocketGateway))
     private socketGateway: SocketGateway,
+
+    @Inject(forwardRef(() => SocketGateway))
+    private socketService: SocketService,
 
     @Inject(forwardRef(() => UserService))
     private userService: UserService,
@@ -53,7 +57,7 @@ export class ActionService {
           message: 'Duplicate match request',
         };
       }
-      const socketIdsClient = await this.socketGateway.getSocketIdsMatchedUser(sender._id.toString(), receiverId);
+      const socketIdsClient = await this.socketService.getSocketIdsMatchedUser(sender._id.toString(), receiverId);
       if (matchRq) {
         await this.matchReqService.matched(sender, receiver, socketIdsClient, matchRq._id);
       } else {

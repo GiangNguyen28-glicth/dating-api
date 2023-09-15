@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  CACHE_MANAGER,
-  Inject,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, CACHE_MANAGER, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { JwtService } from '@nestjs/jwt';
@@ -27,11 +21,7 @@ export class MailService {
       },
     });
   }
-  async sendMail(
-    email: string,
-    subject: string,
-    html: string,
-  ): Promise<SMTPTransport.SentMessageInfo> {
+  async sendMail(email: string, subject: string, html: string): Promise<SMTPTransport.SentMessageInfo> {
     return await this.transporter().sendMail({
       from: this.configService.get('EMAIL_USERNAME'),
       to: email,

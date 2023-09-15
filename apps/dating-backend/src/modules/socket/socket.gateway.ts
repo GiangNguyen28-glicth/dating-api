@@ -20,6 +20,8 @@ import { CreateMessageDto, SeenMessage } from '@modules/message/dto';
 import { MessageService } from '@modules/message/message.service';
 import { User } from '@modules/users/entities';
 import { UserService } from '@modules/users/users.service';
+import { SocketService } from './socket.service';
+import { throwIfNotExists } from '@dating/utils';
 @WebSocketGateway({
   cors: {
     origin: [
@@ -35,15 +37,13 @@ import { UserService } from '@modules/users/users.service';
 @UseFilters(WebsocketExceptionsFilter)
 @UsePipes(new ValidationPipe({ transform: true }))
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
-  private redisClient: Redis;
   constructor(
     private redisService: RedisService,
     @Inject(forwardRef(() => UserService))
     private userService: UserService,
     private messageService: MessageService,
-  ) {
-    this.redisClient = redisService.getRedisClient();
-  }
+    private socketService: SocketService,
+  ) {}
 
   @WebSocketServer()
   public server: Server;
@@ -60,8 +60,11 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   async handleDisconnect(@ConnectedSocket() socket: Socket) {
     try {
       const userId = socket['userId'];
+      if (!userId) {
+        return;
+      }
       const socketKey = SOCKET + userId;
-      await this.redisClient.srem(socketKey, socket.id);
+      await this.redisService.srem(socketKey, socket.id);
       const socketIds: string[] = await this.redisService.smembers(userId);
       console.log('========================Disconnection========================');
       if (!socketIds.length) {
@@ -80,9 +83,9 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     try {
       (socket as any).userId = user._id.toString();
       const socketKey = SOCKET + user._id.toString();
-      await this.redisClient.sadd(socketKey, socket.id);
+      await this.redisService.sadd(socketKey, socket.id);
     } catch (error) {
-      throw error;
+      throw new WsException(error.message);
     }
   }
 
@@ -104,8 +107,8 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       const senderKey = SOCKET + (message.sender as string);
       const receiverKey = SOCKET + (message.receiver as string);
       const [socketIdsSender, socketIdsReceiver] = await Promise.all([
-        this.getSocketIdsByUser(senderKey),
-        this.getSocketIdsByUser(receiverKey),
+        this.socketService.getSocketIdsByUser(senderKey),
+        this.socketService.getSocketIdsByUser(receiverKey),
       ]);
 
       // This event emit to all tab of user sent the message in order to those tabs update new message
@@ -120,7 +123,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
         uuid: data.uuid,
       };
     } catch (error) {
-      throw error;
+      throw new WsException(error.message);
     }
   }
 
@@ -131,13 +134,17 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     @ConnectedSocket() client: Socket,
     // @CurrentUserWS() user: User,
   ) {
-    console.log('========================seenMessage========================');
-    await this.messageService.seenMessage(data);
-    const senderIds = await this.getSocketIdsByUser(data.sender);
-    const receiverIds = (await this.getSocketIdsByUser(data.receiver)).filter(id => id !== client.id);
+    try {
+      console.log('========================seenMessage========================');
+      await this.messageService.seenMessage(data);
+      const senderIds = await this.socketService.getSocketIdsByUser(data.sender);
+      const receiverIds = (await this.socketService.getSocketIdsByUser(data.receiver)).filter(id => id !== client.id);
 
-    this.sendEventToClient([...senderIds, ...receiverIds], 'seenMessage', data);
-    return data;
+      this.sendEventToClient([...senderIds, ...receiverIds], 'seenMessage', data);
+      return data;
+    } catch (error) {
+      throw new WsException(error.message);
+    }
   }
 
   sendEventToClient(socketIds: string[], eventName: string, data) {
@@ -146,14 +153,5 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
         this.server.sockets.to(item).emit(eventName, data);
       });
     }
-  }
-
-  async getSocketIdsByUser(userId: string): Promise<string[]> {
-    return await this.redisService.smembers(SOCKET + userId);
-  }
-
-  async getSocketIdsMatchedUser(userId1: string, userId2: string): Promise<ISocketIdsClient> {
-    const [sender, receiver] = await Promise.all([this.getSocketIdsByUser(userId1), this.getSocketIdsByUser(userId2)]);
-    return { sender, receiver };
   }
 }

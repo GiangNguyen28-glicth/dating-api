@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
 import { PopulateOptions } from 'mongoose';
 
 import { DATABASE_TYPE, MatchRqStatus, NotificationType, PROVIDER_REPO, REDIS_KEY_PREFIX } from '@common/consts';
@@ -20,6 +20,8 @@ export class MatchRequestService {
   constructor(
     @Inject(PROVIDER_REPO.MATCH_REQUEST + DATABASE_TYPE.MONGO)
     private matchRequestRepo: MatchRequestRepo,
+
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
 
     private conversationService: ConversationService,
     private socketGateway: SocketGateway,
@@ -94,12 +96,16 @@ export class MatchRequestService {
     const REDIS_KEY = `${REDIS_KEY_PREFIX}${conversation._id.toString()}_${receiver._id.toString()}`;
     await Promise.all([
       this.notfiService.create({ sender, receiver, type: NotificationType.MATCHED, conversation }),
-      // this.redisService.set({ key: REDIS_KEY, ttl: 10 * 60, data: true }),
+      this.redisService.setex({ key: REDIS_KEY, ttl: 10 * 60, data: true }),
     ]);
     const newConversation = await this.conversationService.toJSON(conversation);
     newConversation.members = [sender, receiver];
     await this.remove(matchRqId);
     const socketIds = socketIdsClient.receiver.concat(socketIdsClient.sender);
     this.socketGateway.sendEventToClient(socketIds, 'newMatched', newConversation);
+  }
+
+  async testRedis(): Promise<void> {
+    this.redisService.setex({ key: 'abc', ttl: 10 * 60, data: true });
   }
 }
