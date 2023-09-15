@@ -1,11 +1,6 @@
 import { InjectModel } from '@nestjs/mongoose';
 
-import {
-  MatchRequestModelType,
-  CrudRepo,
-  DATABASE_TYPE,
-  PROVIDER_REPO,
-} from '@dating/common';
+import { MatchRequestModelType, CrudRepo, DATABASE_TYPE, PROVIDER_REPO } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
 import { MatchRequest } from '@modules/match-request/entities';
 

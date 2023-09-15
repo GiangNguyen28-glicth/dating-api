@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PopulateOptions } from 'mongoose';
 
-import { DATABASE_TYPE, NotificationType, PROVIDER_REPO, REDIS_KEY_PREFIX } from '@common/consts';
+import { DATABASE_TYPE, MatchRqStatus, NotificationType, PROVIDER_REPO, REDIS_KEY_PREFIX } from '@common/consts';
 import { PaginationDTO } from '@common/dto';
 import { IResponse, IResult, ISocketIdsClient } from '@common/interfaces';
 import { MatchRequestRepo } from '@dating/repositories';
@@ -46,7 +46,7 @@ export class MatchRequestService {
       const populate: PopulateOptions[] = [];
       if (isPopulate) {
         populate.push({
-          path: 'requestBy',
+          path: 'sender',
           select: basicFieldsPopulate.join(' '),
         });
       }
@@ -77,7 +77,7 @@ export class MatchRequestService {
 
   async remove(id: string): Promise<IResponse> {
     try {
-      await this.matchRequestRepo.delete(id);
+      await this.matchRequestRepo.findOneAndUpdate(id, { status: MatchRqStatus.MATCHED });
       return {
         success: true,
         message: 'Xoa thanh cong MatchRequest',
@@ -94,7 +94,7 @@ export class MatchRequestService {
     const REDIS_KEY = `${REDIS_KEY_PREFIX}${conversation._id.toString()}_${receiver._id.toString()}`;
     await Promise.all([
       this.notfiService.create({ sender, receiver, type: NotificationType.MATCHED, conversation }),
-      this.redisService.set({ key: REDIS_KEY, ttl: 10 * 60, data: true }),
+      // this.redisService.set({ key: REDIS_KEY, ttl: 10 * 60, data: true }),
     ]);
     const newConversation = await this.conversationService.toJSON(conversation);
     newConversation.members = [sender, receiver];

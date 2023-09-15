@@ -11,13 +11,7 @@ import {
   RMQ_CHANNEL,
 } from '@dating/common';
 import { UserRepo } from '@dating/repositories';
-import {
-  FilterBuilder,
-  downloadImage,
-  formatResult,
-  mappingData,
-  throwIfNotExists,
-} from '@dating/utils';
+import { FilterBuilder, downloadImage, formatResult, mappingData, throwIfNotExists } from '@dating/utils';
 import { RabbitService } from '@app/shared';
 
 import { CreateUserDTO, FilterGetOneUserDTO } from './dto';
@@ -38,9 +32,7 @@ export class UserService implements OnModuleInit {
 
   async onModuleInit() {
     await this.rabbitService.connectRmq();
-    this.channel = await this.rabbitService.createChannel(
-      RMQ_CHANNEL.USER_CHANNEL,
-    );
+    this.channel = await this.rabbitService.createChannel(RMQ_CHANNEL.USER_CHANNEL);
     await this.rabbitService.assertQueue(
       {
         queue: QUEUE_NAME.USER_IMAGES_BUILDER,
@@ -64,18 +56,10 @@ export class UserService implements OnModuleInit {
     }
   }
 
-  async recommendation(
-    user: User,
-    pagination: PaginationDTO,
-  ): Promise<IResult<User>> {
+  async recommendation(user: User, pagination: PaginationDTO): Promise<IResult<User>> {
     try {
-      const queryByUserSetting = await this.userHelper.buildFilterBySetting(
-        user,
-      );
-      const queryByDistance: any = this.userHelper.getFilterByDistance(
-        user,
-        queryByUserSetting,
-      );
+      const queryByUserSetting = await this.userHelper.buildFilterBySetting(user);
+      const queryByDistance: any = this.userHelper.getFilterByDistance(user, queryByUserSetting);
       const geoQuery = get(queryByDistance, '$geoNear', null);
       const finalStage: PipelineStage[] = [];
       const finalCond: FinalCondRecommendation = {};
@@ -182,11 +166,7 @@ export class UserService implements OnModuleInit {
     try {
       const user = await this.userRepo.findOneAndUpdate(_id, entities);
       throwIfNotExists(user, 'Cập nhật thất bại. Không thể tìm thấy User');
-      if (
-        entities.images &&
-        entities.images.length &&
-        this.userHelper.validateBlurImage(entities.images)
-      ) {
+      if (entities.images && entities.images.length && this.userHelper.validateBlurImage(entities.images)) {
         console.log('Send message to queue images builder');
         await this.rabbitService.sendToQueue(QUEUE_NAME.USER_IMAGES_BUILDER, {
           userId: _id,

@@ -1,16 +1,12 @@
 import { LookingFor } from '@common/consts';
 import { FilterBuilder } from '@dating/utils';
 import { ActionService } from '@modules/action/action.service';
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  forwardRef,
-} from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, forwardRef } from '@nestjs/common';
 import axios from 'axios';
 import { v2 } from 'cloudinary';
 import * as _ from 'lodash';
 import { Image, User, UserAddress } from '../entities/user.entity';
+import { Types } from 'mongoose';
 const GOOGLE_MAP_API_KEY = process.env.GOOGLE_MAP_API_KEY;
 
 @Injectable()
@@ -83,11 +79,7 @@ export class UserHelper {
       });
     }
     if (user.setting.discovery.lookingFor != LookingFor.ALL) {
-      queryFilter.setFilterItem(
-        'gender',
-        '$eq',
-        user.setting.discovery.lookingFor,
-      );
+      queryFilter.setFilterItem('gender', '$eq', user.setting.discovery.lookingFor);
     }
     return queryFilter.buildQuery()[0];
   }
@@ -100,10 +92,7 @@ export class UserHelper {
       $geoNear: {
         near: {
           type: 'Point',
-          coordinates: [
-            user.geoLocation.coordinates[0],
-            user.geoLocation.coordinates[1],
-          ],
+          coordinates: [user.geoLocation.coordinates[0], user.geoLocation.coordinates[1]],
         },
         spherical: true,
         distanceField: 'calcDistance',
@@ -118,7 +107,7 @@ export class UserHelper {
       this.actionService.getAllIgnoreIdsUser(userId, 'unLikedUser'), //8
       this.actionService.getAllIgnoreIdsUser(userId, 'likedUser'), //7
     ]);
-    userIdsLiked.push(userId);
+    userIdsLiked.push(new Types.ObjectId(userId) as unknown as string);
     return userIdsLiked.concat(userIdsUnLiked);
   }
 

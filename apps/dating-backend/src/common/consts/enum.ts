@@ -119,3 +119,8 @@ export enum NotificationStatus {
   RECEIVED = 'Received',
   NOT_RECEIVED = 'Not received',
 }
+
+export enum MatchRqStatus {
+  MATCHED = 'Matched',
+  REQUESTED = 'Requested',
+}

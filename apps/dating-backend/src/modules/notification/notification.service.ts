@@ -1,4 +1,4 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
 
 import {
@@ -15,7 +15,7 @@ import { FilterBuilder, throwIfNotExists } from '@dating/utils';
 import { User } from '@modules/users/entities';
 import { RabbitService } from '@app/shared';
 
-import { CreateNotificationDto, FilterGetAllNotification } from './dto';
+import { CreateNotificationDto, FilterGetAllNotification, UpdateNotificationByUserDto } from './dto';
 import { Notification } from './entities';
 import { INotificationResult } from './interfaces';
 
@@ -68,11 +68,11 @@ export class NotificationService implements OnModuleInit {
         pagination: { size: filter?.size, page: filter?.page },
       });
       if (filter?.status === NotificationStatus.NOT_RECEIVED) {
-        await this.rabbitService.sendToQueue(
-          QUEUE_NAME.NOTIFICATION_UPDATER,
-          notifications,
-          RMQ_CHANNEL.NOTIFICATION_CHANNEL,
-        );
+        // await this.rabbitService.sendToQueue(
+        //   QUEUE_NAME.NOTIFICATION_UPDATER,
+        //   notifications,
+        //   RMQ_CHANNEL.NOTIFICATION_CHANNEL,
+        // );
       }
       const notificationResults: INotificationResult = {
         messages: [],
@@ -113,11 +113,15 @@ export class NotificationService implements OnModuleInit {
     }
   }
 
-  async updateMany(ids: string[]): Promise<void> {
+  async updateMany(notiDto: UpdateNotificationByUserDto, user: User): Promise<IResponse> {
     try {
-      await this.notificationRepo.updateMany(ids, {
-        status: NotificationStatus.RECEIVED,
-      });
+      const { ids, notification } = notiDto;
+      console.log(notification);
+      await this.notificationRepo.updateManyByReceiver(ids, notification, user);
+      return {
+        success: true,
+        message: 'Cap nhat notification thanh cong',
+      };
     } catch (error) {
       throw error;
     }

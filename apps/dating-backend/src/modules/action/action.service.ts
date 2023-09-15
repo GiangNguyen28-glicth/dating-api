@@ -1,6 +1,6 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 
-import { DATABASE_TYPE, PROVIDER_REPO } from '@common/consts';
+import { DATABASE_TYPE, MatchRqStatus, PROVIDER_REPO } from '@common/consts';
 import { IResponse } from '@common/interfaces';
 import { ActionRepo } from '@dating/repositories';
 import { MatchRequestService } from '@modules/match-request/match-request.service';
@@ -47,6 +47,12 @@ export class ActionService {
         sender: receiverId,
         receiver: sender._id.toString(),
       });
+      if (matchRq.status == MatchRqStatus.MATCHED) {
+        return {
+          success: true,
+          message: 'Duplicate match request',
+        };
+      }
       const socketIdsClient = await this.socketGateway.getSocketIdsMatchedUser(sender._id.toString(), receiverId);
       if (matchRq) {
         await this.matchReqService.matched(sender, receiver, socketIdsClient, matchRq._id);

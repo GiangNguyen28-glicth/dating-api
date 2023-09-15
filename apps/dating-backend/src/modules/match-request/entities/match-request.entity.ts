@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
 
-import { MongoID } from '@common/consts';
+import { MatchRqStatus, MongoID } from '@common/consts';
 import { IEntity } from '@common/interfaces';
 import { User } from '@modules/users/entities';
 
@@ -15,6 +15,9 @@ export class MatchRequest implements IEntity {
 
   @Prop({ type: MongoID, ref: User.name })
   receiver: User | string;
+
+  @Prop({ type: String, enum: Object.values(MatchRqStatus), default: MatchRqStatus.REQUESTED })
+  status: string;
 
   @Prop({ default: false })
   isBoosts: boolean;
