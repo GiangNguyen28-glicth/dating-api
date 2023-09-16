@@ -34,6 +34,21 @@ export class RedisService {
     });
   }
 
+  async get(key: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.redisClient.get(key, (err, result) => {
+        if (err) {
+          reject(err);
+        }
+        resolve(result);
+      });
+    });
+  }
+
+  async del(key: string): Promise<void> {
+    await this.redisClient.del(key);
+  }
+
   async srem(key: string, value): Promise<void> {
     await this.redisClient.srem(key, value);
   }

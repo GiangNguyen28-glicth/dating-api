@@ -1,27 +1,9 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-import {
-  IResponse,
-  REFRESH_TOKEN_TTL,
-  RegisterType,
-  SMS,
-  TOKEN,
-} from '@dating/common';
-import * as _ from 'lodash';
-import {
-  BadRequestException,
-  CACHE_MANAGER,
-  Inject,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import { Cache } from 'cache-manager';
-import { MailService } from '../mail';
-import { IToken } from './interfaces';
-import axios from 'axios';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import * as twilio from 'twilio';
-import { SmsDTO, VerifyOTPDTO } from './dto/auth.dto';
+import axios from 'axios';
+import { RedisService } from '@app/shared';
+import { IResponse, REFRESH_TOKEN_TTL, RegisterType, SMS, TOKEN } from '@dating/common';
 import {
   calSecondBetweenTwoDate,
   compareHashValue,
@@ -29,8 +11,13 @@ import {
   hash,
   throwIfNotExists,
 } from '@dating/utils';
+import { User } from '@modules/users/entities';
 import { UserService } from '@modules/users/users.service';
-import { User } from '@modules/users/entities/user.entity';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { MailService } from '../mail';
+import { SmsDTO, VerifyOTPDTO } from './dto/auth.dto';
+import { IToken } from './interfaces';
 
 @Injectable()
 export class AuthService {
@@ -40,12 +27,9 @@ export class AuthService {
     private userService: UserService,
     private mailService: MailService,
     private configService: ConfigService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private redisService: RedisService,
   ) {
-    this.client = twilio(
-      configService.get('SMS_KEY'),
-      configService.get('SMS_SECRET'),
-    );
+    this.client = twilio(configService.get('SMS_KEY'), configService.get('SMS_SECRET'));
   }
 
   async generateTokens(_id: string): Promise<IToken> {
@@ -54,22 +38,18 @@ export class AuthService {
         { _id },
         {
           secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
-          expiresIn: parseInt(
-            this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
-          ),
+          expiresIn: parseInt(this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')),
         },
       ),
       this.jwtService.signAsync(
         { _id },
         {
           secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
-          expiresIn: parseInt(
-            this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME'),
-          ),
+          expiresIn: parseInt(this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME')),
         },
       ),
     ]);
-    await this.cacheManager.set(TOKEN + _id, refreshToken, REFRESH_TOKEN_TTL);
+    await this.redisService.setex({ key: TOKEN + _id, data: refreshToken, ttl: REFRESH_TOKEN_TTL });
     return { accessToken, refreshToken };
   }
 
@@ -95,15 +75,12 @@ export class AuthService {
       if (!token) {
         throw new UnauthorizedException('Token does not accepted');
       }
-      const response = await axios.get(
-        `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept-Encoding': 'application/json',
-          },
+      const response = await axios.get(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept-Encoding': 'application/json',
         },
-      );
+      });
       if (!response.data.email) {
         throw new UnauthorizedException('Token not accepted');
       }
@@ -152,7 +129,7 @@ export class AuthService {
         return await this.generateTokens(user._id.toString());
       }
       const key = SMS + user._id.toString();
-      const data: any = await this.cacheManager.get(key);
+      const data: any = await this.redisService.get(key);
       if (!data) {
         throw new UnauthorizedException('OTP không tồn tại hoặc đã hết hạn');
       }
@@ -162,7 +139,7 @@ export class AuthService {
       if (!isCorrectOtp) {
         throw new UnauthorizedException('OTP không tồn tại hoặc đã hết hạn');
       }
-      await this.cacheManager.del(key);
+      await this.redisService.del(key);
       return await this.generateTokens(user._id.toString());
     } catch (error) {
       throw error;
@@ -179,7 +156,7 @@ export class AuthService {
       });
     }
     const key = SMS + user._id.toString();
-    const data: any = await this.cacheManager.get(key);
+    const data = await this.redisService.get(key);
     if (data) {
       const { sendAt } = data;
       const diffTime = calSecondBetweenTwoDate(sendAt);
@@ -195,11 +172,11 @@ export class AuthService {
     }
     const otp = getRandomIntInclusive(100000, 999999);
     const hashOtp = await hash(otp.toString());
-    await this.cacheManager.set(
+    await this.redisService.setex({
       key,
-      { otp: hashOtp, sendAt: new Date(), temp_otp: otp },
-      5 * 60 * 1000,
-    );
+      data: { otp: hashOtp, sendAt: new Date(), temp_otp: otp },
+      ttl: 5 * 60 * 1000,
+    });
     try {
       // await this.client.messages.create({
       //   to: smsDto.phoneNumber,

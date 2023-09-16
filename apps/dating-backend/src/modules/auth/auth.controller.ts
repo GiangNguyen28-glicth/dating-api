@@ -1,14 +1,5 @@
 import { GoogleGuard, IResponse } from '@dating/common';
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
