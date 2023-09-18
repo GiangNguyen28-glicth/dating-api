@@ -15,14 +15,17 @@ export class ActionController {
   constructor(private actionService: ActionService) {}
 
   @Post('skip/:id')
-  async skip(@CurrentUser() owner: User, @Param('id') id: string) {
-    return await this.actionService.skip(owner, id);
+  async skip(@CurrentUser() sender: User, @Param('id') id: string) {
+    return await this.actionService.skip(sender, id);
   }
 
   @Post('like/:id')
-  async like(@CurrentUser() owner: User, @Param('id') id: string) {
-    return await this.actionService.like(owner, id);
+  async like(@CurrentUser() sender: User, @Param('id') id: string) {
+    return await this.actionService.like(sender, id);
   }
+
+  @Post('boots/:id')
+  async boots(@CurrentUser() sender: User, @Param('id') id: string) {}
 
   @Get('sample-data')
   async sampleData(): Promise<boolean> {

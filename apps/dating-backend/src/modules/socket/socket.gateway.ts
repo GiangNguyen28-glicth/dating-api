@@ -13,7 +13,14 @@ import {
 import { Server, Socket } from 'socket.io';
 
 import { RedisService } from '@app/shared';
-import { CurrentUserWS, REDIS_KEY_PREFIX, SOCKET, WebsocketExceptionsFilter, WsGuard } from '@dating/common';
+import {
+  CurrentUserWS,
+  NotificationType,
+  REDIS_KEY_PREFIX,
+  SOCKET,
+  WebsocketExceptionsFilter,
+  WsGuard,
+} from '@dating/common';
 import { CreateMessageDto, SeenMessage } from '@modules/message/dto';
 import { Message } from '@modules/message/entities';
 import { MessageService } from '@modules/message/message.service';
@@ -107,10 +114,19 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       const message = await this.messageService.create(data, user);
       const senderKey = SOCKET + (message.sender as string);
       const receiverKey = SOCKET + (message.receiver as string);
-      const [socketIdsSender, socketIdsReceiver] = await Promise.all([
+      const [socketIdsSender, socketIdsReceiver, notification] = await Promise.all([
         this.socketService.getSocketIdsByUser(senderKey),
         this.socketService.getSocketIdsByUser(receiverKey),
+        this.notiService.create({
+          sender: user,
+          receiver: message.receiver as User,
+          type: NotificationType.MATCHED,
+          message,
+        }),
       ]);
+      const REDIS_KEY = `${REDIS_KEY_PREFIX}${message._id.toString()}_${(message.receiver as User)._id.toString()}`;
+
+      await this.redisService.setex({ key: REDIS_KEY, ttl: 10 * 60, data: notification._id.toString() });
 
       // This event emit to all tab of user sent the message in order to those tabs update new message
       this.sendEventToClient(
@@ -148,15 +164,16 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     }
   }
 
-  @SubscribeMessage('receivedNewMatched')
+  @SubscribeMessage('receiveNewNotification')
   @UseGuards(WsGuard)
-  async receivedNewMatched(@MessageBody() data: NotificationPayLoad, @CurrentUserWS() user: User) {
+  async receivedNewMatched(@MessageBody() data, @CurrentUserWS() user: User) {
     try {
-      const REDIS_KEY = `${REDIS_KEY_PREFIX.NOTI_MATCHED_}${data.conversation}_${user._id.toString()}`;
-      const notification = await this.redisService.get(REDIS_KEY);
-      if (notification) {
-        await this.notiService.remove(notification);
-      }
+      console.log(data);
+      // const REDIS_KEY = `${REDIS_KEY_PREFIX.NOTI_MATCHED_}${data.conversation}_${user._id.toString()}`;
+      // const notification = await this.redisService.get(REDIS_KEY);
+      // if (notification) {
+      //   await this.notiService.remove(notification);
+      // }
     } catch (error) {
       throw new WsException(error.message);
     }

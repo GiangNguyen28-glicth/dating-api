@@ -129,7 +129,7 @@ export class AuthService {
         return await this.generateTokens(user._id.toString());
       }
       const key = SMS + user._id.toString();
-      const data: any = await this.redisService.get(key);
+      const data: any = JSON.parse(await this.redisService.get(key));
       if (!data) {
         throw new UnauthorizedException('OTP không tồn tại hoặc đã hết hạn');
       }
@@ -156,7 +156,7 @@ export class AuthService {
       });
     }
     const key = SMS + user._id.toString();
-    const data = await this.redisService.get(key);
+    const data = JSON.parse(await this.redisService.get(key));
     if (data) {
       const { sendAt } = data;
       const diffTime = calSecondBetweenTwoDate(sendAt);
@@ -174,7 +174,7 @@ export class AuthService {
     const hashOtp = await hash(otp.toString());
     await this.redisService.setex({
       key,
-      data: { otp: hashOtp, sendAt: new Date(), temp_otp: otp },
+      data: JSON.stringify({ otp: hashOtp, sendAt: new Date(), temp_otp: otp }),
       ttl: 5 * 60 * 1000,
     });
     try {

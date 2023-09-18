@@ -93,7 +93,7 @@ export class MatchRequestService {
     const conversation = await this.conversationService.create({
       members: [sender, receiver],
     });
-    const REDIS_KEY = `${REDIS_KEY_PREFIX}${conversation._id.toString()}_${receiver._id.toString()}`;
+    const REDIS_KEY = `${REDIS_KEY_PREFIX.NOTI_MATCHED}${conversation._id.toString()}_${receiver._id.toString()}`;
     const notification = await this.notfiService.create({
       sender,
       receiver,

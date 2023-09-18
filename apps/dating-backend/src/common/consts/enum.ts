@@ -29,6 +29,8 @@ export enum LookingFor {
 export enum MessageType {
   TEXT = 'Text',
   IMAGE = 'Image',
+  GIF = 'Gif',
+  VIDEO = 'Video',
 }
 
 export enum MessageStatus {

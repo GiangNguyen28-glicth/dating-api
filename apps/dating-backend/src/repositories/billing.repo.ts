@@ -1,11 +1,6 @@
 import { InjectModel } from '@nestjs/mongoose';
 
-import {
-  BillingModelType,
-  CrudRepo,
-  DATABASE_TYPE,
-  PROVIDER_REPO,
-} from '@dating/common';
+import { BillingModelType, CrudRepo, DATABASE_TYPE, PROVIDER_REPO } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
 import { Billing } from '@modules/billing/entities';
 

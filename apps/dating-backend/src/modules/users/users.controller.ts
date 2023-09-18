@@ -1,26 +1,7 @@
-import {
-  AtGuard,
-  CurrentUser,
-  IResponse,
-  IResult,
-  PaginationDTO,
-} from '@dating/common';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Patch,
-  Post,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { AtGuard, CurrentUser, IResponse, IResult, PaginationDTO } from '@dating/common';
+import { Body, Controller, Delete, Get, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
-import {
-  UpdateUserLocationDTO,
-  UpdateUserProfileDto,
-  UpdateUserSettingDTO,
-} from './dto/update-user.dto';
+import { UpdateUserLocationDTO, UpdateUserProfileDto, UpdateUserSettingDTO } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { UserService } from './users.service';
 
@@ -51,10 +32,7 @@ export class UsersController {
   @Get('recommendation')
   @ApiBearerAuth()
   @UseGuards(AtGuard)
-  async recommendation(
-    @CurrentUser() user: User,
-    @Query() pagination: PaginationDTO,
-  ): Promise<IResult<User>> {
+  async recommendation(@CurrentUser() user: User, @Query() pagination: PaginationDTO): Promise<IResult<User>> {
     return await this.userService.recommendation(user, pagination);
   }
 
@@ -62,10 +40,7 @@ export class UsersController {
   @ApiBody({ type: UpdateUserProfileDto })
   @ApiBearerAuth()
   @UseGuards(AtGuard)
-  async updateProfile(
-    @CurrentUser() user: User,
-    @Body() updateUserDto: UpdateUserProfileDto,
-  ): Promise<IResponse> {
+  async updateProfile(@CurrentUser() user: User, @Body() updateUserDto: UpdateUserProfileDto): Promise<IResponse> {
     await this.userService.findOneAndUpdate(user._id.toString(), updateUserDto);
     return {
       success: true,
@@ -77,10 +52,7 @@ export class UsersController {
   @ApiBody({ type: UpdateUserLocationDTO })
   @ApiBearerAuth()
   @UseGuards(AtGuard)
-  async updateLocation(
-    @CurrentUser() user: User,
-    @Body() location: UpdateUserLocationDTO,
-  ): Promise<IResponse> {
+  async updateLocation(@CurrentUser() user: User, @Body() location: UpdateUserLocationDTO): Promise<IResponse> {
     await this.userService.updateLocation(user._id.toString(), location);
     return {
       success: true,
@@ -92,10 +64,7 @@ export class UsersController {
   @ApiBody({ type: UpdateUserSettingDTO })
   @ApiBearerAuth()
   @UseGuards(AtGuard)
-  async updateSetting(
-    @CurrentUser() user: User,
-    @Body() setting: UpdateUserSettingDTO,
-  ): Promise<IResponse> {
+  async updateSetting(@CurrentUser() user: User, @Body() setting: UpdateUserSettingDTO): Promise<IResponse> {
     await this.userService.updateSetting(user._id.toString(), { setting });
     return {
       success: true,

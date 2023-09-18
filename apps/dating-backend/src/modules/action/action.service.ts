@@ -22,7 +22,7 @@ export class ActionService {
     @Inject(forwardRef(() => SocketGateway))
     private socketGateway: SocketGateway,
 
-    @Inject(forwardRef(() => SocketGateway))
+    @Inject(forwardRef(() => SocketService))
     private socketService: SocketService,
 
     @Inject(forwardRef(() => UserService))
@@ -51,7 +51,7 @@ export class ActionService {
         sender: receiverId,
         receiver: sender._id.toString(),
       });
-      if (matchRq.status == MatchRqStatus.MATCHED) {
+      if (matchRq && matchRq.status == MatchRqStatus.MATCHED) {
         return {
           success: true,
           message: 'Duplicate match request',
@@ -61,7 +61,7 @@ export class ActionService {
       if (matchRq) {
         await this.matchReqService.matched(sender, receiver, socketIdsClient, matchRq._id);
       } else {
-        this.socketGateway.sendEventToClient(socketIdsClient.receiver, 'newMatchRequest', receiver);
+        this.socketGateway.sendEventToClient(socketIdsClient.receiver, 'newMatchRequest', sender);
         await this.matchReqService.create({
           sender: sender._id,
           receiver: receiverId,
