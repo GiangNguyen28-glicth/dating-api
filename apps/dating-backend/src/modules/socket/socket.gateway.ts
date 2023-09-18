@@ -10,18 +10,18 @@ import {
   WebSocketServer,
   WsException,
 } from '@nestjs/websockets';
-import Redis from 'ioredis';
 import { Server, Socket } from 'socket.io';
 
-import { Message } from '@modules/message/entities';
 import { RedisService } from '@app/shared';
-import { CurrentUserWS, ISocketIdsClient, SOCKET, WebsocketExceptionsFilter, WsGuard } from '@dating/common';
+import { CurrentUserWS, REDIS_KEY_PREFIX, SOCKET, WebsocketExceptionsFilter, WsGuard } from '@dating/common';
 import { CreateMessageDto, SeenMessage } from '@modules/message/dto';
+import { Message } from '@modules/message/entities';
 import { MessageService } from '@modules/message/message.service';
 import { User } from '@modules/users/entities';
 import { UserService } from '@modules/users/users.service';
 import { SocketService } from './socket.service';
-import { throwIfNotExists } from '@dating/utils';
+import { NotificationService } from '@modules/notification/notification.service';
+import { NotificationPayLoad } from './interfaces';
 @WebSocketGateway({
   cors: {
     origin: [
@@ -43,6 +43,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     private userService: UserService,
     private messageService: MessageService,
     private socketService: SocketService,
+    private notiService: NotificationService,
   ) {}
 
   @WebSocketServer()
@@ -142,6 +143,20 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 
       this.sendEventToClient([...senderIds, ...receiverIds], 'seenMessage', data);
       return data;
+    } catch (error) {
+      throw new WsException(error.message);
+    }
+  }
+
+  @SubscribeMessage('receivedNewMatched')
+  @UseGuards(WsGuard)
+  async receivedNewMatched(@MessageBody() data: NotificationPayLoad, @CurrentUserWS() user: User) {
+    try {
+      const REDIS_KEY = `${REDIS_KEY_PREFIX.NOTI_MATCHED_}${data.conversation}_${user._id.toString()}`;
+      const notification = await this.redisService.get(REDIS_KEY);
+      if (notification) {
+        await this.notiService.remove(notification);
+      }
     } catch (error) {
       throw new WsException(error.message);
     }

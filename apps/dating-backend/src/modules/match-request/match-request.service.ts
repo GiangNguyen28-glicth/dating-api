@@ -94,10 +94,14 @@ export class MatchRequestService {
       members: [sender, receiver],
     });
     const REDIS_KEY = `${REDIS_KEY_PREFIX}${conversation._id.toString()}_${receiver._id.toString()}`;
-    await Promise.all([
-      this.notfiService.create({ sender, receiver, type: NotificationType.MATCHED, conversation }),
-      this.redisService.setex({ key: REDIS_KEY, ttl: 10 * 60, data: true }),
-    ]);
+    const notification = await this.notfiService.create({
+      sender,
+      receiver,
+      type: NotificationType.MATCHED,
+      conversation,
+    });
+
+    await this.redisService.setex({ key: REDIS_KEY, ttl: 10 * 60, data: notification._id.toString() });
     const newConversation = await this.conversationService.toJSON(conversation);
     newConversation.members = [sender, receiver];
     await this.remove(matchRqId);
