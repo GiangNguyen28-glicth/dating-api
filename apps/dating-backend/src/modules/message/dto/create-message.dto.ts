@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ImageDTO } from '@modules/users/dto';
 import { MessageType } from '@common/consts';
 import { Message } from '../entities';
-import { ImageDTO } from '@modules/users/dto';
 import { IsNotEmpty } from 'class-validator';
 
 export class CreateMessageDto implements Partial<Message> {

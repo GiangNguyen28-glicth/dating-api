@@ -3,7 +3,7 @@ import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 
 import { CurrentUser } from '@common/decorators';
 import { AtGuard } from '@common/guards';
-import { IResult } from '@common/interfaces';
+import { IResponse, IResult } from '@common/interfaces';
 import { User } from '@modules/users/entities';
 
 import { MatchRequest } from './entities';
@@ -20,6 +20,11 @@ export class MatchRequestController {
   @Post()
   async create(@Body() data: CreateMatchRequestDto): Promise<MatchRequest> {
     return await this.matchRequestService.create(data);
+  }
+
+  @Get('count')
+  async countMatchRequest(@CurrentUser() user: User): Promise<IResponse> {
+    return await this.matchRequestService.countMatchRequest(user);
   }
 
   @Get()

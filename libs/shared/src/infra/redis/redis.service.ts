@@ -16,7 +16,7 @@ export class RedisService {
 
   async smembers(key: string): Promise<any[]> {
     return new Promise(resolve => {
-      this.redisClient.smembers(key, async (err, value: [] = []) => {
+      this.redisClient.smembers(key, async (err, value: string[]) => {
         resolve(value);
       });
     });

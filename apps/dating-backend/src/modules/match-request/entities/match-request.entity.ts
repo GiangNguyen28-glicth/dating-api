@@ -17,7 +17,7 @@ export class MatchRequest implements IEntity {
   receiver: User | string;
 
   @Prop({ type: String, enum: Object.values(MatchRqStatus), default: MatchRqStatus.REQUESTED })
-  status: string;
+  status: MatchRqStatus;
 
   @Prop({ default: false })
   isBoosts: boolean;

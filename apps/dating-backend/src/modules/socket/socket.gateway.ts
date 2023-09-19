@@ -34,7 +34,7 @@ import { NotificationPayLoad } from './interfaces';
     origin: [
       'http://localhost:3000',
       'http://localhost:3001',
-      'https://0684-2a09-bac5-d46e-18c8-00-278-66.ngrok-free.app',
+      'https://4009-2402-9d80-3a9-3f1b-61d7-4545-8e12-68d5.ngrok-free.app',
     ],
     methods: ['GET', 'POST'],
     credentials: true,
@@ -109,24 +109,15 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     }
   > {
     console.log('========================sendMessage========================');
-
     try {
       const message = await this.messageService.create(data, user);
-      const senderKey = SOCKET + (message.sender as string);
-      const receiverKey = SOCKET + (message.receiver as string);
-      const [socketIdsSender, socketIdsReceiver, notification] = await Promise.all([
-        this.socketService.getSocketIdsByUser(senderKey),
-        this.socketService.getSocketIdsByUser(receiverKey),
-        this.notiService.create({
-          sender: user,
-          receiver: message.receiver as User,
-          type: NotificationType.MATCHED,
-          message,
-        }),
+      const [socketIdsSender, socketIdsReceiver] = await Promise.all([
+        this.socketService.getSocketIdsByUser(message.sender as string),
+        this.socketService.getSocketIdsByUser(message.receiver as string),
       ]);
-      const REDIS_KEY = `${REDIS_KEY_PREFIX}${message._id.toString()}_${(message.receiver as User)._id.toString()}`;
+      // const REDIS_KEY = `${REDIS_KEY_PREFIX}${message._id.toString()}_${(message.receiver as User)._id.toString()}`;
 
-      await this.redisService.setex({ key: REDIS_KEY, ttl: 10 * 60, data: notification._id.toString() });
+      // await this.redisService.setex({ key: REDIS_KEY, ttl: 10 * 60, data: notification._id.toString() });
 
       // This event emit to all tab of user sent the message in order to those tabs update new message
       this.sendEventToClient(
@@ -159,21 +150,6 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 
       this.sendEventToClient([...senderIds, ...receiverIds], 'seenMessage', data);
       return data;
-    } catch (error) {
-      throw new WsException(error.message);
-    }
-  }
-
-  @SubscribeMessage('receiveNewNotification')
-  @UseGuards(WsGuard)
-  async receivedNewMatched(@MessageBody() data, @CurrentUserWS() user: User) {
-    try {
-      console.log(data);
-      // const REDIS_KEY = `${REDIS_KEY_PREFIX.NOTI_MATCHED_}${data.conversation}_${user._id.toString()}`;
-      // const notification = await this.redisService.get(REDIS_KEY);
-      // if (notification) {
-      //   await this.notiService.remove(notification);
-      // }
     } catch (error) {
       throw new WsException(error.message);
     }

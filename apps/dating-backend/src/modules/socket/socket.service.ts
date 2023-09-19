@@ -1,7 +1,8 @@
+import { Injectable } from '@nestjs/common';
+
 import { RedisService } from '@app/shared';
 import { SOCKET } from '@common/consts';
 import { ISocketIdsClient } from '@common/interfaces';
-import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class SocketService {

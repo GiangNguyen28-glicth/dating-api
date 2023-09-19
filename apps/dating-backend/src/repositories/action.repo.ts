@@ -1,11 +1,5 @@
 import { InjectModel } from '@nestjs/mongoose';
-import {
-  ActionModelType,
-  CrudRepo,
-  DATABASE_TYPE,
-  MAX_COUNT_IN_ACTION_UPSERT,
-  PROVIDER_REPO,
-} from '@dating/common';
+import { ActionModelType, CrudRepo, DATABASE_TYPE, MAX_COUNT_IN_ACTION_UPSERT, PROVIDER_REPO } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
 import { Action } from '@modules/action/entities';
 import { User } from '@modules/users/entities';

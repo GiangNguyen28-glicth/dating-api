@@ -125,4 +125,5 @@ export enum NotificationStatus {
 export enum MatchRqStatus {
   MATCHED = 'Matched',
   REQUESTED = 'Requested',
+  SKIP = 'Skip',
 }

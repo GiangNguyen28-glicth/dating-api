@@ -59,7 +59,7 @@ export class ActionService {
       }
       const socketIdsClient = await this.socketService.getSocketIdsMatchedUser(sender._id.toString(), receiverId);
       if (matchRq) {
-        await this.matchReqService.matched(sender, receiver, socketIdsClient, matchRq._id);
+        await this.matchReqService.matched(sender, receiver, socketIdsClient, matchRq);
       } else {
         this.socketGateway.sendEventToClient(socketIdsClient.receiver, 'newMatchRequest', sender);
         await this.matchReqService.create({
@@ -120,7 +120,8 @@ export class ActionService {
 
   async skip(owner: User, userId: string): Promise<IResponse> {
     try {
-      await this.actionRepo.skip(owner, userId);
+      await Promise.all([this.actionRepo.skip(owner, userId), this.matchReqService.skip(owner._id.toString(), userId)]);
+
       return {
         success: true,
         message: 'Skip thành công',

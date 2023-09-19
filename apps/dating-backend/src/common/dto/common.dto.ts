@@ -27,4 +27,5 @@ export class FilterGetAll extends PaginationDTO {
 
 export class FilterGetOne {
   _id?: string;
+  populate?: boolean;
 }
