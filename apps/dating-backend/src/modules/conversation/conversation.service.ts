@@ -1,11 +1,12 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 
-import { DATABASE_TYPE, EXCLUDE_FIELDS, MongoQuery, PROVIDER_REPO } from '@common/consts';
+import { DATABASE_TYPE, EXCLUDE_FIELDS, MessageStatus, MongoQuery, PROVIDER_REPO } from '@common/consts';
 import { PaginationDTO } from '@common/dto';
 import { IOptionFilterGetOne, IResult } from '@common/interfaces';
 import { ConversationRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
 import { User } from '@modules/users/entities';
+import { MessageService } from '@modules/message/message.service';
 
 import { Conversation } from './entities';
 import { CreateConversationDto, FilterGetAllConversationDTO, FilterGetOneConversationDTO } from './dto';
@@ -15,6 +16,9 @@ export class ConversationService {
   constructor(
     @Inject(PROVIDER_REPO.CONVERSATION + DATABASE_TYPE.MONGO)
     private conversationRepo: ConversationRepo,
+
+    @Inject(forwardRef(() => MessageService))
+    private messageService: MessageService,
   ) {}
   async create(conversationDto: CreateConversationDto): Promise<Conversation> {
     const conversation = await this.conversationRepo.insert(conversationDto);
@@ -55,10 +59,30 @@ export class ConversationService {
         }),
       ]);
       this.setReceiver(results, user._id.toString());
-      return formatResult(results, totalCount, pagination);
+      const newResults = await this.processUpdatedMessage(results, user._id.toString());
+      return formatResult(newResults, totalCount, pagination);
     } catch (error) {
       throw error;
     }
+  }
+
+  async processUpdatedMessage(conversation: Conversation[], receiverId: string): Promise<Conversation[]> {
+    const conversationIds: string[] = [];
+    const conversationUpdated = conversation.map(item => {
+      if (item.lastMessage && item.lastMessage.status == MessageStatus.SENT) {
+        conversationIds.push(item._id);
+        item.lastMessage.status = MessageStatus.RECEIVED;
+      }
+      return item;
+    });
+    if (conversationIds.length) {
+      await this.messageService.receivedMessage(receiverId);
+    }
+    return conversationUpdated;
+  }
+
+  async countByMessageStatus(user: User): Promise<number> {
+    return await this.conversationRepo.countByMessageStatus(user._id.toString());
   }
 
   setReceiver(conversations: Conversation[], userId: string) {

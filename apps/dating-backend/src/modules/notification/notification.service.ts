@@ -1,8 +1,10 @@
-import { BadRequestException, Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
 
+import { RabbitService } from '@app/shared';
 import {
   DATABASE_TYPE,
+  MessageStatus,
   NotificationStatus,
   NotificationType,
   PROVIDER_REPO,
@@ -13,9 +15,14 @@ import { IResponse } from '@common/interfaces';
 import { NotificationRepo } from '@dating/repositories';
 import { FilterBuilder, throwIfNotExists } from '@dating/utils';
 import { User } from '@modules/users/entities';
-import { RabbitService } from '@app/shared';
+import { ConversationService } from '@modules/conversation/conversation.service';
 
-import { CreateNotificationDto, FilterGetAllNotification, UpdateNotificationByUserDto } from './dto';
+import {
+  CreateNotificationDto,
+  DeleteManyNotification,
+  FilterGetAllNotification,
+  UpdateNotificationByUserDto,
+} from './dto';
 import { Notification } from './entities';
 import { INotificationResult } from './interfaces';
 
@@ -26,6 +33,7 @@ export class NotificationService implements OnModuleInit {
     @Inject(PROVIDER_REPO.NOTIFICATION + DATABASE_TYPE.MONGO)
     private notificationRepo: NotificationRepo,
     private rabbitService: RabbitService,
+    private conversationService: ConversationService,
   ) {}
 
   async onModuleInit() {
@@ -96,8 +104,21 @@ export class NotificationService implements OnModuleInit {
     }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} notification`;
+  async countNoti(user: User): Promise<IResponse> {
+    const [queryFilter] = new FilterBuilder<Notification>()
+      .setFilterItem('receiver', '$eq', user._id)
+      .setFilterItem('status', '$eq', NotificationStatus.NOT_RECEIVED)
+      .buildQuery();
+    const [totalMessage, totalNoti] = await Promise.all([
+      this.conversationService.countByMessageStatus(user),
+      this.notificationRepo.count(queryFilter),
+    ]);
+    return {
+      success: true,
+      data: {
+        totalCount: totalMessage + totalNoti,
+      },
+    };
   }
 
   async remove(id: string): Promise<IResponse> {
@@ -108,6 +129,14 @@ export class NotificationService implements OnModuleInit {
         success: true,
         message: 'Xóa notification thành công',
       };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async deleteMany(data: DeleteManyNotification, user: User): Promise<void> {
+    try {
+      await this.notificationRepo.deleteManyByReceiver(data.ids, user);
     } catch (error) {
       throw error;
     }

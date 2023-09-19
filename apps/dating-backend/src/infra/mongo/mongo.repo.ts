@@ -80,6 +80,10 @@ export abstract class MongoRepo<T> implements CrudRepo<T> {
     }) as T;
   }
 
+  async deleteMany(ids: string[]): Promise<void> {
+    await this.model.deleteMany({ _id: { $in: ids } });
+  }
+
   async updateMany(ids: string[], entities: Partial<T>): Promise<void> {
     await this.model.updateMany({ _id: { $in: ids } }, entities);
   }

@@ -1,14 +1,14 @@
-import { Controller, Get, Param, Delete, UseGuards, Query, Patch, Body } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 
-import { IResponse } from '@common/interfaces';
-import { AtGuard } from '@common/guards';
 import { CurrentUser } from '@common/decorators';
+import { AtGuard } from '@common/guards';
+import { IResponse } from '@common/interfaces';
 import { User } from '@modules/users/entities';
 
-import { FilterGetAllNotification, UpdateNotificationByUserDto, UpdateNotificationDto } from './dto';
-import { NotificationService } from './notification.service';
+import { DeleteManyNotification, FilterGetAllNotification, UpdateNotificationByUserDto } from './dto';
 import { Notification } from './entities';
+import { NotificationService } from './notification.service';
 
 @ApiTags(Notification.name)
 @Controller('notification')
@@ -21,14 +21,19 @@ export class NotificationController {
     return this.notificationService.findAll(user, filter);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.notificationService.findOne(+id);
+  @Get('count')
+  async findOne(@CurrentUser() user: User): Promise<IResponse> {
+    return await this.notificationService.countNoti(user);
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<IResponse> {
     return this.notificationService.remove(id);
+  }
+
+  @Delete('delete-many')
+  async deleteMany(@Body() data: DeleteManyNotification, user: User): Promise<void> {
+    await this.notificationService.deleteMany(data, user);
   }
 
   @Patch()

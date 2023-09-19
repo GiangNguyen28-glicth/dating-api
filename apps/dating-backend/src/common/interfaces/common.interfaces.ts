@@ -22,6 +22,7 @@ export interface CrudRepo<T> {
   insert(entity: Partial<T>);
   findOneAndUpdate(id: string, entity: Partial<T>): Promise<T>;
   delete(id: string): Promise<T>;
+  deleteMany(ids: string[]): Promise<void>;
   insertMany(entities: T[]): Promise<void>;
   updateMany(ids: string[], entities: Partial<T>): Promise<void>;
   upsert(filterQuery: T, entities: T): Promise<T>;

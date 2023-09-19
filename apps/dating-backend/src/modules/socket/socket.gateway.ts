@@ -17,16 +17,16 @@ import { CurrentUserWS, MessageStatus, SOCKET, WebsocketExceptionsFilter, WsGuar
 import { CreateMessageDto, SeenMessage } from '@modules/message/dto';
 import { Message } from '@modules/message/entities';
 import { MessageService } from '@modules/message/message.service';
-import { NotificationService } from '@modules/notification/notification.service';
 import { User } from '@modules/users/entities';
 import { UserService } from '@modules/users/users.service';
+
 import { SocketService } from './socket.service';
 @WebSocketGateway({
   cors: {
     origin: [
       'http://localhost:3000',
       'http://localhost:3001',
-      'https://4009-2402-9d80-3a9-3f1b-61d7-4545-8e12-68d5.ngrok-free.app',
+      'https://9af4-2402-9d80-3f1-14c6-d1d6-b936-5042-747c.ngrok-free.app',
     ],
     methods: ['GET', 'POST'],
     credentials: true,
@@ -42,7 +42,6 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     private userService: UserService,
     private messageService: MessageService,
     private socketService: SocketService,
-    private notiService: NotificationService,
   ) {}
 
   @WebSocketServer()
@@ -135,7 +134,6 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   @UseGuards(WsGuard)
   async receivedMessage(@MessageBody() message: Message): Promise<void> {
     try {
-      console.log(message);
       const newMessage = await this.messageService.findOneAndUpdate(message._id, { status: MessageStatus.RECEIVED });
       const socketIds = await this.socketService.getSocketIdsByUser(message.sender as string);
       this.sendEventToClient(socketIds, 'receivedMessage', newMessage);

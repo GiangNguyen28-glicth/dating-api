@@ -18,7 +18,7 @@ export class MessageMongoRepo extends MongoRepo<Message> {
   async seenMessage(seenMessage: SeenMessage): Promise<void> {
     const { conversation, seenAt } = seenMessage;
     await this.messageModel.updateMany(
-      { conversation, status: MessageStatus.SENT, createdAt: { $lte: seenAt } },
+      { conversation, status: { $ne: MessageStatus.SEEN }, createdAt: { $lte: seenAt } },
       { $set: { status: MessageStatus.SEEN, seenAt } },
       { returnDocument: 'after', rawResult: true },
     );
@@ -33,7 +33,7 @@ export class MessageMongoRepo extends MongoRepo<Message> {
 
   async receivedMessage(receiverId: string): Promise<void> {
     await this.messageModel.updateMany(
-      { receiver: receiverId, status: { $ne: MessageStatus.RECEIVED } },
+      { receiver: receiverId, status: { $eq: MessageStatus.SENT } },
       { $set: { status: MessageStatus.RECEIVED } },
     );
   }

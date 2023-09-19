@@ -1,4 +1,4 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit, forwardRef } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
 
 import { DATABASE_TYPE, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
@@ -19,7 +19,10 @@ export class MessageService implements OnModuleInit {
   constructor(
     @Inject(PROVIDER_REPO.MESSAGE + DATABASE_TYPE.MONGO)
     private messageRepo: MessageRepo,
+
+    @Inject(forwardRef(() => ConversationService))
     private conversationService: ConversationService,
+
     private rabbitService: RabbitService,
   ) {}
 
@@ -86,6 +89,16 @@ export class MessageService implements OnModuleInit {
     } catch (error) {
       throw error;
     }
+  }
+
+  async count(filter: FilterGetAllMessageDTO): Promise<number> {
+    const [queryFilter] = new FilterBuilder<Message>()
+      .setFilterItem('conversation', '$eq', filter?.conversation)
+      .setFilterItem('status', '$eq', filter?.status)
+      .setFilterItem('receiver', '$eq', filter?.receiver)
+      .setSortItem('createdAt', 'desc')
+      .buildQuery();
+    return await this.messageRepo.count(queryFilter);
   }
 
   async findOneAndUpdate(id: string, messageDto: UpdateMessageDto): Promise<Message> {

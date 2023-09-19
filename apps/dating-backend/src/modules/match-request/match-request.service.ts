@@ -98,7 +98,7 @@ export class MatchRequestService {
       members: [sender, receiver],
     });
     matchRq.status = MatchRqStatus.MATCHED;
-    await Promise.all([
+    const [notification] = await Promise.all([
       this.notfiService.create({
         sender,
         receiver,
@@ -111,7 +111,10 @@ export class MatchRequestService {
     const newConversation = await this.conversationService.toJSON(conversation);
     newConversation.members = [sender, receiver];
     const socketIds = socketIdsClient.receiver.concat(socketIdsClient.sender);
-    this.socketGateway.sendEventToClient(socketIds, 'newMatched', newConversation);
+    this.socketGateway.sendEventToClient(socketIds, 'newMatched', {
+      conversation: newConversation,
+      notificationId: notification._id,
+    });
   }
 
   async countMatchRequest(user: User): Promise<IResponse> {
