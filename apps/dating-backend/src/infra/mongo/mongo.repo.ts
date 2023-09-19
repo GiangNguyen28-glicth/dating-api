@@ -26,10 +26,7 @@ export abstract class MongoRepo<T> implements CrudRepo<T> {
 
   async findOne(option: IOptionFilterGetAll<T>): Promise<T> {
     const { queryFilter, populate, fields } = option;
-    const doc = await this.model
-      .findOne(queryFilter)
-      .populate(populate)
-      .select(fields);
+    const doc = await this.model.findOne(queryFilter).populate(populate).select(fields);
     return doc as T;
   }
 

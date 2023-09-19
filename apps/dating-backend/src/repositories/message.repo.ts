@@ -33,7 +33,7 @@ export class MessageMongoRepo extends MongoRepo<Message> {
 
   async receivedMessage(receiverId: string): Promise<void> {
     await this.messageModel.updateMany(
-      { receiver: receiverId, status: MessageStatus.SENT },
+      { receiver: receiverId, status: { $ne: MessageStatus.RECEIVED } },
       { $set: { status: MessageStatus.RECEIVED } },
     );
   }

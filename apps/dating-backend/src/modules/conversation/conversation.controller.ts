@@ -25,7 +25,7 @@ export class ConversationController {
     @CurrentUser() user: User,
     @Query() filter: FilterGetAllConversationDTO,
   ): Promise<IResult<Conversation>> {
-    return this.conversationService.findAll(user, filter);
+    return await this.conversationService.findAll(user, filter);
   }
 
   @Get(':id')

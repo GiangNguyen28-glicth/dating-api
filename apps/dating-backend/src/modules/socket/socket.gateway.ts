@@ -13,22 +13,14 @@ import {
 import { Server, Socket } from 'socket.io';
 
 import { RedisService } from '@app/shared';
-import {
-  CurrentUserWS,
-  NotificationType,
-  REDIS_KEY_PREFIX,
-  SOCKET,
-  WebsocketExceptionsFilter,
-  WsGuard,
-} from '@dating/common';
+import { CurrentUserWS, MessageStatus, SOCKET, WebsocketExceptionsFilter, WsGuard } from '@dating/common';
 import { CreateMessageDto, SeenMessage } from '@modules/message/dto';
 import { Message } from '@modules/message/entities';
 import { MessageService } from '@modules/message/message.service';
+import { NotificationService } from '@modules/notification/notification.service';
 import { User } from '@modules/users/entities';
 import { UserService } from '@modules/users/users.service';
 import { SocketService } from './socket.service';
-import { NotificationService } from '@modules/notification/notification.service';
-import { NotificationPayLoad } from './interfaces';
 @WebSocketGateway({
   cors: {
     origin: [
@@ -99,15 +91,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 
   @SubscribeMessage('sendMessage')
   @UseGuards(WsGuard)
-  async sendMessage(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() data: CreateMessageDto,
-    @CurrentUserWS() user: User,
-  ): Promise<
-    Message & {
-      uuid: string;
-    }
-  > {
+  async sendMessage(@MessageBody() data: CreateMessageDto, @CurrentUserWS() user: User): Promise<void> {
     console.log('========================sendMessage========================');
     try {
       const message = await this.messageService.create(data, user);
@@ -115,21 +99,13 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
         this.socketService.getSocketIdsByUser(message.sender as string),
         this.socketService.getSocketIdsByUser(message.receiver as string),
       ]);
-      // const REDIS_KEY = `${REDIS_KEY_PREFIX}${message._id.toString()}_${(message.receiver as User)._id.toString()}`;
-
-      // await this.redisService.setex({ key: REDIS_KEY, ttl: 10 * 60, data: notification._id.toString() });
-
       // This event emit to all tab of user sent the message in order to those tabs update new message
-      this.sendEventToClient(
-        socketIdsSender.filter(id => id !== client.id),
-        'sentMessage',
-        message,
-      );
+      this.sendEventToClient(socketIdsSender, 'sentMessage', message);
       this.sendEventToClient(socketIdsReceiver, 'newMessage', message);
-      return {
-        ...message,
-        uuid: data.uuid,
-      };
+      // return {
+      //   ...message,
+      //   uuid: data.uuid,
+      // };
     } catch (error) {
       throw new WsException(error.message);
     }
@@ -150,6 +126,19 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 
       this.sendEventToClient([...senderIds, ...receiverIds], 'seenMessage', data);
       return data;
+    } catch (error) {
+      throw new WsException(error.message);
+    }
+  }
+
+  @SubscribeMessage('receivedMessage')
+  @UseGuards(WsGuard)
+  async receivedMessage(@MessageBody() message: Message): Promise<void> {
+    try {
+      console.log(message);
+      const newMessage = await this.messageService.findOneAndUpdate(message._id, { status: MessageStatus.RECEIVED });
+      const socketIds = await this.socketService.getSocketIdsByUser(message.sender as string);
+      this.sendEventToClient(socketIds, 'receivedMessage', newMessage);
     } catch (error) {
       throw new WsException(error.message);
     }

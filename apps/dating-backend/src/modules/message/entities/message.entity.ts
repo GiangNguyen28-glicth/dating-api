@@ -40,6 +40,9 @@ export class Message implements IEntity {
   @Prop({ type: Number })
   cursor: number;
 
+  @Prop({ type: String })
+  uuid: string;
+
   @Prop({ type: Boolean, default: false })
   isDeleted: boolean;
 
