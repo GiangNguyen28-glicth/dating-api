@@ -1,7 +1,8 @@
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
-import { IRedisSet } from './redis.interfaces';
 import { Cache } from 'cache-manager';
+
+import { IRedisSet } from './redis.interfaces';
 
 @Injectable()
 export class RedisService {
@@ -55,5 +56,17 @@ export class RedisService {
 
   async sadd(key: string, value): Promise<void> {
     await this.redisClient.sadd(key, value);
+  }
+
+  async deleteWithPrefixKey(key: string): Promise<void> {
+    let cursor = '0';
+    do {
+      const [newCursor, keys] = await this.redisClient.scan(cursor, 'MATCH', `${key}*`);
+      if (keys.length > 0) {
+        // Delete the keys in batches
+        await this.redisClient.del(...keys);
+      }
+      cursor = newCursor;
+    } while (cursor !== '0');
   }
 }

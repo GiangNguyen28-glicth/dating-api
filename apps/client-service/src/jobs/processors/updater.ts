@@ -1,7 +1,9 @@
 import { UserService } from '@modules/users';
 import { Injectable } from '@nestjs/common';
-import { IUpdateMany } from '../interfaces';
+
 import { User } from '@modules/users/entities';
+
+import { IUpdateMany } from '../interfaces';
 
 @Injectable()
 export class UpdaterService {
