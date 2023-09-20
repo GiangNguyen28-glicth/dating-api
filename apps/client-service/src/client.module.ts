@@ -1,16 +1,11 @@
-import { CacheModule, Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import {
-  CacheConfigService,
-  MongooseConfigService,
-  RabbitModule,
-} from '@app/shared';
-import { ConfigModule } from '@nestjs/config';
-import { RedisClientOptions } from 'redis';
+import { MongooseConfigService, RabbitModule, RedisModule } from '@app/shared';
 import { BillingModule } from '@modules/billing';
 import { UsersModule } from '@modules/users';
-import { RabbitConsumerModule } from './rabbit';
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
 import { JobsModule } from './jobs';
+import { RabbitConsumerModule } from './rabbit';
 
 @Module({
   imports: [
@@ -18,10 +13,7 @@ import { JobsModule } from './jobs';
       isGlobal: true,
       envFilePath: './apps/client-service/.env',
     }),
-    CacheModule.registerAsync<RedisClientOptions>({
-      isGlobal: true,
-      useClass: CacheConfigService,
-    }),
+    RedisModule,
     MongooseModule.forRootAsync({
       useClass: MongooseConfigService,
     }),

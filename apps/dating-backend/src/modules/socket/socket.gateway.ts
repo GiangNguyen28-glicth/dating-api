@@ -1,4 +1,4 @@
-import { Inject, OnModuleDestroy, UseFilters, UseGuards, UsePipes, ValidationPipe, forwardRef } from '@nestjs/common';
+import { Inject, OnModuleInit, UseFilters, UseGuards, UsePipes, ValidationPipe, forwardRef } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -35,7 +35,7 @@ import { SocketService } from './socket.service';
 })
 @UseFilters(WebsocketExceptionsFilter)
 @UsePipes(new ValidationPipe({ transform: true }))
-export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnModuleDestroy {
+export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnModuleInit {
   constructor(
     private redisService: RedisService,
     @Inject(forwardRef(() => UserService))
@@ -44,7 +44,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     private socketService: SocketService,
   ) {}
 
-  async onModuleDestroy() {
+  async onModuleInit() {
     console.log('Start scan');
     await this.redisService.deleteWithPrefixKey(SOCKET);
   }
@@ -53,7 +53,6 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   public server: Server;
 
   handleConnection(client: any, ...args: any[]) {
-    console.log('Hello world');
     console.log('========================Connection Done========================');
   }
 

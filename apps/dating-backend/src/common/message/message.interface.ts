@@ -3,8 +3,8 @@ import { FeatureAccess } from '@modules/users/entities';
 import { Notification } from '@modules/notification/entities';
 //============= PAYMENT MESSAGE //=============
 export interface IPaymentMessage {
-  userId: string;
-  billingId: string;
+  userId?: string;
+  billingId?: string;
   featureAccess: FeatureAccess;
 }
 

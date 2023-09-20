@@ -60,8 +60,17 @@ export class RedisService {
 
   async deleteWithPrefixKey(key: string): Promise<void> {
     let cursor = '0';
+
+    const data: any = new Promise((resolve, reject) => {
+      this.redisClient.scan(cursor, 'MATCH', `${key}*`, 'COUNT', '1000', (err, reply) => {
+        if (err) {
+          reject(err);
+        }
+        resolve(reply);
+      });
+    });
     do {
-      const [newCursor, keys] = await this.redisClient.scan(cursor, 'MATCH', `${key}*`);
+      const [newCursor, keys] = await data;
       if (keys.length > 0) {
         // Delete the keys in batches
         await this.redisClient.del(...keys);

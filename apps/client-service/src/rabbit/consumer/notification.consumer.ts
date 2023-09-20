@@ -26,9 +26,7 @@ export class NotificationConsumer implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     await this.rabbitService.connectRmq();
-    this.channel = await this.rabbitService.createChannel(
-      RMQ_CHANNEL.NOTIFICATION_CHANNEL,
-    );
+    this.channel = await this.rabbitService.createChannel(RMQ_CHANNEL.NOTIFICATION_CHANNEL);
     await this.rabbitService.assertQueue(
       {
         queue: QUEUE_NAME.NOTIFICATION_UPDATER,
@@ -51,16 +49,11 @@ export class NotificationConsumer implements OnModuleInit, OnModuleDestroy {
         QUEUE_NAME.UPDATE_FEATURE_ACCESS,
         async msg => {
           try {
-            const content: INotificationUpdater =
-              this.rabbitService.getContentFromMessage(msg);
+            const content: INotificationUpdater = this.rabbitService.getContentFromMessage(msg);
             await this.updateNotification(content);
             await this.channel.ack(msg);
           } catch (error) {
-            await this.rabbitService.reject(
-              msg,
-              true,
-              RMQ_CHANNEL.NOTIFICATION_CHANNEL,
-            );
+            await this.rabbitService.reject(msg, true, RMQ_CHANNEL.NOTIFICATION_CHANNEL);
           }
         },
         { noAck: false },
@@ -79,10 +72,10 @@ export class NotificationConsumer implements OnModuleInit, OnModuleDestroy {
       }
     });
     try {
-      await Promise.all([
-        this.notificationService.updateMany(notificationIds),
-        this.messageService.updateMessageToReceived(messageIds),
-      ]);
+      // await Promise.all([
+      //   this.notificationService.updateMany(notificationIds),
+      //   this.messageService.updateMessageToReceived(messageIds),
+      // ]);
     } catch (error) {
       throw error;
     }

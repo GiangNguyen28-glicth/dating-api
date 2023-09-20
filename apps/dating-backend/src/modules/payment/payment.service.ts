@@ -2,13 +2,7 @@ import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
 import { ConfigService } from '@nestjs/config';
 
-import {
-  BillingStatus,
-  LimitType,
-  QUEUE_NAME,
-  RMQ_CHANNEL,
-  RefreshIntervalUnit,
-} from '@common/consts';
+import { BillingStatus, LimitType, QUEUE_NAME, RMQ_CHANNEL, RefreshIntervalUnit } from '@common/consts';
 import { IResponse } from '@common/interfaces';
 import { BillingService } from '@modules/billing/billing.service';
 import { Billing } from '@modules/billing/entities';
@@ -37,9 +31,7 @@ export class PaymentService implements OnModuleInit {
 
   async onModuleInit() {
     await this.rabbitService.connectRmq();
-    this.channel = await this.rabbitService.createChannel(
-      RMQ_CHANNEL.PAYMENT_CHANNEL,
-    );
+    this.channel = await this.rabbitService.createChannel(RMQ_CHANNEL.PAYMENT_CHANNEL);
     await this.rabbitService.assertQueue(
       {
         queue: QUEUE_NAME.UPDATE_FEATURE_ACCESS,
@@ -54,18 +46,10 @@ export class PaymentService implements OnModuleInit {
     );
   }
 
-  async createPaymentIntentStripe(
-    user: User,
-    checkoutDto: CheckoutDTO,
-  ): Promise<IResponse> {
+  async createPaymentIntentStripe(user: User, checkoutDto: CheckoutDTO): Promise<IResponse> {
     try {
-      const offering = await this.offeringService.findOne(
-        checkoutDto.offeringId,
-      );
-      const _package: Package = this.offeringService.getPackage(
-        offering,
-        checkoutDto.packageId,
-      );
+      const offering = await this.offeringService.findOne(checkoutDto.offeringId);
+      const _package: Package = this.offeringService.getPackage(offering, checkoutDto.packageId);
       if (!_package) {
         throw new BadRequestException('Không tìm thấy Package');
       }
@@ -89,10 +73,7 @@ export class PaymentService implements OnModuleInit {
       const message = this.buildMessage(offering, _package, user.featureAccess);
       message['billingId'] = billing._id;
       message['userId'] = user._id;
-      await this.rabbitService.sendToQueue(
-        QUEUE_NAME.UPDATE_FEATURE_ACCESS,
-        message,
-      );
+      await this.rabbitService.sendToQueue(QUEUE_NAME.UPDATE_FEATURE_ACCESS, message);
       return null;
     } catch (error) {
       throw error;
@@ -119,11 +100,7 @@ export class PaymentService implements OnModuleInit {
     return now;
   }
 
-  buildMessage(
-    offering: Offering,
-    _package: Package,
-    featureAccess: FeatureAccess,
-  ): IPaymentMessage {
+  buildMessage(offering: Offering, _package: Package, featureAccess: FeatureAccess): IPaymentMessage {
     const { merchandising } = docToObject(offering);
 
     for (const key in merchandising) {
@@ -133,14 +110,11 @@ export class PaymentService implements OnModuleInit {
       if (merchandising[key].type == LimitType.UNLIMITED) {
         featureAccess[key].unlimited = true;
       } else {
-        console.log(key);
         featureAccess[key].amount = _package.amount;
       }
     }
     return {
-      userId: null,
       featureAccess,
-      billingId: null,
     };
   }
 }

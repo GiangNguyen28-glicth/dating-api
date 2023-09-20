@@ -3,25 +3,21 @@ import { ConfirmChannel } from 'amqplib';
 
 import { RabbitService } from '@app/shared';
 import { QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
-import { encodeImageToBlurhash } from '../../images';
 import { UserService } from '@modules/users';
 import { IUserImageBuilder } from '@common/message';
+
+import { encodeImageToBlurhash } from '../../images';
 
 @Injectable()
 export class UserConsumer implements OnModuleInit, OnModuleDestroy {
   private channel: ConfirmChannel;
 
-  constructor(
-    private rabbitService: RabbitService,
-    private userService: UserService,
-  ) {}
+  constructor(private rabbitService: RabbitService, private userService: UserService) {}
 
   async onModuleInit() {
     await this.rabbitService.connectRmq();
     this.rabbitService.setChannelName(RMQ_CHANNEL.USER_CHANNEL);
-    this.channel = await this.rabbitService.createChannel(
-      RMQ_CHANNEL.USER_CHANNEL,
-    );
+    this.channel = await this.rabbitService.createChannel(RMQ_CHANNEL.USER_CHANNEL);
     this.channel.prefetch(4);
 
     await this.rabbitService.assertQueue(
@@ -46,8 +42,7 @@ export class UserConsumer implements OnModuleInit, OnModuleDestroy {
         QUEUE_NAME.USER_IMAGES_BUILDER,
         async msg => {
           try {
-            const content: IUserImageBuilder =
-              this.rabbitService.getContentFromMessage(msg);
+            const content: IUserImageBuilder = this.rabbitService.getContentFromMessage(msg);
             await this.processEncodeImage(content);
             await this.channel.ack(msg);
           } catch (error) {

@@ -145,7 +145,6 @@ export class NotificationService implements OnModuleInit {
   async updateMany(notiDto: UpdateNotificationByUserDto, user: User): Promise<IResponse> {
     try {
       const { ids, notification } = notiDto;
-      console.log(notification);
       await this.notificationRepo.updateManyByReceiver(ids, notification, user);
       return {
         success: true,
