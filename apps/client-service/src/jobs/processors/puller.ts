@@ -2,17 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
 import { FilterBuilder } from '@dating/utils';
-import { UserService } from '@modules/users';
-import { User } from '@modules/users/entities';
-import { BillingService } from '@modules/billing';
-import { Billing } from '@modules/billing/entities';
-import {
-  BillingProcess,
-  BillingStatus,
-  DEFAULT_LIKES_REMAINING,
-} from '@common/consts';
-import { Job, JobModelType } from '../entities/job.entity';
 import { IOptionFilterGetAll } from '@common/interfaces';
+import { BillingProcess, BillingStatus, DEFAULT_LIKES_REMAINING } from '@common/consts';
+
+import { BillingService } from '@modules/billing/billing.service';
+import { UserService } from '@modules/users/users.service';
+
+import { User } from '@modules/users/entities';
+import { Billing } from '@modules/billing/entities';
+
+import { Job, JobModelType } from '../entities';
 
 @Injectable()
 export class PullerService {

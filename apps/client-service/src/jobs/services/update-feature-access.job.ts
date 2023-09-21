@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CronJob } from 'cron';
 
 import { JobStatus } from '@common/consts';
-import { Job } from '../entities/job.entity';
+import { Job } from '../entities';
 import { JobsService } from '../jobs.service';
 import { BuilderService, PullerService, UpdaterService } from '../processors';
 
@@ -42,8 +42,7 @@ export class UpdateFeatureAccessJob {
       jobDoc.totalUpdate = users.length;
       while (users.length) {
         const batchUsers = users.splice(0, UPDATE_BATCH_SIZE);
-        const updateMany =
-          this.builderService.buildUpdateManyUsersFT(batchUsers);
+        const updateMany = this.builderService.buildUpdateManyUsersFT(batchUsers);
         await this.updaterService.updateUserFT(updateMany);
         if (jobDoc.status === JobStatus.TODO) {
           jobDoc.status = JobStatus.INPROGRESS;

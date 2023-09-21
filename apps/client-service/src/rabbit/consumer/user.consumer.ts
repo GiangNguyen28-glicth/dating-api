@@ -3,7 +3,7 @@ import { ConfirmChannel } from 'amqplib';
 
 import { RabbitService } from '@app/shared';
 import { QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
-import { UserService } from '@modules/users';
+import { UserService } from '@modules/users/users.service';
 import { IUserImageBuilder } from '@common/message';
 
 import { encodeImageToBlurhash } from '../../images';
@@ -46,6 +46,7 @@ export class UserConsumer implements OnModuleInit, OnModuleDestroy {
             await this.processEncodeImage(content);
             await this.channel.ack(msg);
           } catch (error) {
+            console.log(error);
             await this.rabbitService.reject(msg);
           }
         },
@@ -72,6 +73,8 @@ export class UserConsumer implements OnModuleInit, OnModuleDestroy {
       await this.userService.findOneAndUpdate(msg.userId, {
         images: msg.images,
       });
-    } catch (error) {}
+    } catch (error) {
+      throw error;
+    }
   }
 }

@@ -37,9 +37,10 @@ import { SocketService } from './socket.service';
 @UsePipes(new ValidationPipe({ transform: true }))
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnModuleInit {
   constructor(
-    private redisService: RedisService,
     @Inject(forwardRef(() => UserService))
     private userService: UserService,
+
+    private redisService: RedisService,
     private messageService: MessageService,
     private socketService: SocketService,
   ) {}

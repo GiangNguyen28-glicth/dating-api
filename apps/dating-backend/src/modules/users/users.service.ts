@@ -1,6 +1,8 @@
 import { ConfirmChannel } from 'amqplib';
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { get } from 'lodash';
+import { PipelineStage } from 'mongoose';
+
 import {
   DATABASE_TYPE,
   IOptionFilterGetAll,
@@ -18,7 +20,6 @@ import { CreateUserDTO, FilterGetOneUserDTO } from './dto';
 import { User } from './entities';
 import { UserHelper } from './helper';
 import { FinalCondRecommendation } from './interfaces';
-import { PipelineStage } from 'mongoose';
 
 @Injectable()
 export class UserService implements OnModuleInit {

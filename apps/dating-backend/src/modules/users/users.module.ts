@@ -32,13 +32,7 @@ import { UserService } from './users.service';
     forwardRef(() => ActionModule),
   ],
   controllers: [UsersController, HelperController],
-  providers: [
-    UserService,
-    UserHelper,
-    UserMongoRepoProvider,
-    CloudinaryProvider,
-    // RabbitService,
-  ],
+  providers: [UserService, UserHelper, UserMongoRepoProvider, CloudinaryProvider],
   exports: [UserService, UserHelper, UserMongoRepoProvider],
 })
 export class UsersModule {}

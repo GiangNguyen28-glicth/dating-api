@@ -1,7 +1,7 @@
-import { UserService } from '@modules/users';
 import { Injectable } from '@nestjs/common';
 
 import { User } from '@modules/users/entities';
+import { UserService } from '@modules/users/users.service';
 
 import { IUpdateMany } from '../interfaces';
 

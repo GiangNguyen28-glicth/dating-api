@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { CronJob } from 'cron';
+
+import { JobStatus } from '@common/consts';
+
+import { Billing } from '@modules/billing/entities';
+
 import { BuilderService, PullerService, UpdaterService } from '../processors';
 import { JobsService } from '../jobs.service';
 import { IJobProcessors } from '../interfaces';
-import { JobStatus } from '@common/consts';
 import { Job } from '../entities';
-import { Billing } from '@modules/billing/entities';
 const UPDATE_BILLING = 'UPDATE_BILLING';
 const UPDATE_BATCH_SIZE = 500;
 

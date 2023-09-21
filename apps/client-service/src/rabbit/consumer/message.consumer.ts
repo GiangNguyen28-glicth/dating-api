@@ -5,16 +5,14 @@ import { RabbitService } from '@app/shared';
 import { QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
 import { IMessageImageBuilder } from '@common/message';
 import { MessageService } from '@modules/message';
+
 import { encodeImageToBlurhash } from '../../images';
 
 @Injectable()
 export class MessageConsumer implements OnModuleInit, OnModuleDestroy {
   private channel: ConfirmChannel;
 
-  constructor(
-    private messageService: MessageService,
-    private rabbitService: RabbitService,
-  ) {}
+  constructor(private messageService: MessageService, private rabbitService: RabbitService) {}
 
   onModuleDestroy() {
     return;
@@ -23,9 +21,7 @@ export class MessageConsumer implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     await this.rabbitService.connectRmq();
-    this.channel = await this.rabbitService.createChannel(
-      RMQ_CHANNEL.MESSAGE_CHANNEL,
-    );
+    this.channel = await this.rabbitService.createChannel(RMQ_CHANNEL.MESSAGE_CHANNEL);
     await this.rabbitService.assertQueue(
       {
         queue: QUEUE_NAME.MESSAGE_IMAGES_BUILDER,
@@ -48,16 +44,12 @@ export class MessageConsumer implements OnModuleInit, OnModuleDestroy {
         QUEUE_NAME.MESSAGE_IMAGES_BUILDER,
         async msg => {
           try {
-            const content: IMessageImageBuilder =
-              this.rabbitService.getContentFromMessage(msg);
+            const content: IMessageImageBuilder = this.rabbitService.getContentFromMessage(msg);
             await this.updateImages(content);
             await this.channel.ack(msg);
           } catch (error) {
-            await this.rabbitService.reject(
-              msg,
-              true,
-              RMQ_CHANNEL.MESSAGE_CHANNEL,
-            );
+            console.log(error);
+            await this.rabbitService.reject(msg, true, RMQ_CHANNEL.MESSAGE_CHANNEL);
           }
         },
         { noAck: false },

@@ -3,12 +3,14 @@ import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { DATABASE_TYPE, MatchRqStatus, PROVIDER_REPO } from '@common/consts';
 import { IResponse } from '@common/interfaces';
 import { ActionRepo } from '@dating/repositories';
-import { MatchRequestService } from '@modules/match-request/match-request.service';
-import { SocketGateway } from '@modules/socket/socket.gateway';
-import { SocketService } from '@modules/socket/socket.service';
-import { User } from '@modules/users/entities';
-import { UserService } from '@modules/users/users.service';
 import { FilterBuilder, throwIfNotExists } from '@dating/utils';
+
+import { MatchRequestService } from '@modules/match-request/match-request.service';
+import { SocketService } from '@modules/socket/socket.service';
+import { SocketGateway } from '@modules/socket/socket.gateway';
+import { UserService } from '@modules/users/users.service';
+
+import { User } from '@modules/users/entities';
 
 import { FilterGetOneActionDTO } from './dto';
 import { Action } from './entities';

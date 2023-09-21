@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "CommonJS",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -17,6 +17,8 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
+    "allowJs": true,
+    "moduleResolution": "Node",
     "paths": {
       "@modules/": ["apps/dating-backend/src/modules/"],
       "@modules/*": ["apps/dating-backend/src/modules/*"],
@@ -27,14 +29,10 @@
       "@app/shared/*": ["libs/shared/src/*"]
     }
   },
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  },
   "include": ["**/*.ts", "**/*.tsx", "**/*.d.ts"],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "out",
-    ".babelrc",
-    "bundles",
-    "coverage",
-    "test/*"
-  ]
+  "exclude": ["node_modules", "dist", "out", ".babelrc", "bundles", "coverage", "test/*"]
 }

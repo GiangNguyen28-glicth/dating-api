@@ -1,12 +1,14 @@
-import { LookingFor } from '@common/consts';
-import { FilterBuilder } from '@dating/utils';
-import { ActionService } from '@modules/action/action.service';
 import { BadRequestException, Inject, Injectable, forwardRef } from '@nestjs/common';
 import axios from 'axios';
 import { v2 } from 'cloudinary';
 import * as _ from 'lodash';
-import { Image, User, UserAddress } from '../entities/user.entity';
 import { Types } from 'mongoose';
+
+import { LookingFor } from '@common/consts';
+import { FilterBuilder } from '@dating/utils';
+import { ActionService } from '@modules/action/action.service';
+
+import { Image, User, UserAddress } from '../entities';
 const GOOGLE_MAP_API_KEY = process.env.GOOGLE_MAP_API_KEY;
 
 @Injectable()
@@ -69,8 +71,8 @@ export class UserHelper {
     const queryFilter = new FilterBuilder<User>()
       .setFilterItem('isBlocked', '$eq', false, true)
       .setFilterItem('_id', '$nin', ignoreIds)
-      .setFilterItem('isDeleted', '$eq', false, true);
-    // .setFilterItem('showMeInTinder', '$eq', true)
+      .setFilterItem('isDeleted', '$eq', false, true)
+      .setFilterItem('showMeInTinder', '$eq', true);
     // .setFilterItem('lastActiveDate', '$gte', sevenDaysAgo);
     if (isApplyAge) {
       queryFilter.setFilterItemWithObject('age', {
@@ -80,6 +82,9 @@ export class UserHelper {
     }
     if (user.setting.discovery.lookingFor != LookingFor.ALL) {
       queryFilter.setFilterItem('gender', '$eq', user.setting.discovery.lookingFor);
+    }
+    if (user.tags.length) {
+      queryFilter.setFilterItem('tags', '$in', user.tags);
     }
     return queryFilter.buildQuery()[0];
   }

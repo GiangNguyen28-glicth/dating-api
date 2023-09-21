@@ -1,11 +1,12 @@
 import { ConfirmChannel } from 'amqplib';
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 
-import { RabbitService } from '@app/shared';
 import { BillingStatus, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
-import { BillingService } from '@modules/billing';
-import { UserService } from '@modules/users';
+import { RabbitService } from '@app/shared';
 import { IPaymentMessage } from '@common/message';
+
+import { UserService } from '@modules/users/users.service';
+import { BillingService } from '@modules/billing/billing.service';
 
 @Injectable()
 export class PaymentConsumer implements OnModuleInit, OnModuleDestroy {
@@ -24,9 +25,7 @@ export class PaymentConsumer implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     await this.rabbitService.connectRmq();
-    this.channel = await this.rabbitService.createChannel(
-      RMQ_CHANNEL.PAYMENT_CHANNEL,
-    );
+    this.channel = await this.rabbitService.createChannel(RMQ_CHANNEL.PAYMENT_CHANNEL);
     await this.rabbitService.assertQueue(
       {
         queue: QUEUE_NAME.UPDATE_FEATURE_ACCESS,
@@ -49,16 +48,11 @@ export class PaymentConsumer implements OnModuleInit, OnModuleDestroy {
         QUEUE_NAME.UPDATE_FEATURE_ACCESS,
         async msg => {
           try {
-            const content: IPaymentMessage =
-              this.rabbitService.getContentFromMessage(msg);
+            const content: IPaymentMessage = this.rabbitService.getContentFromMessage(msg);
             await this.updateUserFeatureAccess(content);
             await this.channel.ack(msg);
           } catch (error) {
-            await this.rabbitService.reject(
-              msg,
-              true,
-              RMQ_CHANNEL.PAYMENT_CHANNEL,
-            );
+            await this.rabbitService.reject(msg, true, RMQ_CHANNEL.PAYMENT_CHANNEL);
           }
         },
         { noAck: false },
