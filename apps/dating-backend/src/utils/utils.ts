@@ -81,7 +81,7 @@ export function formatResult<T>(data: T[], totalCount: number, pagination: Pagin
     },
   };
   const totalPage = totalCount / pagination.size;
-  results.pagination.totalPage = totalPage + 1;
+  results.pagination.totalPage = Math.floor(totalPage) + 1;
   if (totalPage % 1 === 0) {
     results.pagination.totalPage = totalPage;
   }

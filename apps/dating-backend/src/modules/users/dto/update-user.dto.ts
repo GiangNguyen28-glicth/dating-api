@@ -1,14 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Gender, LookingFor, RelationshipModeType } from '@common/consts';
-import {
-  DiscoverySetting,
-  HomeTown,
-  Image,
-  User,
-  UserSetting,
-} from '../entities/user.entity';
-import { Tag } from '@modules/tag/entities/tag.entity';
-import { Relationship } from '@modules/relationship/entities/relationship.entity';
+import { DiscoverySetting, HiddenProfile, HomeTown, Image, User, UserSetting } from '../entities';
+import { Tag } from '@modules/tag/entities';
+import { Relationship } from '@modules/relationship/entities';
 import { Transform } from 'class-transformer';
 
 export class ImageDTO implements Partial<Image> {
@@ -48,9 +42,23 @@ export class UpdateUserDiscoverySettingDTO implements DiscoverySetting {
   modeGoal: RelationshipModeType;
 }
 
+export class UpdateHiddenProfileDTO implements Partial<HiddenProfile> {
+  @ApiPropertyOptional()
+  weight?: boolean;
+
+  @ApiPropertyOptional()
+  height?: boolean;
+
+  @ApiPropertyOptional()
+  inFinder?: boolean;
+}
+
 export class UpdateUserSettingDTO implements Partial<UserSetting> {
   @ApiPropertyOptional()
   discovery?: UpdateUserDiscoverySettingDTO;
+
+  @ApiPropertyOptional()
+  hiddenProfile?: HiddenProfile;
 
   @ApiPropertyOptional()
   stepStarted: number;

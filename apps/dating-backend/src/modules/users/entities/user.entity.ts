@@ -1,12 +1,4 @@
-import {
-  Gender,
-  IEntity,
-  LookingFor,
-  MongoID,
-  RegisterType,
-  RelationshipModeType,
-  Role,
-} from '@dating/common';
+import { Gender, IEntity, LookingFor, MongoID, RegisterType, RelationshipModeType, Role } from '@dating/common';
 import { Relationship } from '@modules/relationship/entities';
 import { Tag } from '@modules/tag/entities';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -98,6 +90,18 @@ export class DiscoverySetting {
   modeGoal: RelationshipModeType;
 }
 
+@Schema()
+export class HiddenProfile {
+  @Prop({ type: Boolean, default: false })
+  inFinder: boolean;
+
+  @Prop({ type: Boolean, default: false })
+  weight: boolean;
+
+  @Prop({ type: Boolean, default: false })
+  height: boolean;
+}
+
 @Schema({ _id: false })
 export class UserSetting {
   @Prop({ type: DiscoverySetting, default: new DiscoverySetting() })
@@ -108,6 +112,9 @@ export class UserSetting {
 
   @Prop({ type: ControlWhoYouSee })
   controlWhoYouSee?: ControlWhoYouSee;
+
+  @Prop({ type: HiddenProfile })
+  hiddenProfile?: HiddenProfile;
 }
 
 @Schema({ _id: false })
