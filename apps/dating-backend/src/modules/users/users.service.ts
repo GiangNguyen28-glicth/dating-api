@@ -1,11 +1,12 @@
 import { ConfirmChannel } from 'amqplib';
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit, forwardRef } from '@nestjs/common';
 import { get } from 'lodash';
 import { PipelineStage } from 'mongoose';
 
 import {
   DATABASE_TYPE,
   IOptionFilterGetAll,
+  IResponse,
   IResult,
   PROVIDER_REPO,
   PaginationDTO,
@@ -15,11 +16,13 @@ import {
 import { UserRepo } from '@dating/repositories';
 import { FilterBuilder, downloadImage, formatResult, mappingData, throwIfNotExists } from '@dating/utils';
 import { RabbitService } from '@app/shared';
+import { TagService } from '@modules/tag/tag.service';
 
-import { CreateUserDTO, FilterGetOneUserDTO } from './dto';
+import { CreateUserDTO, FilterGetOneUserDTO, UpdateUserProfileDto, UpdateUserTagDTO } from './dto';
 import { User } from './entities';
 import { UserHelper } from './helper';
 import { FinalCondRecommendation } from './interfaces';
+import { Tag } from '@modules/tag/entities';
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -29,6 +32,7 @@ export class UserService implements OnModuleInit {
     private userRepo: UserRepo,
     private userHelper: UserHelper,
     private rabbitService: RabbitService,
+    private tagService: TagService,
   ) {}
 
   async onModuleInit() {
@@ -168,7 +172,6 @@ export class UserService implements OnModuleInit {
       const user = await this.userRepo.findOneAndUpdate(_id, entities);
       throwIfNotExists(user, 'Cập nhật thất bại. Không thể tìm thấy User');
       if (entities.images && entities.images.length && this.userHelper.validateBlurImage(entities.images)) {
-        console.log('Send message to queue images builder');
         await this.rabbitService.sendToQueue(QUEUE_NAME.USER_IMAGES_BUILDER, {
           userId: _id,
           images: entities.images,
@@ -207,8 +210,33 @@ export class UserService implements OnModuleInit {
     }
   }
 
+  async updateTag(user: User, updateTagDto: UpdateUserTagDTO): Promise<IResponse> {
+    try {
+      const { tagId, tagType } = updateTagDto;
+      const tag = await this.tagService.findOne({ _id: tagId, type: tagType });
+      user = await this.populateTag(user);
+      user.tags = user.tags.filter(tag => {
+        if (tag.type != updateTagDto.tagType) {
+          return tag;
+        }
+      });
+      user.tags.push(tag);
+      await this.userRepo.save(user);
+      return {
+        success: true,
+        message: 'Thêm mới tag thành công',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async updateMany(ids: string[], entities): Promise<void> {
     await this.userRepo.updateMany(ids, entities);
+  }
+
+  async populateTag(user: User): Promise<User> {
+    return this.userRepo.populate(user as unknown as Document, [{ path: 'tags' }]);
   }
 
   async insertManyUser(): Promise<boolean> {

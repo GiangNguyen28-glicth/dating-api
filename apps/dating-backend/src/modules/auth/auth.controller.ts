@@ -1,7 +1,7 @@
 import { GoogleGuard, IResponse } from '@dating/common';
 import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { SmsDTO, VerifyOTPDTO } from './dto';
 import { IToken } from './interfaces';
@@ -24,17 +24,17 @@ export class AuthController {
   }
 
   @Get('google/verify')
-  @ApiParam({ name: 'token', type: 'string' })
-  verifyTokenGoogle(@Query() data) {
+  @ApiQuery({ name: 'token', type: 'string' })
+  async verifyTokenGoogle(@Query() data): Promise<IToken> {
     const { token } = data;
-    return this.authService.verifyTokenGoogle(token);
+    return await this.authService.verifyTokenGoogle(token);
   }
 
   @Get('facebook/verify')
-  @ApiParam({ name: 'token', type: 'string' })
-  verifyTokenFacebook(@Param('token') data) {
+  @ApiQuery({ name: 'token', type: 'string' })
+  async verifyTokenFacebook(@Query('token') data): Promise<IToken> {
     const { token } = data;
-    return this.authService.verifyTokenFacebook(token);
+    return await this.authService.verifyTokenFacebook(token);
   }
 
   @Post('verify-otp')

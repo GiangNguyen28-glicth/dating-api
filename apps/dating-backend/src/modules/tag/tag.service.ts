@@ -1,24 +1,13 @@
-import {
-  DATABASE_TYPE,
-  IResponse,
-  IResult,
-  PROVIDER_REPO,
-  PaginationDTO,
-  TagType,
-} from '@dating/common';
+import { DATABASE_TYPE, IResponse, IResult, PROVIDER_REPO, PaginationDTO } from '@dating/common';
 import { TagRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
 import { Inject, Injectable } from '@nestjs/common';
-import { FilterGetAllTagDTO } from './dto/tag.dto';
-import { UpdateTagDTO } from './dto/update-tag.dto';
-import { Tag } from './entities/tag.entity';
-import { CreateTagDTO } from './dto/create-tag.dto';
+import { CreateTagDTO, FilterGetAllTagDTO, FilterGetOneTag, UpdateTagDTO } from './dto';
+import { Tag } from './entities';
 
 @Injectable()
 export class TagService {
-  constructor(
-    @Inject(PROVIDER_REPO.TAG + DATABASE_TYPE.MONGO) protected tagRepo: TagRepo,
-  ) {}
+  constructor(@Inject(PROVIDER_REPO.TAG + DATABASE_TYPE.MONGO) protected tagRepo: TagRepo) {}
 
   async findAll(filter?: FilterGetAllTagDTO): Promise<IResult<Tag>> {
     try {
@@ -42,21 +31,18 @@ export class TagService {
     }
   }
 
-  async findOne(_id: string): Promise<Tag> {
+  async findOne(filter: FilterGetOneTag): Promise<Tag> {
     try {
-      const tag = await this.tagRepo.findOne({ queryFilter: { _id: _id } });
+      const { _id, type } = filter;
+      const tag = await this.tagRepo.findOne({ queryFilter: { _id, type } });
       throwIfNotExists(tag, 'Không thể tìm thấy Tag');
-      await this.tagRepo.save(tag);
       return tag;
     } catch (error) {
       throw error;
     }
   }
 
-  async findOneAndUpdate(
-    _id: string,
-    updateTagDto: UpdateTagDTO,
-  ): Promise<Tag> {
+  async findOneAndUpdate(_id: string, updateTagDto: UpdateTagDTO): Promise<Tag> {
     try {
       return await this.tagRepo.findOneAndUpdate(_id, updateTagDto);
     } catch (error) {

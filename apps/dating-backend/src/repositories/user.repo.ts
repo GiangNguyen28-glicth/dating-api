@@ -1,12 +1,7 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { PipelineStage } from 'mongoose';
+import { PipelineStage, PopulateOptions } from 'mongoose';
 
-import {
-  CrudRepo,
-  DATABASE_TYPE,
-  PROVIDER_REPO,
-  UserModelType,
-} from '@dating/common';
+import { CrudRepo, DATABASE_TYPE, PROVIDER_REPO, UserModelType } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
 import { User } from '@modules/users/entities';
 import { UserHelper } from '@modules/users/helper/user.helper';
@@ -14,14 +9,12 @@ import { UserHelper } from '@modules/users/helper/user.helper';
 export interface UserRepo extends CrudRepo<User> {
   recommendation(filter: PipelineStage[]);
   countRecommendation(filter: PipelineStage[]): number;
+  populate(document: Document, populate: PopulateOptions[]): Promise<User>;
   deleteManyUser();
   migrateData();
 }
 export class UserMongoRepo extends MongoRepo<User> {
-  constructor(
-    @InjectModel(User.name) protected userModel: UserModelType,
-    private userHelper: UserHelper,
-  ) {
+  constructor(@InjectModel(User.name) protected userModel: UserModelType, private userHelper: UserHelper) {
     super(userModel);
   }
 

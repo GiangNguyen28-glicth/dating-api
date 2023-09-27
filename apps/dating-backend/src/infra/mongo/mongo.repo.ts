@@ -1,5 +1,5 @@
 import { CrudRepo, IOptionFilterGetAll } from '@dating/common';
-import { Document, FilterQuery, Model, Types } from 'mongoose';
+import { Document, FilterQuery, Model, PopulateOption, PopulateOptions, Types } from 'mongoose';
 
 export abstract class MongoRepo<T> implements CrudRepo<T> {
   constructor(protected readonly model: Model<T>) {}
@@ -91,5 +91,9 @@ export abstract class MongoRepo<T> implements CrudRepo<T> {
   async updateEntities(entities: Partial<T>): Promise<T | Document> {
     const modelUpdated = new this.model(entities);
     return await modelUpdated.save();
+  }
+
+  async populate(document: Document, populate: PopulateOptions[]): Promise<T> {
+    return document.populate(populate);
   }
 }

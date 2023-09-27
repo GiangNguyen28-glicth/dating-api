@@ -1,21 +1,10 @@
 import { IResponse, IResult } from '@dating/common';
 import { throwIfNotExists } from '@dating/utils';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
-import { FilterGetAllTagDTO } from './dto/tag.dto';
-import { UpdateTagDTO } from './dto/update-tag.dto';
-import { Tag } from './entities/tag.entity';
+import { Tag } from './entities';
 import { TagService } from './tag.service';
-import { CreateTagDTO } from './dto/create-tag.dto';
+import { CreateTagDTO, FilterGetAllTagDTO, UpdateTagDTO } from './dto';
 
 @ApiTags(Tag.name)
 @Controller('tag')
@@ -30,16 +19,13 @@ export class TagController {
   @Get(':id')
   @ApiParam({ name: 'id', type: 'string' })
   findOne(@Param('id') id: string) {
-    return this.tagService.findOne(id);
+    return this.tagService.findOne({ _id: id });
   }
 
   @Patch(':id')
   @ApiParam({ name: 'id', type: 'string' })
   @ApiBody({ type: UpdateTagDTO })
-  async update(
-    @Param('id') id: string,
-    @Body() updateTagDto: UpdateTagDTO,
-  ): Promise<IResponse> {
+  async update(@Param('id') id: string, @Body() updateTagDto: UpdateTagDTO): Promise<IResponse> {
     const tag = await this.tagService.findOneAndUpdate(id, updateTagDto);
     throwIfNotExists(tag, 'Không tìm thấy Tag');
     return {

@@ -23,11 +23,7 @@ import { UserService } from '@modules/users/users.service';
 import { SocketService } from './socket.service';
 @WebSocketGateway({
   cors: {
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'https://9af4-2402-9d80-3f1-14c6-d1d6-b936-5042-747c.ngrok-free.app',
-    ],
+    origin: ['http://localhost:3000', 'http://localhost:3001', 'https://localhost:9001'],
     methods: ['GET', 'POST'],
     credentials: true,
     allowedHeaders: ['accessToken'],

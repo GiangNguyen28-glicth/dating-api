@@ -1,10 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Gender, LookingFor, RelationshipModeType } from '@common/consts';
-import { DiscoverySetting, HiddenProfile, HomeTown, Image, User, UserSetting } from '../entities';
+import { Transform } from 'class-transformer';
+import { IsNotEmpty } from 'class-validator';
+
+import { Gender, LookingFor, RelationshipModeType, TagType } from '@common/consts';
 import { Tag } from '@modules/tag/entities';
 import { Relationship } from '@modules/relationship/entities';
-import { Transform } from 'class-transformer';
 
+import { DiscoverySetting, HiddenProfile, HomeTown, Image, User, UserSetting } from '../entities';
 export class ImageDTO implements Partial<Image> {
   @ApiProperty()
   url: string;
@@ -58,10 +60,10 @@ export class UpdateUserSettingDTO implements Partial<UserSetting> {
   discovery?: UpdateUserDiscoverySettingDTO;
 
   @ApiPropertyOptional()
-  hiddenProfile?: HiddenProfile;
+  hiddenProfile?: UpdateHiddenProfileDTO;
 
   @ApiPropertyOptional()
-  stepStarted: number;
+  stepStarted?: number;
 }
 
 export class UpdateHomeTownDTO implements Partial<HomeTown> {
@@ -73,6 +75,14 @@ export class UpdateHomeTownDTO implements Partial<HomeTown> {
 
   @ApiPropertyOptional()
   ward: string;
+}
+
+export class UpdateHiddenProfileField {
+  @ApiPropertyOptional()
+  value: number;
+
+  @ApiPropertyOptional()
+  isShowInFinder: boolean;
 }
 
 export class UpdateUserProfileDto implements Partial<User> {
@@ -106,10 +116,10 @@ export class UpdateUserProfileDto implements Partial<User> {
   jobs?: string[];
 
   @ApiPropertyOptional()
-  weight?: number;
+  weightSetting?: UpdateHiddenProfileField;
 
   @ApiPropertyOptional()
-  height?: number;
+  heightSetting?: UpdateHiddenProfileField;
 
   @ApiPropertyOptional()
   tags?: Tag[];
@@ -128,6 +138,10 @@ export class UpdateUserProfileDto implements Partial<User> {
 
   @ApiPropertyOptional()
   homeTown?: UpdateHomeTownDTO;
+
+  height?: number;
+  weight?: number;
+  setting?: UpdateUserSettingDTO;
 }
 
 export class UpdateUserLocationDTO {
@@ -136,4 +150,14 @@ export class UpdateUserLocationDTO {
 
   @ApiProperty()
   long: number;
+}
+
+export class UpdateUserTagDTO {
+  @ApiProperty()
+  @IsNotEmpty()
+  tagId: string;
+
+  @ApiProperty({ type: 'enum', enum: TagType })
+  @IsNotEmpty()
+  tagType: TagType;
 }

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
+import { JwtService } from '@nestjs/jwt';
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import * as twilio from 'twilio';
 import axios from 'axios';
@@ -14,9 +14,8 @@ import {
 import { User } from '@modules/users/entities';
 import { UserService } from '@modules/users/users.service';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import { MailService } from '../mail';
-import { SmsDTO, VerifyOTPDTO } from './dto/auth.dto';
+import { SmsDTO, VerifyOTPDTO } from './dto';
 import { IToken } from './interfaces';
 
 @Injectable()
@@ -112,7 +111,6 @@ export class AuthService {
       user.name = response.data.name;
       user.images = [response.data.picture.data.url];
       user.registerType = RegisterType.FACEBOOK;
-      // user.isConfirmMail = true;
       return await this.loginWithOAuth2(user);
     } catch (error) {
       throw error;

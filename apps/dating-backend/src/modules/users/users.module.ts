@@ -3,6 +3,7 @@ import { Global, Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { ActionModule } from '@modules/action';
+import { TagModule } from '@modules/tag';
 import { UserMongoRepoProvider } from '@dating/repositories';
 
 import { User, UserSchema } from './entities';
@@ -10,6 +11,7 @@ import { HelperController } from './helper.controller';
 import { UserHelper } from './helper/user.helper';
 import { UsersController } from './users.controller';
 import { UserService } from './users.service';
+import { UpdateUserProfileInterceptor } from './interceptors';
 
 @Global()
 @Module({
@@ -32,7 +34,7 @@ import { UserService } from './users.service';
     forwardRef(() => ActionModule),
   ],
   controllers: [UsersController, HelperController],
-  providers: [UserService, UserHelper, UserMongoRepoProvider, CloudinaryProvider],
+  providers: [UserService, UserHelper, UserMongoRepoProvider, CloudinaryProvider, UpdateUserProfileInterceptor],
   exports: [UserService, UserHelper, UserMongoRepoProvider],
 })
 export class UsersModule {}

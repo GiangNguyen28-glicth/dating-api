@@ -90,16 +90,16 @@ export class DiscoverySetting {
   modeGoal: RelationshipModeType;
 }
 
-@Schema()
+@Schema({ _id: false })
 export class HiddenProfile {
   @Prop({ type: Boolean, default: false })
-  inFinder: boolean;
+  inFinder?: boolean;
 
   @Prop({ type: Boolean, default: false })
-  weight: boolean;
+  weight?: boolean;
 
   @Prop({ type: Boolean, default: false })
-  height: boolean;
+  height?: boolean;
 }
 
 @Schema({ _id: false })
@@ -113,7 +113,7 @@ export class UserSetting {
   @Prop({ type: ControlWhoYouSee })
   controlWhoYouSee?: ControlWhoYouSee;
 
-  @Prop({ type: HiddenProfile })
+  @Prop({ type: HiddenProfile, default: new HiddenProfile() })
   hiddenProfile?: HiddenProfile;
 }
 

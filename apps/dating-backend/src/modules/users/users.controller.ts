@@ -1,9 +1,15 @@
 import { AtGuard, CurrentUser, IResponse, IResult, PaginationDTO } from '@dating/common';
-import { Body, Controller, Delete, Get, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
-import { UpdateUserLocationDTO, UpdateUserProfileDto, UpdateUserSettingDTO } from './dto/update-user.dto';
+import {
+  UpdateUserLocationDTO,
+  UpdateUserProfileDto,
+  UpdateUserSettingDTO,
+  UpdateUserTagDTO,
+} from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { UserService } from './users.service';
+import { UpdateUserProfileInterceptor } from './interceptors';
 
 @ApiTags(User.name)
 @Controller('users')
@@ -13,8 +19,8 @@ export class UsersController {
   @Get('current-user')
   @ApiBearerAuth()
   @UseGuards(AtGuard)
-  getCurrentUser(@CurrentUser() user: User): User {
-    return user;
+  async getCurrentUser(@CurrentUser() user: User): Promise<User> {
+    return await this.userService.populateTag(user);
   }
 
   // @Get(':id')
@@ -40,6 +46,7 @@ export class UsersController {
   @ApiBody({ type: UpdateUserProfileDto })
   @ApiBearerAuth()
   @UseGuards(AtGuard)
+  @UseInterceptors(UpdateUserProfileInterceptor)
   async updateProfile(@CurrentUser() user: User, @Body() updateUserDto: UpdateUserProfileDto): Promise<IResponse> {
     await this.userService.findOneAndUpdate(user._id.toString(), updateUserDto);
     return {
@@ -70,6 +77,14 @@ export class UsersController {
       success: true,
       message: 'Cập nhật setting thành công',
     };
+  }
+
+  @Patch('update_tag')
+  @ApiBody({ type: UpdateUserTagDTO })
+  @ApiBearerAuth()
+  @UseGuards(AtGuard)
+  async updateTag(@CurrentUser() user: User, @Body() updateUserTagDto: UpdateUserTagDTO): Promise<IResponse> {
+    return await this.userService.updateTag(user, updateUserTagDto);
   }
 
   @Post('insertMany')
