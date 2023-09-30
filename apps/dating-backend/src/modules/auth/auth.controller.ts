@@ -32,7 +32,7 @@ export class AuthController {
 
   @Get('facebook/verify')
   @ApiQuery({ name: 'token', type: 'string' })
-  async verifyTokenFacebook(@Query('token') data): Promise<IToken> {
+  async verifyTokenFacebook(@Query() data): Promise<IToken> {
     const { token } = data;
     return await this.authService.verifyTokenFacebook(token);
   }

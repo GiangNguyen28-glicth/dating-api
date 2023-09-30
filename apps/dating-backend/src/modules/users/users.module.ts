@@ -1,9 +1,8 @@
 import { CloudinaryProvider } from '@common/provider';
 import { Global, Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-
+import { isNil } from 'lodash';
 import { ActionModule } from '@modules/action';
-import { TagModule } from '@modules/tag';
 import { UserMongoRepoProvider } from '@dating/repositories';
 
 import { User, UserSchema } from './entities';
@@ -24,6 +23,12 @@ import { UpdateUserProfileInterceptor } from './interceptors';
             if (this.birthDate && !this.age) {
               const currentDate = new Date();
               this.age = currentDate.getFullYear() - this.birthDate.getFullYear();
+            }
+            if (!isNil(this.insImages) && !this.insImages.length) {
+              this.insImages = null;
+            }
+            if (!isNil(this.spotifyInfo) && !this.spotifyInfo.length) {
+              this.spotifyInfo = null;
             }
             return next();
           });

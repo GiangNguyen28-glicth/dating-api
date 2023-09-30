@@ -13,6 +13,7 @@ import { NotificationModule } from '@modules/notification';
 
 import { JobsModule } from './jobs';
 import { RabbitConsumerModule } from './rabbit';
+import { TagModule } from '@modules/tag';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { RabbitConsumerModule } from './rabbit';
     BillingModule,
     MatchRequestModule,
     NotificationModule,
+    TagModule,
   ],
 })
 export class ClientModule {}

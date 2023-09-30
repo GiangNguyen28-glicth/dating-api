@@ -109,7 +109,6 @@ export class AuthService {
         user.email = `${response.data.id}@gmail.com`;
       }
       user.name = response.data.name;
-      user.images = [response.data.picture.data.url];
       user.registerType = RegisterType.FACEBOOK;
       return await this.loginWithOAuth2(user);
     } catch (error) {

@@ -1,8 +1,9 @@
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
-import { Inject, Injectable, OnModuleInit, forwardRef } from '@nestjs/common';
 import { get } from 'lodash';
 import { PipelineStage } from 'mongoose';
 
+import { RabbitService } from '@app/shared';
 import {
   DATABASE_TYPE,
   IOptionFilterGetAll,
@@ -15,14 +16,12 @@ import {
 } from '@dating/common';
 import { UserRepo } from '@dating/repositories';
 import { FilterBuilder, downloadImage, formatResult, mappingData, throwIfNotExists } from '@dating/utils';
-import { RabbitService } from '@app/shared';
 import { TagService } from '@modules/tag/tag.service';
 
-import { CreateUserDTO, FilterGetOneUserDTO, UpdateUserProfileDto, UpdateUserTagDTO } from './dto';
+import { CreateUserDTO, FilterGetOneUserDTO, UpdateUserTagDTO } from './dto';
 import { User } from './entities';
 import { UserHelper } from './helper';
 import { FinalCondRecommendation } from './interfaces';
-import { Tag } from '@modules/tag/entities';
 
 @Injectable()
 export class UserService implements OnModuleInit {

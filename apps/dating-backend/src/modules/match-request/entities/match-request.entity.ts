@@ -24,7 +24,6 @@ export class MatchRequest implements IEntity {
 
   @Prop()
   expiredAt: Date;
-
   createdAt?: Date;
   updatedAt?: Date;
 }

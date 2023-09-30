@@ -7,6 +7,8 @@ import { UserService } from '@modules/users/users.service';
 import { IUserImageBuilder } from '@common/message';
 
 import { encodeImageToBlurhash } from '../../images';
+import { User } from '@modules/users/entities';
+import { ImageDTO } from '@modules/users/dto';
 
 @Injectable()
 export class UserConsumer implements OnModuleInit, OnModuleDestroy {
@@ -63,18 +65,27 @@ export class UserConsumer implements OnModuleInit, OnModuleDestroy {
 
   async processEncodeImage(msg: IUserImageBuilder): Promise<void> {
     try {
-      await Promise.all(
-        msg.images.map(async image => {
-          if (!image.blur) {
-            image.blur = await encodeImageToBlurhash(image.url);
-          }
-        }),
-      );
-      await this.userService.findOneAndUpdate(msg.userId, {
-        images: msg.images,
-      });
+      const entities: Pick<Partial<User>, 'images' | 'insImages'> = {};
+      if (msg.images) {
+        entities.images = await this.processBlurImages(msg.images);
+      }
+      if (msg.insImages) {
+        entities.insImages = await this.processBlurImages(msg.insImages);
+      }
+      await this.userService.findOneAndUpdate(msg.userId, entities);
     } catch (error) {
       throw error;
     }
+  }
+
+  async processBlurImages(images: ImageDTO[]): Promise<ImageDTO[]> {
+    return await Promise.all(
+      images.map(async image => {
+        if (!image.blur) {
+          image.blur = await encodeImageToBlurhash(image.url);
+        }
+        return image;
+      }),
+    );
   }
 }

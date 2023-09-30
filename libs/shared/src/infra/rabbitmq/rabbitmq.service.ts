@@ -79,7 +79,7 @@ export class RabbitService implements OnModuleInit, OnModuleDestroy {
   }
 
   async sendToQueue(queue: string, msg: any, channelId: string = DEFAULT_CHANNEL_ID) {
-    this.channels[channelId].sendToQueue(queue, Buffer.from(JSON.stringify(msg)), { persistent: true });
+    await this.channels[channelId].sendToQueue(queue, Buffer.from(JSON.stringify(msg)), { persistent: true });
   }
 
   async reject(msg: ConsumeMessage, requeue?: boolean, channelId: string = DEFAULT_CHANNEL_ID) {

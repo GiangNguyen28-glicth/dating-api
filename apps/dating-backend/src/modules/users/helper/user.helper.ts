@@ -1,22 +1,47 @@
-import { BadRequestException, Inject, Injectable, forwardRef } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, OnModuleInit, forwardRef } from '@nestjs/common';
 import axios from 'axios';
 import { v2 } from 'cloudinary';
 import * as _ from 'lodash';
 import { Types } from 'mongoose';
+import { ConfirmChannel } from 'amqplib';
 
-import { LookingFor } from '@common/consts';
+import { DATABASE_TYPE, LookingFor, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
 import { FilterBuilder } from '@dating/utils';
 import { ActionService } from '@modules/action/action.service';
+import { IResponse } from '@common/interfaces';
+import { RabbitService } from '@app/shared';
+import { UserRepo } from '@dating/repositories';
 
-import { Image, User, UserAddress } from '../entities';
-const GOOGLE_MAP_API_KEY = process.env.GOOGLE_MAP_API_KEY;
+import { Image, SpotifyInfo, User, UserAddress } from '../entities';
+import { InsPayload, SpotifyPayload } from '../interfaces';
+const GOOGLE_MAP_API_KEY = 'AIzaSyD_iE1VNOGaUYvD8lLoypqlJQN8MruGiNw';
 
 @Injectable()
-export class UserHelper {
+export class UserHelper implements OnModuleInit {
+  private channel: ConfirmChannel;
   constructor(
+    @Inject(PROVIDER_REPO.USER + DATABASE_TYPE.MONGO)
+    private userRepo: UserRepo,
     @Inject(forwardRef(() => ActionService))
     private actionService: ActionService,
+    private rabbitService: RabbitService,
   ) {}
+
+  async onModuleInit() {
+    this.channel = await this.rabbitService.createChannel(RMQ_CHANNEL.USER_CHANNEL);
+    await this.rabbitService.assertQueue(
+      {
+        queue: QUEUE_NAME.USER_IMAGES_BUILDER,
+        options: {
+          durable: true,
+          arguments: {
+            'x-queue-type': 'quorum',
+          },
+        },
+      },
+      RMQ_CHANNEL.USER_CHANNEL,
+    );
+  }
   async getRawLocation(lat: number, long: number) {
     if (!lat || !long) {
       throw new BadRequestException('Missing param lat,long');
@@ -128,6 +153,108 @@ export class UserHelper {
     } catch (err) {
       console.log(err);
     }
+  }
+
+  async socialInsGetInfo(token: string, user: User): Promise<IResponse> {
+    try {
+      const response = await axios.get(
+        `https://graph.instagram.com/me/media?fields=id,media_type,media_url,username,timestamp&access_token=${token}`,
+      );
+      const { data } = _.get(response, 'data', {});
+      if (!response.data || !data) {
+        throw new BadRequestException(`Can not get info with token ${token}`);
+      }
+      const insImages: Image[] = [];
+      (data as Array<InsPayload>).map(imageObj => {
+        if (imageObj.media_url) {
+          const existsImages = user?.insImages?.find(image => image.insId === imageObj.id);
+          if (existsImages) {
+            insImages.push(existsImages);
+            return;
+          }
+          insImages.push({
+            url: imageObj.media_url,
+            insId: imageObj.id,
+          });
+        }
+      });
+      await this.userRepo.findOneAndUpdate(user._id, { insImages });
+      await this.rabbitService.sendToQueue(QUEUE_NAME.USER_IMAGES_BUILDER, {
+        userId: user._id,
+        insImages,
+      });
+      return {
+        success: true,
+        message: 'Ok',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async socialSpotifyGetTopArtists(token: string, user: User): Promise<IResponse> {
+    try {
+      const response = await axios.get('https://api.spotify.com/v1/me/top/artists?limit=6', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const items: SpotifyPayload[] = response.data.items;
+      const spotify: SpotifyInfo[] = [];
+      for (const item of items) {
+        spotify.push({
+          artist: item.name,
+          image: { url: item.images[0]?.url },
+        });
+      }
+      await this.userRepo.findOneAndUpdate(user._id, { spotifyInfo: spotify });
+      return {
+        success: true,
+        message: 'Ok',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async insUnlink(user: User): Promise<IResponse> {
+    try {
+      user.insImages = null;
+      await this.userRepo.save(user);
+      return {
+        success: true,
+        message: 'Ok',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async spotifyUnlink(user: User): Promise<IResponse> {
+    try {
+      user.spotifyInfo = null;
+      await this.userRepo.save(user);
+      return {
+        success: true,
+        message: 'Ok',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async blurImage() {
+    const img = v2.url('sznltzpkrqcamztrqoqz', {
+      transformation: [
+        { effect: 'blur:700' }, // Apply the blur effect
+      ],
+      sign_url: true,
+      secure: true,
+      long_url_signature: true,
+      api_key: '123',
+    });
+    return img;
   }
 
   validateBlurImage(image: Image[]) {

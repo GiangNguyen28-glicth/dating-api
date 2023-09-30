@@ -12,6 +12,7 @@ export interface IPaymentMessage {
 export interface IUserImageBuilder {
   userId: string;
   images: ImageDTO[];
+  insImages: ImageDTO[];
 }
 
 //============= MESSENGER MESSAGE //=============

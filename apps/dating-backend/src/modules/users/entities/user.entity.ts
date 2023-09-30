@@ -11,6 +11,9 @@ export class Image {
 
   @Prop()
   blur?: string;
+
+  @Prop()
+  insId?: string;
 }
 
 @Schema({ _id: false })
@@ -39,6 +42,9 @@ export class ControlWhoSeesYou {
 
 @Schema({ _id: false })
 export class FeatureAccess {
+  @Prop({ type: FeatureAccessItem, default: new FeatureAccessItem(0) })
+  blur?: FeatureAccessItem;
+
   @Prop({ type: FeatureAccessItem, default: new FeatureAccessItem(100) })
   likes?: FeatureAccessItem;
 
@@ -135,6 +141,7 @@ export class UserAddress {
   fullAddress: string;
 }
 
+@Schema({ _id: false })
 export class HomeTown {
   @Prop({ trim: true })
   province: string;
@@ -144,6 +151,15 @@ export class HomeTown {
 
   @Prop({ trim: true })
   ward: string;
+}
+
+@Schema({ _id: false })
+export class SpotifyInfo {
+  @Prop()
+  artist: string;
+
+  @Prop({ type: Image })
+  image: Image;
 }
 
 @Schema({ _id: false })
@@ -208,8 +224,11 @@ export class User implements IEntity {
   @Prop({ type: UserAddress, default: new UserAddress() })
   address: UserAddress;
 
-  @Prop({ type: HomeTown })
+  @Prop({ type: HomeTown, default: new HomeTown() })
   homeTown: HomeTown;
+
+  @Prop({ type: HomeTown, default: new HomeTown() })
+  liveAt: HomeTown;
 
   @Prop({ type: GeoLocation })
   geoLocation: GeoLocation;
@@ -225,6 +244,15 @@ export class User implements IEntity {
 
   @Prop([{ type: Image, default: [] }])
   images: Image[];
+
+  @Prop()
+  blurAvatar: string;
+
+  @Prop([{ type: Image, default: null, set: insImages => (insImages.length === 0 ? null : insImages) }])
+  insImages: Image[];
+
+  @Prop([{ type: SpotifyInfo, default: null }])
+  spotifyInfo: SpotifyInfo[];
 
   @Prop([{ type: MongoID, ref: Tag.name }])
   tags: Tag[];

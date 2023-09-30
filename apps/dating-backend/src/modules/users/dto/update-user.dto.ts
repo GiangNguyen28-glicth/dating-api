@@ -13,6 +13,8 @@ export class ImageDTO implements Partial<Image> {
 
   @ApiPropertyOptional()
   blur?: string;
+
+  insId?: string;
 }
 
 export class UpdateUserDiscoverySettingDTO implements DiscoverySetting {
@@ -138,6 +140,9 @@ export class UpdateUserProfileDto implements Partial<User> {
 
   @ApiPropertyOptional()
   homeTown?: UpdateHomeTownDTO;
+
+  @ApiPropertyOptional()
+  liveAt?: UpdateHomeTownDTO;
 
   height?: number;
   weight?: number;
