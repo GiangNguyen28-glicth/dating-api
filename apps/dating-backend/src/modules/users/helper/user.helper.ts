@@ -14,6 +14,7 @@ import { UserRepo } from '@dating/repositories';
 
 import { Image, SpotifyInfo, User, UserAddress } from '../entities';
 import { InsPayload, SpotifyPayload } from '../interfaces';
+import { UpdateUserProfileDto, calField } from '../dto';
 const GOOGLE_MAP_API_KEY = 'AIzaSyD_iE1VNOGaUYvD8lLoypqlJQN8MruGiNw';
 
 @Injectable()
@@ -246,6 +247,17 @@ export class UserHelper implements OnModuleInit {
     } catch (error) {
       throw error;
     }
+  }
+
+  calTotalFinishProfile(user: User, updateProfile: UpdateUserProfileDto): number {
+    const everyRatioInField = 100 / calField.length;
+    let totalFinishProfile = 0;
+    for (const key of calField) {
+      if (user[key] || updateProfile[key]) {
+        totalFinishProfile += everyRatioInField;
+      }
+    }
+    return Math.floor(totalFinishProfile) > 100 ? 100 : Math.floor(totalFinishProfile);
   }
 
   validateBlurImage(image: Image[]) {

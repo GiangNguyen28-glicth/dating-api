@@ -175,13 +175,14 @@ export class UserService implements OnModuleInit {
     }
   }
 
-  async updateProfile(_id: string, entities: Partial<User>): Promise<User> {
+  async updateProfile(user: User, entities: Partial<User>): Promise<User> {
     try {
-      const user = await this.userRepo.findOneAndUpdate(_id, entities);
-      throwIfNotExists(user, 'Cập nhật thất bại. Không thể tìm thấy User');
+      entities.totalFinishProfile = this.userHelper.calTotalFinishProfile(user, entities);
+      const newUser = await this.userRepo.findOneAndUpdate(user._id, entities);
+      throwIfNotExists(newUser, 'Cập nhật thất bại. Không thể tìm thấy User');
       if (entities?.images?.length && (this.userHelper.validateBlurImage(entities.images) || entities.blurAvatar)) {
         await this.rabbitService.sendToQueue(QUEUE_NAME.USER_IMAGES_BUILDER, {
-          userId: _id,
+          userId: user._id,
           images: entities.images,
           blurAvatar: entities.blurAvatar,
         });

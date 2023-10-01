@@ -29,3 +29,21 @@ export class RecommendationDTO {
   likedUserIds: string[];
   unLikedUserIds: string[];
 }
+
+export const calField: Array<keyof User> = [
+  'age',
+  'bio',
+  'birthDate',
+  'company',
+  'email',
+  'gender',
+  'height',
+  'weight',
+  'tags',
+  'school',
+  'homeTown',
+  'jobs',
+  'liveAt',
+  'relationships',
+  'relationshipStatus',
+];

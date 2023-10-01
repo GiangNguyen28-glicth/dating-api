@@ -176,7 +176,7 @@ export class User implements IEntity {
   @Transform(({ value }) => value.toString())
   _id: string;
 
-  @Prop({ trim: true })
+  @Prop({ trim: true, required: true })
   name: string;
 
   @Prop({ trim: true })
@@ -193,9 +193,6 @@ export class User implements IEntity {
 
   @Prop()
   bio: string;
-
-  @Prop()
-  jobTitle: string;
 
   @Prop()
   school: string;
@@ -248,7 +245,7 @@ export class User implements IEntity {
   @Prop()
   blurAvatar: string;
 
-  @Prop([{ type: Image, default: null, set: insImages => (insImages.length === 0 ? null : insImages) }])
+  @Prop([{ type: Image, default: null }])
   insImages: Image[];
 
   @Prop([{ type: SpotifyInfo, default: null }])
@@ -265,6 +262,9 @@ export class User implements IEntity {
     ref: Relationship.name,
   })
   relationshipStatus: Relationship;
+
+  @Prop({ default: 0 })
+  totalFinishProfile: number;
 
   @Prop({ type: Boolean, default: true })
   onlineNow: boolean;
