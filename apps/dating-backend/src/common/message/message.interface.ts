@@ -1,5 +1,5 @@
 import { ImageDTO } from '@modules/users/dto';
-import { FeatureAccess } from '@modules/users/entities';
+import { FeatureAccess, SpotifyInfo } from '@modules/users/entities';
 import { Notification } from '@modules/notification/entities';
 //============= PAYMENT MESSAGE //=============
 export interface IPaymentMessage {
@@ -11,8 +11,10 @@ export interface IPaymentMessage {
 //============= USER MESSAGE //=============
 export interface IUserImageBuilder {
   userId: string;
-  images: ImageDTO[];
-  insImages: ImageDTO[];
+  images?: ImageDTO[];
+  insImages?: ImageDTO[];
+  spotifyInfo?: SpotifyInfo[];
+  blurAvatar?: string;
 }
 
 //============= MESSENGER MESSAGE //=============

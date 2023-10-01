@@ -209,6 +209,10 @@ export class UserHelper implements OnModuleInit {
         });
       }
       await this.userRepo.findOneAndUpdate(user._id, { spotifyInfo: spotify });
+      await this.rabbitService.sendToQueue(QUEUE_NAME.USER_IMAGES_BUILDER, {
+        userId: user._id,
+        spotifyInfo: spotify,
+      });
       return {
         success: true,
         message: 'Ok',
@@ -242,19 +246,6 @@ export class UserHelper implements OnModuleInit {
     } catch (error) {
       throw error;
     }
-  }
-
-  async blurImage() {
-    const img = v2.url('sznltzpkrqcamztrqoqz', {
-      transformation: [
-        { effect: 'blur:700' }, // Apply the blur effect
-      ],
-      sign_url: true,
-      secure: true,
-      long_url_signature: true,
-      api_key: '123',
-    });
-    return img;
   }
 
   validateBlurImage(image: Image[]) {

@@ -5,14 +5,17 @@ import { RabbitService } from '@app/shared';
 import { QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
 import { IMessageImageBuilder } from '@common/message';
 import { MessageService } from '@modules/message';
-
-import { encodeImageToBlurhash } from '../../images';
+import { ImageService } from '../../images/image.service';
 
 @Injectable()
 export class MessageConsumer implements OnModuleInit, OnModuleDestroy {
   private channel: ConfirmChannel;
 
-  constructor(private messageService: MessageService, private rabbitService: RabbitService) {}
+  constructor(
+    private messageService: MessageService,
+    private rabbitService: RabbitService,
+    private imageService: ImageService,
+  ) {}
 
   onModuleDestroy() {
     return;
@@ -64,7 +67,7 @@ export class MessageConsumer implements OnModuleInit, OnModuleDestroy {
       await Promise.all(
         msg.images.map(async image => {
           if (!image.blur) {
-            image.blur = await encodeImageToBlurhash(image.url);
+            image.blur = await this.imageService.encodeImageToBlurhash(image.url);
           }
         }),
       );

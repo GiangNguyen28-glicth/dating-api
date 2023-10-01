@@ -53,14 +53,20 @@ export class ActionService {
         sender: receiverId,
         receiver: sender._id.toString(),
       });
-      if (matchRq && matchRq.status == MatchRqStatus.MATCHED) {
+
+      if (matchRq?.status == MatchRqStatus.MATCHED) {
         return {
           success: true,
           message: 'Duplicate match request',
         };
       }
+
       const socketIdsClient = await this.socketService.getSocketIdsMatchedUser(sender._id.toString(), receiverId);
+
       if (matchRq) {
+        if (!receiver.featureAccess.blur) {
+          sender.images = [];
+        }
         await this.matchReqService.matched(sender, receiver, socketIdsClient, matchRq);
       } else {
         this.socketGateway.sendEventToClient(socketIdsClient.receiver, 'newMatchRequest', sender);
@@ -69,11 +75,13 @@ export class ActionService {
           receiver: receiverId,
         });
       }
+
       await this.actionRepo.like(sender, receiverId);
       const resp: IResponse = {
         success: true,
         message: 'Like thành công',
       };
+
       if (!sender.featureAccess.likes.unlimited) {
         await this.userService.findOneAndUpdate(sender._id, {
           featureAccess: {
@@ -92,6 +100,7 @@ export class ActionService {
           },
         };
       }
+
       return resp;
     } catch (error) {
       throw error;

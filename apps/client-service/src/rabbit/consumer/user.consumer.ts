@@ -1,20 +1,25 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
+import { isNil } from 'lodash';
 
 import { RabbitService } from '@app/shared';
 import { QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
 import { UserService } from '@modules/users/users.service';
 import { IUserImageBuilder } from '@common/message';
 
-import { encodeImageToBlurhash } from '../../images';
-import { User } from '@modules/users/entities';
+import { SpotifyInfo, User } from '@modules/users/entities';
 import { ImageDTO } from '@modules/users/dto';
+import { ImageService } from '../../images/image.service';
 
 @Injectable()
 export class UserConsumer implements OnModuleInit, OnModuleDestroy {
   private channel: ConfirmChannel;
 
-  constructor(private rabbitService: RabbitService, private userService: UserService) {}
+  constructor(
+    private rabbitService: RabbitService,
+    private userService: UserService,
+    private imageService: ImageService,
+  ) {}
 
   async onModuleInit() {
     await this.rabbitService.connectRmq();
@@ -65,12 +70,25 @@ export class UserConsumer implements OnModuleInit, OnModuleDestroy {
 
   async processEncodeImage(msg: IUserImageBuilder): Promise<void> {
     try {
-      const entities: Pick<Partial<User>, 'images' | 'insImages'> = {};
+      const entities: Pick<Partial<User>, 'images' | 'insImages' | 'blurAvatar' | 'spotifyInfo'> = {};
       if (msg.images) {
-        entities.images = await this.processBlurImages(msg.images);
+        const promises: Promise<any>[] = [this.processBlurImages(msg.images)];
+        if (msg.blurAvatar) {
+          promises.push(this.imageService.transformImage(msg.images[0].url, msg.userId));
+        }
+        const [images, blurAvatar] = await Promise.all(promises);
+        if (!isNil(blurAvatar)) {
+          entities.blurAvatar = blurAvatar;
+        }
+        if (!isNil(images)) {
+          entities.images = images;
+        }
       }
       if (msg.insImages) {
         entities.insImages = await this.processBlurImages(msg.insImages);
+      }
+      if (msg.spotifyInfo) {
+        entities.spotifyInfo = await this.processBlurImagesSpotify(msg.spotifyInfo);
       }
       await this.userService.findOneAndUpdate(msg.userId, entities);
     } catch (error) {
@@ -78,11 +96,20 @@ export class UserConsumer implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  async processBlurImagesSpotify(spotifyInfo: SpotifyInfo[]): Promise<SpotifyInfo[]> {
+    return await Promise.all(
+      spotifyInfo.map(async info => {
+        info.image.blur = await this.imageService.encodeImageToBlurhash(info.image.url);
+        return info;
+      }),
+    );
+  }
+
   async processBlurImages(images: ImageDTO[]): Promise<ImageDTO[]> {
     return await Promise.all(
       images.map(async image => {
         if (!image.blur) {
-          image.blur = await encodeImageToBlurhash(image.url);
+          image.blur = await this.imageService.encodeImageToBlurhash(image.url);
         }
         return image;
       }),

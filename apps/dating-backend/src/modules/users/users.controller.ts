@@ -48,7 +48,7 @@ export class UsersController {
   @UseGuards(AtGuard)
   @UseInterceptors(UpdateUserProfileInterceptor)
   async updateProfile(@CurrentUser() user: User, @Body() updateUserDto: UpdateUserProfileDto): Promise<IResponse> {
-    await this.userService.findOneAndUpdate(user._id.toString(), updateUserDto);
+    await this.userService.updateProfile(user._id.toString(), updateUserDto);
     return {
       success: true,
       message: 'Cập nhật profile thành công',

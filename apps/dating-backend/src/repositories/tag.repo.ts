@@ -1,11 +1,6 @@
 import { InjectModel } from '@nestjs/mongoose';
 
-import {
-  CrudRepo,
-  DATABASE_TYPE,
-  PROVIDER_REPO,
-  TagModelType,
-} from '@dating/common';
+import { CrudRepo, DATABASE_TYPE, PROVIDER_REPO, TagModelType } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
 import { Tag } from '@modules/tag/entities';
 

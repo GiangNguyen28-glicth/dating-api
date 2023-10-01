@@ -100,13 +100,11 @@ export class UpdateUserProfileDto implements Partial<User> {
   @ApiPropertyOptional()
   birthDate?: Date;
 
-  @Transform(({ value }) =>
-    value.map(image => {
-      return { url: image };
-    }),
-  )
   @ApiPropertyOptional({ type: [ImageDTO] })
   images?: ImageDTO[];
+
+  @ApiPropertyOptional()
+  blurAvatar?: string;
 
   @ApiPropertyOptional()
   school?: string;

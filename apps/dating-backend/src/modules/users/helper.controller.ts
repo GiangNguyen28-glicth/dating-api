@@ -65,9 +65,4 @@ export class HelperController {
     });
     return resp.data;
   }
-
-  @Get('/blur')
-  async blur() {
-    return await this.userHelper.blurImage();
-  }
 }

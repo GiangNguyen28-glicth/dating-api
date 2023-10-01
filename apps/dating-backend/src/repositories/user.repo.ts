@@ -11,7 +11,7 @@ export interface UserRepo extends CrudRepo<User> {
   countRecommendation(filter: PipelineStage[]): number;
   populate(document: Document, populate: PopulateOptions[]): Promise<User>;
   deleteManyUser();
-  migrateData();
+  migrateData(): Promise<User[]>;
 }
 export class UserMongoRepo extends MongoRepo<User> {
   constructor(@InjectModel(User.name) protected userModel: UserModelType, private userHelper: UserHelper) {
@@ -31,7 +31,7 @@ export class UserMongoRepo extends MongoRepo<User> {
     await this.userModel.deleteMany();
   }
 
-  async migrateData() {
+  async migrateData(): Promise<User[]> {
     const users = await this.userModel.find();
     for (const user of users) {
       // user.tags = [
@@ -43,6 +43,7 @@ export class UserMongoRepo extends MongoRepo<User> {
       // ];
       await user.save();
     }
+    return users;
   }
 }
 

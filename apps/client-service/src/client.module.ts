@@ -14,6 +14,7 @@ import { NotificationModule } from '@modules/notification';
 import { JobsModule } from './jobs';
 import { RabbitConsumerModule } from './rabbit';
 import { TagModule } from '@modules/tag';
+import { ImageModule } from './images/image.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { TagModule } from '@modules/tag';
     RabbitModule,
     RabbitConsumerModule,
     JobsModule,
+    ImageModule,
 
     ActionModule,
     SocketModule,

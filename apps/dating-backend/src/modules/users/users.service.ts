@@ -65,17 +65,17 @@ export class UserService implements OnModuleInit {
       const queryByUserSetting = await this.userHelper.buildFilterBySetting(user);
       const queryByDistance: any = this.userHelper.getFilterByDistance(user, queryByUserSetting);
       const geoQuery = get(queryByDistance, '$geoNear', null);
-      const finalStage: PipelineStage[] = [];
+      const recommendationStage: PipelineStage[] = [];
       const finalCond: FinalCondRecommendation = {};
       if (geoQuery) {
         finalCond.$geoNear = queryByDistance;
-        finalStage.push(finalCond.$geoNear);
+        recommendationStage.push(finalCond.$geoNear);
       } else {
         finalCond.$match = queryByDistance;
-        finalStage.push(finalCond.$match);
+        recommendationStage.push(finalCond.$match);
       }
-      const cloneFinalStage = [...finalStage];
-      finalStage.push(
+      const countStage = [...recommendationStage];
+      recommendationStage.push(
         {
           $lookup: {
             from: 'tags',
@@ -139,8 +139,8 @@ export class UserService implements OnModuleInit {
         },
       );
       const [totalCount, results] = await Promise.all([
-        this.userRepo.countRecommendation(cloneFinalStage),
-        this.userRepo.recommendation(finalStage),
+        this.userRepo.countRecommendation(countStage),
+        this.userRepo.recommendation(recommendationStage),
       ]);
       return formatResult(results, totalCount, pagination);
     } catch (error) {
@@ -166,14 +166,24 @@ export class UserService implements OnModuleInit {
     return await this.userRepo.findAll(option);
   }
 
-  async findOneAndUpdate(_id: string, entities: Partial<User>): Promise<User> {
+  async findOneAndUpdate(_id: string, entities: Partial<User>): Promise<void> {
     try {
       const user = await this.userRepo.findOneAndUpdate(_id, entities);
       throwIfNotExists(user, 'Cập nhật thất bại. Không thể tìm thấy User');
-      if (entities.images && entities.images.length && this.userHelper.validateBlurImage(entities.images)) {
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateProfile(_id: string, entities: Partial<User>): Promise<User> {
+    try {
+      const user = await this.userRepo.findOneAndUpdate(_id, entities);
+      throwIfNotExists(user, 'Cập nhật thất bại. Không thể tìm thấy User');
+      if (entities?.images?.length && (this.userHelper.validateBlurImage(entities.images) || entities.blurAvatar)) {
         await this.rabbitService.sendToQueue(QUEUE_NAME.USER_IMAGES_BUILDER, {
           userId: _id,
           images: entities.images,
+          blurAvatar: entities.blurAvatar,
         });
       }
       return user;
@@ -273,7 +283,16 @@ export class UserService implements OnModuleInit {
   }
 
   async migrate() {
-    await this.userRepo.migrateData();
+    const users = await this.userRepo.migrateData();
+    for (const user of users) {
+      if (user.images.length) {
+        await this.rabbitService.sendToQueue(QUEUE_NAME.USER_IMAGES_BUILDER, {
+          userId: user._id,
+          images: user.images,
+          blurAvatar: user.images[0],
+        });
+      }
+    }
     return true;
   }
 }

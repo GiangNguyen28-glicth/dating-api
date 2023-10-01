@@ -42,7 +42,7 @@ export class MatchRequestService {
         size: filter?.size,
         page: filter?.page,
       };
-      const basicFieldsPopulate = ['_id', 'name', 'images', 'tags', 'bio', 'blurAvatar'];
+      const basicFieldsPopulate: Array<keyof User> = ['_id', 'name', 'images', 'tags', 'bio', 'blurAvatar'];
       const populate: PopulateOptions[] = [];
       if (isPopulate) {
         populate.push({
