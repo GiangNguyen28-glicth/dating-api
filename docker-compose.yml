@@ -1,6 +1,6 @@
 version: '3'
 services:
-  dating-api:
+  dating-backend:
     build:
       context: .
       dockerfile: ./apps/dating-backend/Dockerfile
@@ -9,13 +9,11 @@ services:
     env_file:
       - ./apps/dating-backend/.env
     ports:
-      - '3000:3000'
+      - '4000:4000'
     depends_on:
       - mongodb
       - rabbitmq
       - cache
-    volumes:
-      - .:/app
   client-service:
     build:
       context: .
@@ -28,8 +26,6 @@ services:
       - mongodb
       - rabbitmq
       - cache
-    volumes:
-      - .:/app
   rabbitmq:
     image: rabbitmq:3.11-management
     ports:

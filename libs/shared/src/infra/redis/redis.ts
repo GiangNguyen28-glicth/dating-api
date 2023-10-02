@@ -5,9 +5,9 @@ export class CacheConfigService implements CacheOptionsFactory {
   createCacheOptions(): CacheModuleOptions {
     return {
       store: redisStore as any,
-      url: `redis://localhost:6379`,
+      url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
       username: process.env.REDIS_USERNAME,
-      password: 'eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81',
+      password: process.env.REDIS_PASSWORD,
       max: parseInt(process.env.REDIS_MAX_SIZE),
       isGlobal: true,
     };

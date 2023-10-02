@@ -3,6 +3,17 @@ WORKDIR /app
 
 COPY package.json yarn.lock ./
 
+RUN apk add --update --no-cache \
+    make \
+    g++ \
+    jpeg-dev \
+    cairo-dev \
+    giflib-dev \
+    pango-dev \
+    libtool \
+    autoconf \
+    automake
+
 RUN yarn install --frozen-lockfile
 
 COPY . .

@@ -1,5 +1,5 @@
 dist.do
-node_modules
+/node_modules
 .eslintrc.js
 .prettierrc
 README.md
