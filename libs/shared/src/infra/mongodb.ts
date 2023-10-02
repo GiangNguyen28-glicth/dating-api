@@ -1,16 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import {
-  MongooseModuleOptions,
-  MongooseOptionsFactory,
-} from '@nestjs/mongoose';
+import { MongooseModuleOptions, MongooseOptionsFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 // mongoose.set('bufferCommands', false);
 mongoose.set('debug', process.env.NODE_ENV === 'prod' ? false : true);
 @Injectable()
 export class MongooseConfigService implements MongooseOptionsFactory {
-  createMongooseOptions():
-    | MongooseModuleOptions
-    | Promise<MongooseModuleOptions> {
+  createMongooseOptions(): MongooseModuleOptions | Promise<MongooseModuleOptions> {
     return {
       uri: process.env.MONGO_URI,
       user: process.env.MONGO_USERNAME,

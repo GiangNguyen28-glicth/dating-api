@@ -1,17 +1,12 @@
+import { DATABASE_TYPE, PROVIDER_REPO, RelationshipType } from '@common/consts';
+import { PaginationDTO } from '@common/dto';
+import { IResponse, IResult } from '@common/interfaces';
+import { RelationshipRepo } from '@dating/repositories';
+import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateRelationshipDTO } from './dto/create-relationship.dto';
 import { UpdateRelationshipDto } from './dto/update-relationship.dto';
-import {
-  DATABASE_TYPE,
-  MongoQuery,
-  PROVIDER_REPO,
-  RelationshipType,
-} from '@common/consts';
-import { RelationshipRepo } from '@dating/repositories';
-import { IResponse, IResult } from '@common/interfaces';
 import { Relationship } from './entities/relationship.entity';
-import { PaginationDTO } from '@common/dto';
-import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
 
 @Injectable()
 export class RelationshipService {
@@ -33,10 +28,7 @@ export class RelationshipService {
     }
   }
 
-  async findAll(
-    pagination: PaginationDTO,
-    type: RelationshipType,
-  ): Promise<IResult<Relationship>> {
+  async findAll(pagination: PaginationDTO, type: RelationshipType): Promise<IResult<Relationship>> {
     try {
       const [queryFilter] = new FilterBuilder<Relationship>()
         .setFilterItem('isDeleted', '$eq', false, true)
@@ -67,15 +59,9 @@ export class RelationshipService {
     }
   }
 
-  async update(
-    id: string,
-    updateRelationshipDto: UpdateRelationshipDto,
-  ): Promise<IResponse> {
+  async update(id: string, updateRelationshipDto: UpdateRelationshipDto): Promise<IResponse> {
     try {
-      const relationship = await this.relationshipRepo.findOneAndUpdate(
-        id,
-        updateRelationshipDto,
-      );
+      const relationship = await this.relationshipRepo.findOneAndUpdate(id, updateRelationshipDto);
       throwIfNotExists(relationship, 'Không tìm thấy Relationship');
       return {
         success: true,

@@ -15,7 +15,6 @@ import { UserRepo } from '@dating/repositories';
 import { Image, SpotifyInfo, User, UserAddress } from '../entities';
 import { InsPayload, SpotifyPayload } from '../interfaces';
 import { UpdateUserProfileDto, calField } from '../dto';
-const GOOGLE_MAP_API_KEY = 'AIzaSyD_iE1VNOGaUYvD8lLoypqlJQN8MruGiNw';
 
 @Injectable()
 export class UserHelper implements OnModuleInit {
@@ -47,6 +46,7 @@ export class UserHelper implements OnModuleInit {
     if (!lat || !long) {
       throw new BadRequestException('Missing param lat,long');
     }
+    const GOOGLE_MAP_API_KEY = process.env.GOOGLE_MAP_API_KEY;
     return await axios.get(
       `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${GOOGLE_MAP_API_KEY}`,
     );

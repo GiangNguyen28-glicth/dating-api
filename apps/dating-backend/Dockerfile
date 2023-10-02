@@ -1,20 +1,9 @@
 FROM node:16.18.0-alpine AS development
 WORKDIR /app
 
-RUN apk add --update --no-cache \
-    make \
-    g++ \
-    jpeg-dev \
-    cairo-dev \
-    giflib-dev \
-    pango-dev \
-    libtool \
-    autoconf \
-    automake
+COPY package.json yarn.lock ./
 
-COPY package*.json ./
-
-RUN npm install
+RUN yarn install --frozen-lockfile
 
 COPY . .
 

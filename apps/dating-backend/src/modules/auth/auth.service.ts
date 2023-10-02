@@ -14,7 +14,6 @@ import {
 import { User } from '@modules/users/entities';
 import { UserService } from '@modules/users/users.service';
 import { ConfigService } from '@nestjs/config';
-import { MailService } from '../mail';
 import { SmsDTO, VerifyOTPDTO } from './dto';
 import { IToken } from './interfaces';
 
@@ -24,7 +23,6 @@ export class AuthService {
   constructor(
     private jwtService: JwtService,
     private userService: UserService,
-    private mailService: MailService,
     private configService: ConfigService,
     private redisService: RedisService,
   ) {

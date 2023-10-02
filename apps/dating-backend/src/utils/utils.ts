@@ -11068,7 +11068,7 @@ export function mappingData(): User[] {
       user.geoLocation = p;
       if (item.user.jobs.length > 0) {
         user.company = item.user.jobs[0].company.name;
-        user.jobTitle = item.user.jobs[0].title.name;
+        user.jobs = [item.user.jobs[0].title.name];
       }
       if (item.user.schools.length > 0) {
         user.school = item.user.schools[0].name;

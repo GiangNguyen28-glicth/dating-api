@@ -16,22 +16,20 @@ services:
       - cache
     volumes:
       - .:/app
-      - /app/node_modules
-  # client-service:
-  #   build:
-  #     context: .
-  #     dockerfile: ./apps/client-service/Dockerfile
-  #     target: development
-  #   command: npm run start:dev client-service
-  #   env_file:
-  #     - ./apps/client-service/.env
-  #   depends_on:
-  #     - mongodb
-  #     - rabbitmq
-  #     - cache
-  #   volumes:
-  #     - .:/app
-  #     - /app/node_modules
+  client-service:
+    build:
+      context: .
+      dockerfile: ./apps/client-service/Dockerfile
+      target: development
+    command: npm run start:dev client-service
+    env_file:
+      - ./apps/client-service/.env
+    depends_on:
+      - mongodb
+      - rabbitmq
+      - cache
+    volumes:
+      - .:/app
   rabbitmq:
     image: rabbitmq:3.11-management
     ports:

@@ -25,7 +25,6 @@ import {
   TagModule,
   UsersModule,
 } from './modules';
-
 @Module({
   imports: [
     ConfigModule.forRoot({
