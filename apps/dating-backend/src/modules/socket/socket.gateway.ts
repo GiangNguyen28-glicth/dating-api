@@ -23,7 +23,12 @@ import { UserService } from '@modules/users/users.service';
 import { SocketService } from './socket.service';
 @WebSocketGateway({
   cors: {
-    origin: ['http://localhost:3000', 'http://localhost:3001', 'https://localhost:9001'],
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'https://localhost:9001',
+      'https://finder-next.vercel.app',
+    ],
     methods: ['GET', 'POST'],
     credentials: true,
     allowedHeaders: ['accessToken'],
