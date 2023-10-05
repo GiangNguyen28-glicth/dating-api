@@ -21,19 +21,7 @@ import { User } from '@modules/users/entities';
 import { UserService } from '@modules/users/users.service';
 
 import { SocketService } from './socket.service';
-@WebSocketGateway({
-  cors: {
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'https://localhost:9001',
-      'https://finder-next.vercel.app',
-    ],
-    methods: ['GET', 'POST'],
-    credentials: true,
-    allowedHeaders: ['accessToken'],
-  },
-})
+@WebSocketGateway({ transport: ['websocket'], allowEIO3: true, cors: '*' })
 @UseFilters(WebsocketExceptionsFilter)
 @UsePipes(new ValidationPipe({ transform: true }))
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnModuleInit {
@@ -47,7 +35,6 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   ) {}
 
   async onModuleInit() {
-    return;
     console.log('Start scan');
     await this.redisService.deleteWithPrefixKey(SOCKET);
   }
