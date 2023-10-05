@@ -21,7 +21,7 @@ import { User } from '@modules/users/entities';
 import { UserService } from '@modules/users/users.service';
 
 import { SocketService } from './socket.service';
-@WebSocketGateway({ transports: ['websocket'], allowEIO3: true, cors: '*' })
+@WebSocketGateway({ transports: ['polling'], allowEIO3: true, cors: '*' })
 @UseFilters(WebsocketExceptionsFilter)
 @UsePipes(new ValidationPipe({ transform: true }))
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnModuleInit {
