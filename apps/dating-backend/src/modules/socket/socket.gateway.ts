@@ -21,7 +21,16 @@ import { User } from '@modules/users/entities';
 import { UserService } from '@modules/users/users.service';
 
 import { SocketService } from './socket.service';
-@WebSocketGateway({ transports: ['websocket'], allowEIO3: true, cors: '*' })
+@WebSocketGateway({
+  transports: ['websocket'],
+  allowEIO3: true,
+  cors: {
+    origin: ['http://localhost:3000', 'http://localhost:3001', 'https://finder-next.vercel.app'],
+    methods: ['GET', 'POST'],
+    credentials: true,
+    allowedHeaders: ['accessToken'],
+  },
+})
 @UseFilters(WebsocketExceptionsFilter)
 @UsePipes(new ValidationPipe({ transform: true }))
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnModuleInit {

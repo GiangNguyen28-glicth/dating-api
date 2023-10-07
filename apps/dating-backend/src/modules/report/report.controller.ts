@@ -1,25 +1,25 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
   BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBody, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 
 import { CurrentUser } from '@common/decorators';
-import { IResponse } from '@common/interfaces';
 import { AtGuard } from '@common/guards';
+import { IResponse } from '@common/interfaces';
 import { User } from '@modules/users/entities';
 
-import { ReportService } from './report.service';
-import { Report } from './entities/report.entity';
 import { CreateReportDto, FilterGetAllReportDTO, UpdateReportDto } from './dto';
+import { Report } from './entities/report.entity';
+import { ReportService } from './report.service';
 
 @ApiTags(Report.name)
 @Controller('report')
@@ -29,10 +29,7 @@ export class ReportController {
   @Post()
   @ApiBody({ type: CreateReportDto })
   @UseGuards(AtGuard)
-  async create(
-    @Body() createReportDto: CreateReportDto,
-    @CurrentUser() user: User,
-  ): Promise<IResponse> {
+  async create(@Body() createReportDto: CreateReportDto, @CurrentUser() user: User): Promise<IResponse> {
     const report = await this.reportService.create(createReportDto, user);
     if (!report) {
       throw new BadRequestException('Report thất bại');
