@@ -103,7 +103,10 @@ export class ConversationService {
 
   async findOne(filter: FilterGetOneConversationDTO, user: User): Promise<Conversation> {
     try {
-      const [queryFilter] = new FilterBuilder<Conversation>().setFilterItem('_id', '$eq', filter?._id).buildQuery();
+      const [queryFilter] = new FilterBuilder<Conversation>()
+        .setFilterItem('_id', '$eq', filter?._id)
+        .setFilterItem('members', '$elemMatch', { $eq: user._id })
+        .buildQuery();
       const options: IOptionFilterGetOne<Conversation> = {
         queryFilter,
         populate: [],
@@ -118,7 +121,7 @@ export class ConversationService {
         });
       }
       const conversation = await this.conversationRepo.findOne(options);
-      throwIfNotExists(conversation, 'Conversation not found');
+      throwIfNotExists(conversation, 'Không tìm thấy Conversation');
       if (!filter?.toJSON) {
         return conversation;
       }
