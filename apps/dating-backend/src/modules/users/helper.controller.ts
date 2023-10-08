@@ -65,9 +65,4 @@ export class HelperController {
     });
     return resp.data;
   }
-
-  @Get('/suggest')
-  async suggestLocation(): Promise<any> {
-    return await this.userHelper.suggestLocation();
-  }
 }

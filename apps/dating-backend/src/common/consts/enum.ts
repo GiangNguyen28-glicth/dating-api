@@ -31,6 +31,7 @@ export enum MessageType {
   IMAGE = 'Image',
   GIF = 'Gif',
   VIDEO = 'Video',
+  Call = 'Call',
 }
 
 export enum MessageStatus {
@@ -126,4 +127,11 @@ export enum MatchRqStatus {
   MATCHED = 'Matched',
   REQUESTED = 'Requested',
   SKIP = 'Skip',
+}
+
+export enum RequestDatingStatus {
+  ACCEPT = 'Accept',
+  DECLINE = 'Decline',
+  WAITING = 'Waiting',
+  SENT = 'Sent',
 }

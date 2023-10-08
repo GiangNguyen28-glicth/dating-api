@@ -8,10 +8,7 @@ export class FilterGetAllConversationDTO extends FilterGetAll {
   message?: number;
 }
 
-export class FilterGetOneConversationDTO
-  extends FilterGetOne
-  implements Partial<Conversation>
-{
+export class FilterGetOneConversationDTO extends FilterGetOne implements Partial<Conversation> {
   members?: User[];
   toJSON?: boolean;
   populate?: boolean;

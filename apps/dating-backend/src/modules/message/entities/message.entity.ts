@@ -4,6 +4,19 @@ import { Transform } from 'class-transformer';
 import { IEntity, MessageStatus, MessageType, MongoID } from '@dating/common';
 import { Conversation } from '@modules/conversation/entities';
 import { User, Image } from '@modules/users/entities';
+
+@Schema({ _id: false })
+export class CallMessage {
+  @Prop()
+  isMiss: boolean;
+
+  @Prop()
+  startTime: Date;
+
+  @Prop()
+  endTime: Date;
+}
+
 @Schema({ timestamps: true })
 export class Message implements IEntity {
   @Transform(({ value }) => value.toString())
@@ -20,6 +33,9 @@ export class Message implements IEntity {
 
   @Prop({ type: MongoID, ref: 'Conversation' })
   conversation: Conversation | string;
+
+  @Prop({ type: CallMessage })
+  callMessage: CallMessage;
 
   @Prop({ type: String, trim: true, enum: Object.values(MessageType) })
   type: MessageType;
@@ -52,4 +68,4 @@ export class Message implements IEntity {
   updatedAt: Date;
 }
 export const MessageSchema = SchemaFactory.createForClass(Message);
-MessageSchema.index({ conversation: 1, cursor: 1, status: 1 });
+MessageSchema.index({ conversation: 1, status: 1 });

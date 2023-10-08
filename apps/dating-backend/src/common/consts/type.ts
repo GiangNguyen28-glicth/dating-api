@@ -10,6 +10,7 @@ import { Conversation } from '@modules/conversation/entities';
 import { Message } from '@modules/message/entities';
 import { Relationship } from '@modules/relationship/entities';
 import { Notification } from '@modules/notification/entities';
+import { Schedule } from '@modules/schedule/entities';
 
 export type SortQuery = { [key: string]: SortOrder };
 export type TagModelType = Model<Tag>;
@@ -23,12 +24,5 @@ export type ReportModelType = Model<Report>;
 export type MatchRequestModelType = Model<MatchRequest>;
 export type RelationshipModelType = Model<Relationship>;
 export type NotificationModelType = Model<Notification>;
-export type MongoQuery =
-  | '$eq'
-  | '$gte'
-  | '$lte'
-  | '$in'
-  | '$nin'
-  | '$elemMatch'
-  | '$exists'
-  | '$ne';
+export type ScheduleModelType = Model<Schedule>;
+export type MongoQuery = '$eq' | '$gte' | '$lte' | '$in' | '$nin' | '$elemMatch' | '$exists' | '$ne';

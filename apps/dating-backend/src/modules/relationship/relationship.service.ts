@@ -4,9 +4,8 @@ import { IResponse, IResult } from '@common/interfaces';
 import { RelationshipRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateRelationshipDTO } from './dto/create-relationship.dto';
-import { UpdateRelationshipDto } from './dto/update-relationship.dto';
-import { Relationship } from './entities/relationship.entity';
+import { Relationship } from './entities';
+import { CreateRelationshipDTO, UpdateRelationshipDto } from './dto';
 
 @Injectable()
 export class RelationshipService {

@@ -7,7 +7,7 @@ import {
   UpdateUserSettingDTO,
   UpdateUserTagDTO,
 } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
+import { User } from './entities';
 import { UserService } from './users.service';
 import { UpdateUserProfileInterceptor } from './interceptors';
 

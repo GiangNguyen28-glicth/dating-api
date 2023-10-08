@@ -1,10 +1,5 @@
 import { InjectModel } from '@nestjs/mongoose';
-import {
-  CrudRepo,
-  DATABASE_TYPE,
-  OfferingModelType,
-  PROVIDER_REPO,
-} from '@dating/common';
+import { CrudRepo, DATABASE_TYPE, OfferingModelType, PROVIDER_REPO } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
 import { Offering } from '@modules/offering/entities';
 

@@ -16,7 +16,7 @@ export class Conversation implements IEntity {
   messagePin: Message;
 
   @Prop({ type: [MongoID], ref: User.name })
-  members: User[] | string[];
+  members: (User | string)[];
 
   @Prop({ type: Boolean, default: false })
   isDeleted: boolean;

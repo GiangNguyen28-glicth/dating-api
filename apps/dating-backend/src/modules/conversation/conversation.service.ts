@@ -143,12 +143,12 @@ export class ConversationService {
     }
   }
 
-  getQueryOrMembers(members: string[]) {
+  async findOneByMembers(members: string[]): Promise<Conversation> {
     const reverseMembers = members.reverse();
-    const query = {
+    const query: any = {
       $or: [{ members: members }, { members: reverseMembers }],
     };
-    return query;
+    return await this.conversationRepo.findOne(query);
   }
 
   async toJSON(conversation: Conversation): Promise<Conversation> {
