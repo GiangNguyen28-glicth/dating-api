@@ -13,5 +13,4 @@ export * from './tag';
 export * from './users';
 export * from './relationship';
 export * from './notification/notification.module';
-export * from './call';
 export * from './schedule';
