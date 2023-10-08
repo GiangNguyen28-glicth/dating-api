@@ -30,7 +30,7 @@ import {
 } from './dto/call.dto';
 import { SocketService } from './socket.service';
 @WebSocketGateway({
-  transports: ['websocket'],
+  transports: ['polling'],
   allowEIO3: true,
   cors: {
     origin: ['http://localhost:3000', 'http://localhost:3001', 'https://finder-next.vercel.app'],
