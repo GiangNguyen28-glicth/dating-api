@@ -134,6 +134,19 @@ export class ConversationService {
     }
   }
 
+  async findMembersIdById(conversationId: string): Promise<string[]> {
+    try {
+      const conversation = await this.conversationRepo.findOne({
+        queryFilter: { _id: conversationId },
+      });
+      throwIfNotExists(conversation, 'Không tìm thấy cuộc hội thoại');
+
+      return conversation.members.map(item => item.toString());
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async findOneAndUpdate(_id: string, entities?: Partial<Conversation>): Promise<Conversation> {
     try {
       const conversation = await this.conversationRepo.findOneAndUpdate(_id, entities);

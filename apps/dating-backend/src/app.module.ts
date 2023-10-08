@@ -23,7 +23,6 @@ import {
   SocketModule,
   TagModule,
   UsersModule,
-  CallModule,
   ScheduleModule,
 } from './modules';
 @Module({
@@ -56,7 +55,6 @@ import {
     MatchRequestModule,
     RelationshipModule,
     NotificationModule,
-    CallModule,
     ScheduleModule,
   ],
   providers: [
