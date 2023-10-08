@@ -31,7 +31,7 @@ export enum MessageType {
   IMAGE = 'Image',
   GIF = 'Gif',
   VIDEO = 'Video',
-  Call = 'Call',
+  CALL = 'Call',
 }
 
 export enum MessageStatus {

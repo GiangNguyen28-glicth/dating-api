@@ -13,7 +13,7 @@ import {
 import { Server, Socket } from 'socket.io';
 
 import { RedisService } from '@app/shared';
-import { CurrentUserWS, MessageStatus, SOCKET, WebsocketExceptionsFilter, WsGuard } from '@dating/common';
+import { CurrentUserWS, MessageStatus, MessageType, SOCKET, WebsocketExceptionsFilter, WsGuard } from '@dating/common';
 import { CreateMessageDto, SeenMessage } from '@modules/message/dto';
 import { Message } from '@modules/message/entities';
 import { MessageService } from '@modules/message/message.service';
@@ -29,11 +29,13 @@ import {
   OfferMessageResponse,
 } from './dto/call.dto';
 import { SocketService } from './socket.service';
+import { v4 as uuidv4 } from 'uuid';
+
 @WebSocketGateway({
   transports: ['polling'],
   allowEIO3: true,
   cors: {
-    origin: ['http://localhost:3000', 'http://localhost:3001', 'https://finder-next.vercel.app'],
+    origin: ['http://localhost:9000', 'https://localhost:9001', 'https://finder-next.vercel.app'],
     methods: ['GET', 'POST'],
     credentials: true,
     allowedHeaders: ['accessToken'],
@@ -45,10 +47,12 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   private rooms: Map<
     string,
     {
+      callerId: string;
+
       offer: any;
       answer: any;
-      startTime: number;
-      endTime: number;
+      startTime: string;
+      endTime: string;
       socketsIds: Record<string, boolean>;
     }
   > = new Map();
@@ -197,13 +201,18 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     const receiverIds = memberIds.filter(id => id !== user._id.toString());
     const socketIds = (await Promise.all(receiverIds.map(id => this.socketService.getSocketIdsByUser(id)))).flat();
 
-    this.rooms.set(roomId, {
+    const roomData = {
       offer,
+      callerId: user._id.toString(),
+      receiverIds: [],
       socketsIds: { [client.id]: true },
       answer: null,
-      startTime: 0,
+      startTime: null,
       endTime: null,
-    });
+    };
+    console.log('🚀 ~ file: socket.gateway.ts:214 ~ SocketGateway ~ handleOffer ~ roomData:', roomData);
+
+    this.rooms.set(roomId, roomData);
     this.roomMapping.set(client.id, roomId);
 
     const payload = {
@@ -226,6 +235,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 
     const room = this.rooms.get(roomId);
     room.answer = offer;
+    room.startTime = new Date().toISOString();
     room.socketsIds = {
       ...room.socketsIds,
       [client.id]: true,
@@ -243,10 +253,47 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     this.hangup(client.id);
   }
 
-  hangup(socketId: string) {
+  async hangup(socketId: string) {
     const roomId = this.roomMapping.get(socketId);
     const room = this.rooms.get(roomId);
-    console.log('🚀 ~ file: socket.gateway.ts:91 ~ SocketGateway ~ handleDisconnect ~ room:', room);
+
+    if (!room.callerId) return;
+    const userId = room.callerId;
+    const user = await this.userService.findOne({ _id: userId });
+    const memberIds = await this.messageService.findMembersIdById(roomId);
+    const receiverIds = memberIds.filter(id => id !== user._id.toString());
+
+    const messages = {
+      userId,
+      receiverIds,
+      startTime: room.startTime,
+      endTime: new Date().toISOString(),
+    };
+
+    await Promise.all(
+      receiverIds?.map(async id => {
+        const message = await this.messageService.create(
+          {
+            type: MessageType.CALL,
+            text: encodeToBase64(JSON.stringify(messages)),
+            uuid: uuidv4(),
+            receiver: id,
+            conversation: roomId,
+            createdAt: new Date(),
+          },
+          user,
+        );
+
+        const [socketIdsSender, socketIdsReceiver] = await Promise.all([
+          this.socketService.getSocketIdsByUser(message.sender as string),
+          this.socketService.getSocketIdsByUser(message.receiver as string),
+        ]);
+        // This event emit to all tab of user sent the message in order to those tabs update new message
+        this.sendEventToClient(socketIdsSender, 'sentMessage', message);
+        this.sendEventToClient(socketIdsReceiver, 'newMessage', message);
+      }),
+    );
+
     if (room) {
       const socketIds = Object.keys(room?.socketsIds);
       this.sendEventToClient(
@@ -267,4 +314,18 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       });
     }
   }
+}
+
+// Hàm encode: Chuyển đổi chuỗi thành Base64
+function encodeToBase64(text: string) {
+  const binaryData = Buffer.from(text, 'utf-8');
+  const base64String = binaryData.toString('base64');
+  return base64String;
+}
+
+// Hàm decode: Giải mã từ Base64 thành chuỗi
+function decodeFromBase64(base64String: string) {
+  const binaryData = Buffer.from(base64String, 'base64');
+  const decodedString = binaryData.toString('utf-8');
+  return decodedString;
 }
