@@ -20,6 +20,14 @@ import { MessageService } from '@modules/message/message.service';
 import { User } from '@modules/users/entities';
 import { UserService } from '@modules/users/users.service';
 
+import {
+  AnswerMessage,
+  AnswerMessageResponse,
+  CheckRoomMessage,
+  CheckRoomMessageResponse,
+  OfferMessage,
+  OfferMessageResponse,
+} from './dto/call.dto';
 import { SocketService } from './socket.service';
 @WebSocketGateway({
   transports: ['websocket'],
@@ -34,6 +42,18 @@ import { SocketService } from './socket.service';
 @UseFilters(WebsocketExceptionsFilter)
 @UsePipes(new ValidationPipe({ transform: true }))
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnModuleInit {
+  private rooms: Map<
+    string,
+    {
+      offer: any;
+      answer: any;
+      startTime: number;
+      endTime: number;
+      socketsIds: Record<string, boolean>;
+    }
+  > = new Map();
+  private roomMapping: Map<string, string> = new Map();
+
   constructor(
     @Inject(forwardRef(() => UserService))
     private userService: UserService,
@@ -69,6 +89,11 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       }
       const socketKey = SOCKET + userId;
       await this.redisService.srem(socketKey, socket.id);
+
+      if (this.roomMapping.has(socket.id)) {
+        this.hangup(socket.id);
+      }
+
       const socketIds: string[] = await this.redisService.smembers(userId);
       console.log('========================Disconnection========================');
       if (!socketIds.length) {
@@ -88,6 +113,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       (socket as any).userId = user._id.toString();
       const socketKey = SOCKET + user._id.toString();
       await this.redisService.sadd(socketKey, socket.id);
+      this.server.sockets.to(socket.id).emit('verifyFirstConnection', user);
     } catch (error) {
       throw new WsException(error.message);
     }
@@ -144,6 +170,93 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       this.sendEventToClient(socketIds, 'receivedMessage', newMessage);
     } catch (error) {
       throw new WsException(error.message);
+    }
+  }
+
+  @SubscribeMessage('checkRoom')
+  @UseGuards(WsGuard)
+  async checkRoom(@MessageBody() data: CheckRoomMessage, @CurrentUserWS() user: User) {
+    const socketId = await this.socketService.getSocketIdsByUser(user._id);
+
+    const isRoomExist = await this.rooms.get(data.roomId);
+    console.log('🚀 ~ file: socket.gateway.ts:187 ~ SocketGateway ~ checkRoom ~ isRoomExist:', isRoomExist);
+    const payload = {
+      offer: isRoomExist ? isRoomExist.offer : null,
+      status: !!isRoomExist,
+    } satisfies CheckRoomMessageResponse;
+
+    this.server.sockets.to(socketId).emit('checkRoom', payload);
+  }
+
+  @SubscribeMessage('offer')
+  @UseGuards(WsGuard)
+  async handleOffer(@MessageBody() data: OfferMessage, @CurrentUserWS() user: User, @ConnectedSocket() client: Socket) {
+    const { roomId, offer } = data;
+
+    const memberIds = await this.messageService.findMembersIdById(roomId);
+    const receiverIds = memberIds.filter(id => id !== user._id.toString());
+    const socketIds = (await Promise.all(receiverIds.map(id => this.socketService.getSocketIdsByUser(id)))).flat();
+
+    this.rooms.set(roomId, {
+      offer,
+      socketsIds: { [client.id]: true },
+      answer: null,
+      startTime: 0,
+      endTime: null,
+    });
+    this.roomMapping.set(client.id, roomId);
+
+    const payload = {
+      roomId,
+    } satisfies OfferMessageResponse;
+    this.sendEventToClient(socketIds, 'offer', payload);
+  }
+
+  @SubscribeMessage('answer')
+  async handleAnswer(
+    @MessageBody() data: AnswerMessage,
+    @CurrentUserWS() user: User,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const { roomId, offer } = data;
+
+    const memberIds = await this.messageService.findMembersIdById(roomId);
+    const receiverIds = memberIds.filter(id => id !== user._id.toString());
+    const socketIds = (await Promise.all(receiverIds.map(id => this.socketService.getSocketIdsByUser(id)))).flat();
+
+    const room = this.rooms.get(roomId);
+    room.answer = offer;
+    room.socketsIds = {
+      ...room.socketsIds,
+      [client.id]: true,
+    };
+    this.roomMapping.set(client.id, roomId);
+
+    const payload = {
+      offer,
+    } satisfies AnswerMessageResponse;
+    this.sendEventToClient(socketIds, 'answer', payload);
+  }
+
+  @SubscribeMessage('hangup')
+  handleHangup(@ConnectedSocket() client: Socket): void {
+    this.hangup(client.id);
+  }
+
+  hangup(socketId: string) {
+    const roomId = this.roomMapping.get(socketId);
+    const room = this.rooms.get(roomId);
+    console.log('🚀 ~ file: socket.gateway.ts:91 ~ SocketGateway ~ handleDisconnect ~ room:', room);
+    if (room) {
+      const socketIds = Object.keys(room?.socketsIds);
+      this.sendEventToClient(
+        socketIds.filter(id => id !== socketId),
+        'hangup',
+        null,
+      );
+
+      this.roomMapping.delete(socketId);
+      this.rooms.delete(roomId);
     }
   }
 

@@ -5,7 +5,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerModule } from '@nestjs/throttler';
 
 import { MongooseConfigService, RabbitModule, RedisModule } from '@app/shared';
-import { CallModule } from '@modules/call';
 import { HttpThrottlerGuard } from './common/guards';
 import { ThrottlerConfigService } from './infra/configs';
 import {
@@ -55,7 +54,6 @@ import {
     MatchRequestModule,
     RelationshipModule,
     NotificationModule,
-    CallModule,
   ],
   providers: [
     {
