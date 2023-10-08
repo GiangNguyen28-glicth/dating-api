@@ -66,6 +66,14 @@ export class MessageService implements OnModuleInit {
     }
   }
 
+  findMembersIdById(conversationId: string) {
+    try {
+      return this.conversationService.findMembersIdById(conversationId);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async findAll(filter: FilterGetAllMessageDTO): Promise<IResult<Message>> {
     try {
       const [queryFilter, sortOption] = new FilterBuilder<Message>()
