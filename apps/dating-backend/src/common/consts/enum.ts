@@ -133,5 +133,6 @@ export enum RequestDatingStatus {
   ACCEPT = 'Accept',
   DECLINE = 'Decline',
   WAITING = 'Waiting',
+  CANCEL = 'Cancel',
   SENT = 'Sent',
 }

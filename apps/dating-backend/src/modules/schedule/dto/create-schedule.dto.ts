@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsMongoId, IsNotEmpty } from 'class-validator';
 
 import { LocationDating, Schedule } from '../entities';
@@ -16,6 +16,13 @@ export class CreateScheduleDTO implements Partial<Schedule> {
   @ApiProperty()
   @IsNotEmpty()
   appointmentDate?: Date;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  name?: string;
+
+  @ApiPropertyOptional()
+  description?: string;
 
   @ApiProperty({ type: LocationDatingDTO })
   locationDating?: LocationDating[];

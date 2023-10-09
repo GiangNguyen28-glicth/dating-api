@@ -3,7 +3,7 @@ import { IResponse } from '@common/interfaces';
 import axios from 'axios';
 import { GoogleAuth } from 'google-auth-library';
 
-import { DATABASE_TYPE, PROVIDER_REPO } from '@common/consts';
+import { DATABASE_TYPE, PROVIDER_REPO, RequestDatingStatus } from '@common/consts';
 import { ScheduleRepo } from '@dating/repositories';
 
 import { User } from '@modules/users/entities';
@@ -12,6 +12,9 @@ import { Conversation } from '@modules/conversation/entities';
 
 import { CreateScheduleDTO, SuggestLocationDTO, UpdateScheduleDTO } from './dto';
 import { throwIfNotExists } from '@dating/utils';
+import { SocketService } from '@modules/socket/socket.service';
+import { SocketGateway } from '@modules/socket/socket.gateway';
+import { Schedule } from './entities';
 
 const serviceAccountInfo = {
   type: 'service_account',
@@ -35,7 +38,25 @@ export class ScheduleService {
     private scheduleRepo: ScheduleRepo,
 
     private conversationService: ConversationService,
+
+    private socketGateway: SocketGateway,
   ) {}
+
+  async findOne(_id: string, user: User): Promise<Schedule> {
+    try {
+      const schedule = await this.scheduleRepo.findOne({
+        queryFilter: { _id, isDeleted: false },
+        populate: [{ path: 'conversation' }],
+      });
+      throwIfNotExists(schedule, 'Không tìm thấy cuộc hẹn');
+      if (!(schedule.conversation as Conversation).members.includes(user._id)) {
+        throw new NotFoundException('Không tìm thấy cuộc hẹn');
+      }
+      return schedule;
+    } catch (error) {
+      throw error;
+    }
+  }
 
   async create(scheduleDto: CreateScheduleDTO, user: User): Promise<IResponse> {
     try {
@@ -53,14 +74,7 @@ export class ScheduleService {
 
   async update(_id: string, updateDto: UpdateScheduleDTO, user: User): Promise<IResponse> {
     try {
-      const schedule = await this.scheduleRepo.findOne({
-        queryFilter: { _id, isDeleted: false },
-        populate: [{ path: 'conversation' }],
-      });
-      throwIfNotExists(schedule, 'Không tìm thấy cuộc hẹn');
-      if (!(schedule.conversation as Conversation).members.includes(user._id)) {
-        throw new NotFoundException('Không tìm thấy cuộc hẹn');
-      }
+      const schedule = await this.findOne(_id, user);
       await this.scheduleRepo.save(Object.assign(schedule, updateDto));
       return {
         success: true,
@@ -73,14 +87,7 @@ export class ScheduleService {
 
   async delete(_id: string, user: User): Promise<IResponse> {
     try {
-      const schedule = await this.scheduleRepo.findOne({
-        queryFilter: { _id, isDeleted: false },
-        populate: [{ path: 'conversation' }],
-      });
-      throwIfNotExists(schedule, 'Không tìm thấy cuộc hẹn');
-      if (!(schedule.conversation as Conversation).members.includes(user._id)) {
-        throw new NotFoundException('Không tìm thấy cuộc hẹn');
-      }
+      const schedule = await this.findOne(_id, user);
       schedule.isDeleted = true;
       await this.scheduleRepo.save(schedule);
       return {
@@ -92,8 +99,23 @@ export class ScheduleService {
     }
   }
 
+  async cancel(_id: string, user: User): Promise<IResponse> {
+    try {
+      const schedule = await this.findOne(_id, user);
+      schedule.status = RequestDatingStatus.CANCEL;
+      await this.scheduleRepo.save(schedule);
+      return {
+        success: true,
+        message: 'Hủy cuộc hẹn thành công',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async suggestLocation(suggestDto: SuggestLocationDTO): Promise<any> {
     try {
+      suggestDto.content = suggestDto.content + '.Địa chỉ cụ thể của từng địa điểm';
       const auth = new GoogleAuth({
         credentials: serviceAccountInfo,
         scopes: ['https://www.googleapis.com/auth/cloud-platform'],

@@ -20,16 +20,22 @@ export class Schedule implements IEntity {
   @Transform(({ value }) => value.toString())
   _id?: string;
 
+  @Prop({ required: true })
+  name: string;
+
+  @Prop()
+  description: string;
+
   @Prop({ type: String, enum: Object.values(RequestDatingStatus) })
   status: RequestDatingStatus;
 
-  @Prop()
+  @Prop({ required: true })
   appointmentDate: Date;
 
   @Prop([{ type: LocationDating, default: [] }])
   locationDating: LocationDating[];
 
-  @Prop({ type: MongoID, ref: Conversation.name })
+  @Prop({ type: MongoID, ref: Conversation.name, required: true })
   conversation: Conversation | string;
 
   @Prop({ type: MongoID, ref: User.name })
