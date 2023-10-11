@@ -183,7 +183,6 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     const socketId = await this.socketService.getSocketIdsByUser(user._id);
 
     const isRoomExist = await this.rooms.get(data.roomId);
-    console.log('🚀 ~ file: socket.gateway.ts:187 ~ SocketGateway ~ checkRoom ~ isRoomExist:', isRoomExist);
     const payload = {
       offer: isRoomExist ? isRoomExist.offer : null,
       status: !!isRoomExist,
@@ -198,8 +197,8 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     const { roomId, offer } = data;
 
     const memberIds = await this.messageService.findMembersIdById(roomId);
-    const receiverIds = memberIds.filter(id => id !== user._id.toString());
-    const socketIds = (await Promise.all(receiverIds.map(id => this.socketService.getSocketIdsByUser(id)))).flat();
+    const receiverId = memberIds.filter(id => id !== user._id.toString())[0];
+    const socketIds = await this.socketService.getSocketIdsByUser(receiverId);
 
     const roomData = {
       offer,
@@ -210,13 +209,16 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       startTime: null,
       endTime: null,
     };
-    console.log('🚀 ~ file: socket.gateway.ts:214 ~ SocketGateway ~ handleOffer ~ roomData:', roomData);
 
     this.rooms.set(roomId, roomData);
     this.roomMapping.set(client.id, roomId);
 
     const payload = {
       roomId,
+      onwner: {
+        name: user.name,
+        image: user.images[0],
+      },
     } satisfies OfferMessageResponse;
     this.sendEventToClient(socketIds, 'offer', payload);
   }

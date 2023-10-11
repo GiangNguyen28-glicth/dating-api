@@ -1,3 +1,5 @@
+import { Image } from '@modules/users/entities';
+
 export type CheckRoomMessage = {
   roomId: string;
 };
@@ -15,6 +17,10 @@ export type OfferMessage = {
 
 export type OfferMessageResponse = {
   roomId: string;
+  onwner: {
+    name: string;
+    image: Image;
+  };
 };
 
 export type AnswerMessage = {
