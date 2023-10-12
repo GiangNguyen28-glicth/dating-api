@@ -8,12 +8,7 @@ import { FilterBuilder, throwIfNotExists } from '@dating/utils';
 import { User } from '@modules/users/entities';
 
 import { Billing } from './entities';
-import {
-  CreateBillingDto,
-  FilterGetAllBillingDTO,
-  FilterGetOneBillingDTO,
-  UpdateBillingDto,
-} from './dto';
+import { CreateBillingDto, FilterGetAllBillingDTO, FilterGetOneBillingDTO, UpdateBillingDto } from './dto';
 
 @Injectable()
 export class BillingService {
@@ -30,10 +25,7 @@ export class BillingService {
     }
   }
 
-  async findAll(
-    filter: FilterGetAllBillingDTO,
-    @CurrentUser() user?: User,
-  ): Promise<IResult<Billing>> {
+  async findAll(filter: FilterGetAllBillingDTO, @CurrentUser() user?: User): Promise<IResult<Billing>> {
     try {
       const [queryFilter] = new FilterBuilder<Billing>()
         .setFilterItem('createdBy', '$eq', user?._id)

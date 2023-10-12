@@ -276,6 +276,9 @@ export class User implements IEntity {
   stripeCustomerId: string;
 
   @Prop({ default: false })
+  isVerified: boolean;
+
+  @Prop({ default: false })
   isBlocked: boolean;
 
   @Prop({ default: false })

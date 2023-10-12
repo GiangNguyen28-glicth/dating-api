@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
 import { ConfigService } from '@nestjs/config';
+import * as moment from 'moment-timezone';
 
 import { BillingStatus, LimitType, QUEUE_NAME, RMQ_CHANNEL, RefreshIntervalUnit } from '@common/consts';
 import { IResponse } from '@common/interfaces';
@@ -81,23 +82,25 @@ export class PaymentService implements OnModuleInit {
   }
 
   getExpiredDate(_package: Package): Date {
-    const now = new Date();
+    const now = moment.tz('Asia/Ho_Chi_Minh');
     const amount = _package.amount;
     switch (_package.refreshIntervalUnit) {
       case RefreshIntervalUnit.MONTH:
-        now.setMonth(now.getMonth() + amount);
+        now.add(amount, 'months').endOf('date');
         break;
       case RefreshIntervalUnit.WEEK:
-        now.setDate(now.getDate() + amount * 7);
+        now.add(amount, 'weeks').endOf('date');
+        break;
       case RefreshIntervalUnit.YEAR:
-        now.setFullYear(now.getFullYear() + amount);
+        now.add(amount, 'years').endOf('date');
         break;
       case RefreshIntervalUnit.DAY:
-        now.setDate(now.getDate() + amount);
+        now.add(amount, 'days').endOf('date');
+        break;
       default:
         throw new BadRequestException('Missing refreshIntervalUnit');
     }
-    return now;
+    return new Date(now.toISOString());
   }
 
   buildMessage(offering: Offering, _package: Package, featureAccess: FeatureAccess): IPaymentMessage {

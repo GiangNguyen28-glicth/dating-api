@@ -42,7 +42,7 @@ export class UpdateFeatureAccessJob {
       jobDoc.totalUpdate = users.length;
       while (users.length) {
         const batchUsers = users.splice(0, UPDATE_BATCH_SIZE);
-        const updateMany = this.builderService.buildUpdateManyUsersFT(batchUsers);
+        const updateMany = this.builderService.buildUpdateManyUsersFT(batchUsers.map(user => user._id));
         await this.updaterService.updateUserFT(updateMany);
         if (jobDoc.status === JobStatus.TODO) {
           jobDoc.status = JobStatus.INPROGRESS;

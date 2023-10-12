@@ -23,6 +23,9 @@ export class Job implements IEntity {
   @Prop()
   totalUpdate?: number;
 
+  @Prop()
+  doneAt?: Date;
+
   @Prop({ default: false })
   isDeleted?: boolean;
 

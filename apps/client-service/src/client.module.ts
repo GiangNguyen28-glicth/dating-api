@@ -15,6 +15,7 @@ import { JobsModule } from './jobs';
 import { RabbitConsumerModule } from './rabbit';
 import { TagModule } from '@modules/tag';
 import { ImageModule } from './images/image.module';
+import { ScheduleModule } from '@modules/schedule';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { ImageModule } from './images/image.module';
     MatchRequestModule,
     NotificationModule,
     TagModule,
+    ScheduleModule,
   ],
 })
 export class ClientModule {}

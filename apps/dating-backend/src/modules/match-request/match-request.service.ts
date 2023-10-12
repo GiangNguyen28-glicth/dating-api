@@ -135,8 +135,4 @@ export class MatchRequestService {
       },
     };
   }
-
-  async testRedis(): Promise<void> {
-    this.redisService.setex({ key: 'abc', ttl: 10 * 60, data: '1' });
-  }
 }

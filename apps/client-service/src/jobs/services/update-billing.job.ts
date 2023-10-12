@@ -44,18 +44,18 @@ export class UpdateBillingJob implements IJobProcessors {
     try {
       const billing = await this.pullerService.getAllBillingToUpdateFT();
       const userIds = this.getAllUserIdsByBilling(billing);
-      // jobDoc.totalUpdate = users.length;
-      // while (users.length) {
-      //   const batchUsers = users.splice(0, UPDATE_BATCH_SIZE);
-      //   const updateMany =
-      //     this.builderService.buildUpdateManyUsersFT(batchUsers);
-      //   await this.updaterService.updateUserFT(updateMany);
-      //   if (jobDoc.status === JobStatus.TODO) {
-      //     jobDoc.status = JobStatus.INPROGRESS;
-      //     await this.jobService.save(jobDoc);
-      //   }
-      // }
+      jobDoc.totalUpdate = userIds.length;
+      while (userIds.length) {
+        const batchUsers = userIds.splice(0, UPDATE_BATCH_SIZE);
+        const updateMany = this.builderService.buildUpdateManyUsersFT(batchUsers);
+        await this.updaterService.updateUserFT(updateMany);
+        if (jobDoc.status === JobStatus.TODO) {
+          jobDoc.status = JobStatus.INPROGRESS;
+          await this.jobService.save(jobDoc);
+        }
+      }
       jobDoc.status = JobStatus.DONE;
+      jobDoc.doneAt = new Date();
       await this.jobService.save(jobDoc);
     } catch (error) {
       jobDoc.status = JobStatus.ERROR;

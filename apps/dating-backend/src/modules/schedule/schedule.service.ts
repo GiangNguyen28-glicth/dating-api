@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { IResponse } from '@common/interfaces';
 import axios from 'axios';
 import { GoogleAuth } from 'google-auth-library';
@@ -40,17 +40,19 @@ export class ScheduleService {
     private conversationService: ConversationService,
 
     private socketGateway: SocketGateway,
+
+    private socketService: SocketService,
   ) {}
 
   async findOne(_id: string, user: User): Promise<Schedule> {
     try {
       const schedule = await this.scheduleRepo.findOne({
         queryFilter: { _id, isDeleted: false },
-        populate: [{ path: 'conversation' }],
       });
       throwIfNotExists(schedule, 'Không tìm thấy cuộc hẹn');
-      if (!(schedule.conversation as Conversation).members.includes(user._id)) {
-        throw new NotFoundException('Không tìm thấy cuộc hẹn');
+      const conversation = await this.conversationService.findOneByMembers([user._id, schedule.receiver.toString()]);
+      if (!conversation) {
+        throw new ForbiddenException('Forbidden access');
       }
       return schedule;
     } catch (error) {
@@ -60,7 +62,8 @@ export class ScheduleService {
 
   async create(scheduleDto: CreateScheduleDTO, user: User): Promise<IResponse> {
     try {
-      await this.conversationService.findOne({ _id: scheduleDto.conversation }, user);
+      const conversation = await this.conversationService.findOneByMembers([user._id.toString(), scheduleDto.receiver]);
+      throwIfNotExists(conversation, 'Bạn chưa kết đôi với user này');
       const schedule = await this.scheduleRepo.insert(scheduleDto);
       await this.scheduleRepo.save(schedule);
       return {
@@ -103,7 +106,9 @@ export class ScheduleService {
     try {
       const schedule = await this.findOne(_id, user);
       schedule.status = RequestDatingStatus.CANCEL;
+      const socketIds = await this.socketService.getSocketIdsByUser(schedule.receiver.toString());
       await this.scheduleRepo.save(schedule);
+      await this.socketGateway.sendEventToClient(socketIds, 'abc', schedule);
       return {
         success: true,
         message: 'Hủy cuộc hẹn thành công',
@@ -115,7 +120,6 @@ export class ScheduleService {
 
   async suggestLocation(suggestDto: SuggestLocationDTO): Promise<any> {
     try {
-      suggestDto.content = suggestDto.content + '.Địa chỉ cụ thể của từng địa điểm';
       const auth = new GoogleAuth({
         credentials: serviceAccountInfo,
         scopes: ['https://www.googleapis.com/auth/cloud-platform'],
@@ -123,15 +127,12 @@ export class ScheduleService {
       const client = await auth.getClient();
       const resToken = await client.getAccessToken();
       const response = await axios.post(
-        'https://us-central1-aiplatform.googleapis.com/v1/projects/sunny-cider-400601/locations/us-central1/publishers/google/models/text-bison:predict',
+        'https://us-central1-aiplatform.googleapis.com/v1/projects/sunny-cider-400601/locations/us-central1/publishers/google/models/code-bison-32k:predict',
         {
           instances: [suggestDto],
           parameters: {
-            candidateCount: 1,
-            maxOutputTokens: 256,
+            maxOutputTokens: 1024,
             temperature: 0.2,
-            topP: 0.8,
-            topK: 40,
           },
         },
         {

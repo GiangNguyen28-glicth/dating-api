@@ -24,9 +24,6 @@ export class ActionController {
     return await this.actionService.like(sender, id);
   }
 
-  @Post('boots/:id')
-  async boots(@CurrentUser() sender: User, @Param('id') id: string) {}
-
   @Get('sample-data')
   async sampleData(): Promise<boolean> {
     await this.actionService.sampleData();

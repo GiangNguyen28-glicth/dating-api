@@ -1,12 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import {
-  Currency,
-  LimitType,
-  OfferingType,
-  RefreshIntervalUnit,
-} from '@common/consts';
-import { IEntity } from '@common/interfaces';
 import { Transform } from 'class-transformer';
+
+import { Currency, LimitType, OfferingType, RefreshIntervalUnit } from '@common/consts';
+import { IEntity } from '@common/interfaces';
 
 @Schema({ _id: false })
 export class MerchandisingItem {
@@ -25,6 +21,9 @@ export class MerchandisingItem {
 
 @Schema({ _id: false })
 export class Merchandising {
+  @Prop({ type: MerchandisingItem })
+  blur: MerchandisingItem;
+
   @Prop({ type: MerchandisingItem })
   hideAds: MerchandisingItem;
 
@@ -83,7 +82,7 @@ export class Offering implements IEntity {
   type: OfferingType;
 
   @Prop([{ type: Package, default: [] }])
-  package: Package[];
+  packages: Package[];
 
   @Prop({ type: Merchandising })
   merchandising: Merchandising;

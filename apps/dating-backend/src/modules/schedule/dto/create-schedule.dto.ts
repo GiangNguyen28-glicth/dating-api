@@ -2,14 +2,23 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsMongoId, IsNotEmpty } from 'class-validator';
 
 import { LocationDating, Schedule } from '../entities';
-import { Conversation } from '@modules/conversation/entities';
+import { User } from '@modules/users/entities';
 
 export class LocationDatingDTO implements Partial<LocationDating> {
   @ApiProperty()
   name?: string;
 
-  @ApiProperty({ type: [Number] })
-  geoLocation?: number[];
+  @ApiProperty()
+  address?: string;
+
+  @ApiProperty()
+  images?: string[];
+
+  @ApiProperty()
+  phoneNumber?: string;
+
+  @ApiProperty()
+  link?: string;
 }
 
 export class CreateScheduleDTO implements Partial<Schedule> {
@@ -18,23 +27,21 @@ export class CreateScheduleDTO implements Partial<Schedule> {
   appointmentDate?: Date;
 
   @ApiProperty()
-  @IsNotEmpty()
   name?: string;
 
   @ApiPropertyOptional()
   description?: string;
 
-  @ApiProperty({ type: LocationDatingDTO })
-  locationDating?: LocationDating[];
-
   @ApiProperty()
-  @IsMongoId()
   @IsNotEmpty()
-  conversation?: string;
+  receiver?: string;
+
+  @ApiProperty({ type: [LocationDatingDTO] })
+  locationDating?: LocationDating[];
 }
 
 export class SuggestLocationDTO {
   @ApiProperty()
   @IsNotEmpty()
-  content: string;
+  prefix: string;
 }

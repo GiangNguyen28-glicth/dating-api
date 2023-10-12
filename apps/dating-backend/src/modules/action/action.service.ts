@@ -1,4 +1,4 @@
-import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, forwardRef } from '@nestjs/common';
 
 import { DATABASE_TYPE, MatchRqStatus, PROVIDER_REPO } from '@common/consts';
 import { IResponse } from '@common/interfaces';
@@ -48,6 +48,9 @@ export class ActionService {
 
   async like(sender: User, receiverId: string): Promise<IResponse> {
     try {
+      if (!sender.featureAccess.likes.unlimited && sender.featureAccess.likes.amount < 1) {
+        throw new BadRequestException('Đã sử dụng hết lượt like ngày hôm nay');
+      }
       const receiver = await this.userService.findOne({ _id: receiverId });
       const matchRq = await this.matchReqService.findOne({
         sender: receiverId,

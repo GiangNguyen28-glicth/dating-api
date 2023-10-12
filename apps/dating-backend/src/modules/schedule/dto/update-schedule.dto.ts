@@ -8,4 +8,10 @@ export class UpdateScheduleDTO implements Partial<Schedule> {
 
   @ApiPropertyOptional({ type: LocationDatingDTO })
   locationDating?: LocationDating[];
+
+  @ApiPropertyOptional()
+  excludedUsers?: string[];
+
+  @ApiPropertyOptional()
+  isShowLocationDating?: boolean;
 }

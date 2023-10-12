@@ -56,7 +56,7 @@ export class OfferingService {
   }
 
   getPackage(offering: Offering, packageId: string): Package {
-    for (const item of offering.package) {
+    for (const item of offering.packages) {
       if (item._id.toString() == packageId) {
         return item;
       }

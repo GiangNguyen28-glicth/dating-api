@@ -1,14 +1,9 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Transform } from 'class-transformer';
 import { BillingProcess, BillingStatus, MongoID } from '@common/consts';
 import { IEntity } from '@common/interfaces';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import {
-  Merchandising,
-  MerchandisingItem,
-  Offering,
-  Package,
-} from '@modules/offering/entities/offering.entity';
-import { User } from '@modules/users/entities/user.entity';
-import { Transform } from 'class-transformer';
+import { Merchandising, Offering, Package } from '@modules/offering/entities';
+import { User } from '@modules/users/entities';
 
 @Schema({ timestamps: true })
 export class Billing implements IEntity {

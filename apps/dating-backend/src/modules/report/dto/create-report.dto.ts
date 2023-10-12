@@ -8,6 +8,6 @@ export class CreateReportDto implements Partial<Report> {
   @ApiProperty()
   description?: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: 'string' })
   reportedUser?: User;
 }

@@ -33,9 +33,4 @@ export class MatchRequestController {
   async findAll(@Query() filter: FilterGelAllMqDTO, @CurrentUser() user: User): Promise<IResult<MatchRequest>> {
     return await this.matchRequestService.findAll(filter, user, true);
   }
-
-  @Get('test-redis')
-  async testRedis(): Promise<void> {
-    await this.matchRequestService.testRedis();
-  }
 }

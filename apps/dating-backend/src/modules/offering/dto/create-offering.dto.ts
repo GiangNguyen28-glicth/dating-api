@@ -55,6 +55,9 @@ export class MerchandisingItemDTO implements MerchandisingItem {
 
 export class MerchandisingDTO implements Merchandising {
   @ApiProperty({ type: MerchandisingItemDTO })
+  blur: MerchandisingItem;
+
+  @ApiProperty({ type: MerchandisingItemDTO })
   hideAds: MerchandisingItem;
 
   @ApiProperty({ type: MerchandisingItemDTO })
@@ -80,8 +83,8 @@ export class CreateOfferingDto implements Partial<Offering> {
   type?: OfferingType;
 
   @ApiProperty({ type: [PackageDTO] })
-  package?: PackageDTO[];
+  packages?: PackageDTO[];
 
   @ApiProperty({ type: MerchandisingDTO })
-  merchandising?: MerchandisingDTO;
+  merchandising?: Merchandising;
 }

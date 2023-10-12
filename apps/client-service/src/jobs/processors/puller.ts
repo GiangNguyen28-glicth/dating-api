@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
-import { FilterBuilder } from '@dating/utils';
+import { BillingStatus, DEFAULT_LIKES_REMAINING } from '@common/consts';
 import { IOptionFilterGetAll } from '@common/interfaces';
-import { BillingProcess, BillingStatus, DEFAULT_LIKES_REMAINING } from '@common/consts';
+import { FilterBuilder } from '@dating/utils';
 
 import { BillingService } from '@modules/billing/billing.service';
 import { UserService } from '@modules/users/users.service';
 
-import { User } from '@modules/users/entities';
 import { Billing } from '@modules/billing/entities';
+import { User } from '@modules/users/entities';
 
 import { Job, JobModelType } from '../entities';
 
@@ -25,7 +25,6 @@ export class PullerService {
     const data = await this.billingService.findAll({
       expiredDate: new Date(),
       status: BillingStatus.SUCCESS,
-      process: BillingProcess.INPROGRESS,
     });
     return data.results;
   }

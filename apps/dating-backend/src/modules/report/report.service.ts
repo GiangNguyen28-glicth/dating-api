@@ -8,17 +8,21 @@ import { User } from '@modules/users/entities';
 
 import { CreateReportDto, FilterGetAllReportDTO, UpdateReportDto } from './dto';
 import { Report } from './entities';
+import { ActionService } from '@modules/action/action.service';
 @Injectable()
 export class ReportService {
   constructor(
     @Inject(PROVIDER_REPO.REPORT + DATABASE_TYPE.MONGO)
     private reportRepo: ReportRepo,
+
+    private actionService: ActionService,
   ) {}
   async create(createReportDto: CreateReportDto, user: User): Promise<Report> {
     try {
       createReportDto['reportBy'] = user._id;
       const report = await this.reportRepo.insert(createReportDto);
       await this.reportRepo.save(report);
+      await this.actionService.skip(user, createReportDto.reportedUser as any);
       return report;
     } catch (error) {
       throw error;
@@ -27,8 +31,7 @@ export class ReportService {
 
   async findAll(filter: FilterGetAllReportDTO): Promise<IResult<Report>> {
     try {
-      const [queryFilter, sortOption] =
-        new FilterBuilder<Report>().buildQuery();
+      const [queryFilter, sortOption] = new FilterBuilder<Report>().buildQuery();
       const pagination: PaginationDTO = {
         size: filter?.size,
         page: filter?.page,

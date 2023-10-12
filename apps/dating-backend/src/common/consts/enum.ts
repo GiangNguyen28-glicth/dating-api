@@ -136,3 +136,8 @@ export enum RequestDatingStatus {
   CANCEL = 'Cancel',
   SENT = 'Sent',
 }
+
+export enum ReactionStatus {
+  VERY_HAPPY = 'Very happy',
+  DISAPPOINTED = 'Disappointed',
+}
