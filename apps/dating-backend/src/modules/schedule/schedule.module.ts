@@ -12,6 +12,6 @@ import { ScheduleService } from './schedule.service';
   imports: [MongooseModule.forFeature([{ name: Schedule.name, schema: ScheduleSchema }]), ConversationModule],
   controllers: [ScheduleController],
   providers: [ScheduleService, ScheduleMongoRepoProvider],
-  exports: [],
+  exports: [ScheduleService, ScheduleMongoRepoProvider],
 })
 export class ScheduleModule {}
