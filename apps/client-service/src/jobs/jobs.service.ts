@@ -15,6 +15,10 @@ export class JobsService {
   }
 
   async save(job: Job) {
-    await new this.jobModel(job).save();
+    try {
+      await new this.jobModel(job).save();
+    } catch (error) {
+      throw error;
+    }
   }
 }

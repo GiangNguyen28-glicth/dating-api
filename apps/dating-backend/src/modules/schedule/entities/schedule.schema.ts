@@ -34,7 +34,7 @@ export class Schedule implements IEntity {
   @Prop()
   description: string;
 
-  @Prop({ type: String, enum: Object.values(RequestDatingStatus) })
+  @Prop({ type: String, enum: Object.values(RequestDatingStatus), default: RequestDatingStatus.WAIT_FOR_APPROVAL })
   status: RequestDatingStatus;
 
   @Prop({ required: true })

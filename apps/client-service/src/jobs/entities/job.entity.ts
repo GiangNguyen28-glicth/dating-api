@@ -21,7 +21,13 @@ export class Job implements IEntity {
   status: JobStatus;
 
   @Prop()
+  lastId?: string;
+
+  @Prop()
   totalUpdate?: number;
+
+  @Prop({ default: 0 })
+  numOfProcessRecord?: number;
 
   @Prop()
   doneAt?: Date;

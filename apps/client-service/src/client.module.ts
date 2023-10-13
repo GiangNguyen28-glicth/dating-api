@@ -10,12 +10,13 @@ import { ActionModule } from '@modules/action';
 import { SocketModule } from '@modules/socket';
 import { MatchRequestModule } from '@modules/match-request';
 import { NotificationModule } from '@modules/notification';
+import { TagModule } from '@modules/tag';
+import { ScheduleModule } from '@modules/schedule';
 
 import { JobsModule } from './jobs';
 import { RabbitConsumerModule } from './rabbit';
-import { TagModule } from '@modules/tag';
 import { ImageModule } from './images/image.module';
-import { ScheduleModule } from '@modules/schedule';
+import { MailModule } from '@modules/mail';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { ScheduleModule } from '@modules/schedule';
     NotificationModule,
     TagModule,
     ScheduleModule,
+    MailModule,
   ],
 })
 export class ClientModule {}

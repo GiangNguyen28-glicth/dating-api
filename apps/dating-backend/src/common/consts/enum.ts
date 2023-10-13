@@ -132,7 +132,7 @@ export enum MatchRqStatus {
 export enum RequestDatingStatus {
   ACCEPT = 'Accept',
   DECLINE = 'Decline',
-  WAITING = 'Waiting',
+  WAIT_FOR_APPROVAL = 'Wait for approval',
   CANCEL = 'Cancel',
   SENT = 'Sent',
 }

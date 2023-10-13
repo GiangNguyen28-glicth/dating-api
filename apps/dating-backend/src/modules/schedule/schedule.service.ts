@@ -1,19 +1,18 @@
-import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { IResponse } from '@common/interfaces';
+import { IResponse, IResult } from '@common/interfaces';
+import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { GoogleAuth } from 'google-auth-library';
 
-import { DATABASE_TYPE, PROVIDER_REPO, RequestDatingStatus } from '@common/consts';
+import { DATABASE_TYPE, PROVIDER_REPO, RequestDatingStatus, SortQuery } from '@common/consts';
 import { ScheduleRepo } from '@dating/repositories';
 
-import { User } from '@modules/users/entities';
 import { ConversationService } from '@modules/conversation/conversation.service';
-import { Conversation } from '@modules/conversation/entities';
+import { User } from '@modules/users/entities';
 
-import { CreateScheduleDTO, SuggestLocationDTO, UpdateScheduleDTO } from './dto';
-import { throwIfNotExists } from '@dating/utils';
-import { SocketService } from '@modules/socket/socket.service';
+import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
 import { SocketGateway } from '@modules/socket/socket.gateway';
+import { SocketService } from '@modules/socket/socket.service';
+import { CreateScheduleDTO, FilterGetAllScheduleDTO, SuggestLocationDTO, UpdateScheduleDTO } from './dto';
 import { Schedule } from './entities';
 
 const serviceAccountInfo = {
@@ -60,11 +59,51 @@ export class ScheduleService {
     }
   }
 
+  async findAll(filter: FilterGetAllScheduleDTO): Promise<IResult<Schedule>> {
+    try {
+      const userField: string = ['_id', 'images', 'email'].join(' ');
+      const [queryFilter] = new FilterBuilder<Schedule>()
+        .setFilterItem('status', '$eq', filter?.status)
+        .setFilterItemWithObject('$or', [{ receiver: filter?.userId }, { sender: filter?.userId }])
+        .buildQuery();
+      const [results, totalCount] = await Promise.all([
+        this.scheduleRepo.findAll({
+          queryFilter,
+          populate: [
+            { path: 'sender', select: userField },
+            { path: 'receiver', select: userField },
+          ],
+        }),
+        this.scheduleRepo.count(queryFilter),
+      ]);
+      return formatResult(results, totalCount, { page: filter?.page, size: filter?.size });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getScheduleByAppointmentDateJob(queryFilter: Partial<Schedule>, sortOption: SortQuery): Promise<Schedule[]> {
+    try {
+      const userField: string = ['_id', 'images', 'email'].join(' ');
+      return await this.scheduleRepo.findAll({
+        queryFilter,
+        populate: [
+          { path: 'sender', select: userField },
+          { path: 'receiver', select: userField },
+        ],
+        sortOption,
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async create(scheduleDto: CreateScheduleDTO, user: User): Promise<IResponse> {
     try {
       const conversation = await this.conversationService.findOneByMembers([user._id.toString(), scheduleDto.receiver]);
       throwIfNotExists(conversation, 'Bạn chưa kết đôi với user này');
-      const schedule = await this.scheduleRepo.insert(scheduleDto);
+      const schedule: Schedule = await this.scheduleRepo.insert(scheduleDto);
+      schedule.sender = user._id;
       await this.scheduleRepo.save(schedule);
       return {
         success: true,

@@ -1,17 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
-import { BillingStatus, DEFAULT_LIKES_REMAINING } from '@common/consts';
+import { BillingStatus, DEFAULT_LIKES_REMAINING, RequestDatingStatus } from '@common/consts';
 import { IOptionFilterGetAll } from '@common/interfaces';
 import { FilterBuilder } from '@dating/utils';
 
 import { BillingService } from '@modules/billing/billing.service';
 import { UserService } from '@modules/users/users.service';
+import { ScheduleService } from '@modules/schedule/schedule.service';
 
 import { Billing } from '@modules/billing/entities';
 import { User } from '@modules/users/entities';
 
 import { Job, JobModelType } from '../entities';
+import { Schedule } from '@modules/schedule/entities';
+import moment from 'moment-timezone';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class PullerService {
@@ -19,6 +23,7 @@ export class PullerService {
     @InjectModel(Job.name) private jobModel: JobModelType,
     private userService: UserService,
     private billingService: BillingService,
+    private scheduleService: ScheduleService,
   ) {}
 
   async getAllBillingToUpdateFT(): Promise<Billing[]> {
@@ -44,5 +49,18 @@ export class PullerService {
       .setSortItem('createdAt', 'asc')
       .buildQuery();
     return await this.userService.findAll({ queryFilter, sortOption });
+  }
+
+  async getScheduleByAppointmentDate(job: Job): Promise<Schedule[]> {
+    const startOfDate = moment.tz('Asia/Ho_Chi_Minh').startOf('day');
+    const tomorrow = startOfDate.add(1, 'day').endOf('day');
+    const [queryFilter, sortOption] = new FilterBuilder<Schedule>()
+      .setFilterItem('status', '$eq', RequestDatingStatus.ACCEPT)
+      .setFilterItem('isDeleted', '$eq', false, true)
+      .setFilterItemWithObject('appointmentDate', { $lte: tomorrow, $gte: startOfDate })
+      .setFilterItem('_id', '$gte', new Types.ObjectId(job.lastId) || null)
+      .setSortItem('_id', 'asc')
+      .buildQuery();
+    return await this.scheduleService.getScheduleByAppointmentDateJob(queryFilter, sortOption);
   }
 }

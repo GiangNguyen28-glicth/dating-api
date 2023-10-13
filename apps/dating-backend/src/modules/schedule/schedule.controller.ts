@@ -1,13 +1,13 @@
-import { Body, Controller, Delete, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-import { IResponse } from '@common/interfaces';
+import { IResponse, IResult } from '@common/interfaces';
 import { CurrentUser } from '@common/decorators';
 import { User } from '@modules/users/entities';
 import { AtGuard } from '@common/guards';
 
 import { ScheduleService } from './schedule.service';
-import { CreateScheduleDTO, SuggestLocationDTO, UpdateScheduleDTO } from './dto';
+import { CreateScheduleDTO, FilterGetAllScheduleDTO, SuggestLocationDTO, UpdateScheduleDTO } from './dto';
 import { Schedule } from './entities';
 
 @Controller('schedule')
@@ -15,6 +15,12 @@ import { Schedule } from './entities';
 @ApiTags(Schedule.name)
 export class ScheduleController {
   constructor(private scheduleService: ScheduleService) {}
+
+  @Get()
+  async findAll(@Query() filter: FilterGetAllScheduleDTO, @CurrentUser() user: User): Promise<IResult<Schedule>> {
+    filter.userId = user._id.toString();
+    return await this.scheduleService.findAll(filter);
+  }
 
   @Post()
   async create(@Body() scheduleDto: CreateScheduleDTO, @CurrentUser() user: User): Promise<IResponse> {
