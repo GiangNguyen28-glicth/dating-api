@@ -35,7 +35,7 @@ import { v4 as uuidv4 } from 'uuid';
   transports: ['polling'],
   allowEIO3: true,
   cors: {
-    origin: ['http://localhost:9000', 'https://localhost:9001', 'https://finder-next.vercel.app'],
+    origin: '*',
     methods: ['GET', 'POST'],
     credentials: true,
     allowedHeaders: ['accessToken'],
