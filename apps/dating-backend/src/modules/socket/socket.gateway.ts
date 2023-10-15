@@ -259,6 +259,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     const roomId = this.roomMapping.get(socketId);
     const room = this.rooms.get(roomId);
 
+    if (!room) return;
     if (!room.callerId) return;
     const userId = room.callerId;
     const user = await this.userService.findOne({ _id: userId });
