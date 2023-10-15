@@ -4,6 +4,7 @@ import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { JwtService } from '@nestjs/jwt';
 import { Cache } from 'cache-manager';
 import { ConfigService } from '@nestjs/config';
+import { ISendMail } from './interfaces';
 
 @Injectable()
 export class MailService {
@@ -21,13 +22,9 @@ export class MailService {
       },
     });
   }
-  async sendMail(email: string, subject: string, html: string): Promise<SMTPTransport.SentMessageInfo> {
-    return await this.transporter().sendMail({
-      from: this.configService.get('EMAIL_USERNAME'),
-      to: email,
-      subject: subject,
-      html: html,
-    });
+  async sendMail(payload: ISendMail): Promise<SMTPTransport.SentMessageInfo> {
+    payload.from = this.configService.get('EMAIL_USERNAME');
+    return await this.transporter().sendMail(payload);
   }
 
   async decodeConfirmationToken(token: string): Promise<string> {

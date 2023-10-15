@@ -137,6 +137,11 @@ export enum RequestDatingStatus {
   SENT = 'Sent',
 }
 
+export enum CreatedDatingType {
+  MANUAL = 'Manual',
+  AI = 'AI',
+}
+
 export enum ReactionStatus {
   VERY_HAPPY = 'Very happy',
   DISAPPOINTED = 'Disappointed',

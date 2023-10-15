@@ -1,22 +1,29 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { CronJob } from 'cron';
+import { ConfirmChannel } from 'amqplib';
+import { get } from 'lodash';
 
-import { JobStatus } from '@common/consts';
+import { JobStatus, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
+import { RabbitService } from '@app/shared';
 
-import { IJobProcessors } from '../interfaces';
+import { Schedule } from '@modules/schedule/entities';
 import { Job } from '../entities';
+import { IJobProcessors } from '../interfaces';
 import { JobsService } from '../jobs.service';
 import { PullerService } from '../processors';
-import { MailService } from '@modules/mail';
-import { Schedule } from '@modules/schedule/entities';
 
 const SENT_NOTIFICATION_SCHEDULE_APPOINTMENT_DATE_TO_MAIL = 'SENT_NOTIFICATION_SCHEDULE_APPOINTMENT_DATE_TO_MAIL';
 
 @Injectable()
-export class ScheduleDatingJob implements IJobProcessors {
+export class ScheduleDatingJob implements IJobProcessors, OnModuleInit {
   private cronJob: CronJob;
+  private channel: ConfirmChannel;
 
-  constructor(private pullerService: PullerService, private jobService: JobsService, private mailService: MailService) {
+  constructor(
+    private pullerService: PullerService,
+    private jobService: JobsService,
+    private rabbitService: RabbitService,
+  ) {
     this.cronJob = new CronJob(
       '14 20 * * *',
       async () => {
@@ -30,6 +37,26 @@ export class ScheduleDatingJob implements IJobProcessors {
     );
     this.start();
   }
+
+  async onModuleInit() {
+    await this.rabbitService.connectRmq();
+    this.rabbitService.setChannelName(RMQ_CHANNEL.MAIL_CHANNEL);
+    this.channel = await this.rabbitService.createChannel(RMQ_CHANNEL.MAIL_CHANNEL);
+
+    await this.rabbitService.assertQueue(
+      {
+        queue: QUEUE_NAME.SEND_MAIL_SCHEDULE_DATING,
+        options: {
+          durable: true,
+          arguments: {
+            'x-queue-type': 'quorum',
+          },
+        },
+      },
+      RMQ_CHANNEL.MAIL_CHANNEL,
+    );
+  }
+
   async process(): Promise<void> {
     const job: Job = {
       name: SENT_NOTIFICATION_SCHEDULE_APPOINTMENT_DATE_TO_MAIL,
@@ -51,14 +78,38 @@ export class ScheduleDatingJob implements IJobProcessors {
   async processSendMail(schedules: Schedule[], job: Job): Promise<void> {
     try {
       for (const schedule of schedules) {
-        // await Promise.all([
-        //   this.mailService.sendMail((schedule.sender as User).)
-        // ]);
+        let totalProcess = 0;
+        const senderMail: string = get(schedule, 'sender.email', null);
+        if (senderMail) {
+          await this.rabbitService.sendToQueue(
+            QUEUE_NAME.SEND_MAIL_SCHEDULE_DATING,
+            {
+              to: senderMail,
+              subject: 'Hello world',
+              html: '<p>Haha</p>',
+            },
+            RMQ_CHANNEL.MAIL_CHANNEL,
+          );
+          totalProcess++;
+        }
+        const receiverMail: string = get(schedule, 'receiver.email', null);
+        if (receiverMail) {
+          await this.rabbitService.sendToQueue(
+            QUEUE_NAME.SEND_MAIL_SCHEDULE_DATING,
+            {
+              to: receiverMail,
+              subject: 'Hello world',
+              html: '<p>Haha</p>',
+            },
+            RMQ_CHANNEL.MAIL_CHANNEL,
+          );
+          totalProcess++;
+        }
+        job.numOfProcessRecord += totalProcess;
+        await this.jobService.save(job);
       }
     } catch (error) {
-      setTimeout(async () => {
-        this.processSendMail(schedules, job);
-      });
+      return;
     }
   }
 

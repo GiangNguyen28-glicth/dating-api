@@ -1,7 +1,10 @@
 import { IResponse, IResult } from '@common/interfaces';
+import { Client, Place, PlaceData } from '@googlemaps/google-maps-services-js';
 import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { GoogleAuth } from 'google-auth-library';
+import { get } from 'lodash';
 
 import { DATABASE_TYPE, PROVIDER_REPO, RequestDatingStatus, SortQuery } from '@common/consts';
 import { ScheduleRepo } from '@dating/repositories';
@@ -9,11 +12,14 @@ import { ScheduleRepo } from '@dating/repositories';
 import { ConversationService } from '@modules/conversation/conversation.service';
 import { User } from '@modules/users/entities';
 
-import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
+import { RedisService } from '@app/shared';
+import { FilterBuilder, docToObject, formatResult, throwIfNotExists } from '@dating/utils';
 import { SocketGateway } from '@modules/socket/socket.gateway';
 import { SocketService } from '@modules/socket/socket.service';
 import { CreateScheduleDTO, FilterGetAllScheduleDTO, SuggestLocationDTO, UpdateScheduleDTO } from './dto';
-import { Schedule } from './entities';
+import { LocationDating, Schedule } from './entities';
+import { IPayloadPlace } from './interfaces';
+import { getAddress, getPlaceName, mappingPlaceDetail } from './utils';
 
 const serviceAccountInfo = {
   type: 'service_account',
@@ -32,16 +38,34 @@ const serviceAccountInfo = {
 };
 @Injectable()
 export class ScheduleService {
+  private client = new Client({});
   constructor(
     @Inject(PROVIDER_REPO.SCHEDULE + DATABASE_TYPE.MONGO)
     private scheduleRepo: ScheduleRepo,
 
     private conversationService: ConversationService,
-
     private socketGateway: SocketGateway,
-
     private socketService: SocketService,
+    private configService: ConfigService,
   ) {}
+
+  async getSchedulePlaceDetail(_id: string, user: User): Promise<Schedule> {
+    const schedule = this.scheduleRepo.toJSON(await this.findOne(_id, user));
+    const locationsDating = await Promise.all(
+      schedule.locationDating.map(async place_id => {
+        const placeDetail = await this.getPlaceById(place_id);
+        const newLocation = new LocationDating();
+        newLocation.place_id = place_id;
+        if (placeDetail) {
+          newLocation.image = await this.getPhotoByPhotoReference(placeDetail.photos[0].photo_reference);
+          mappingPlaceDetail(placeDetail, newLocation);
+        }
+        return newLocation;
+      }),
+    );
+    schedule['locationDating'] = [...locationsDating] as any;
+    return schedule;
+  }
 
   async findOne(_id: string, user: User): Promise<Schedule> {
     try {
@@ -105,6 +129,8 @@ export class ScheduleService {
       const schedule: Schedule = await this.scheduleRepo.insert(scheduleDto);
       schedule.sender = user._id;
       await this.scheduleRepo.save(schedule);
+      const socketIds = await this.socketService.getSocketIdsByUser(schedule.receiver.toString());
+      await this.socketGateway.sendEventToClient(socketIds, 'abc', schedule);
       return {
         success: true,
         message: 'Tạo lịch hẹn thành công',
@@ -157,7 +183,7 @@ export class ScheduleService {
     }
   }
 
-  async suggestLocation(suggestDto: SuggestLocationDTO): Promise<any> {
+  async suggestLocation(suggestDto: SuggestLocationDTO): Promise<LocationDating[]> {
     try {
       const auth = new GoogleAuth({
         credentials: serviceAccountInfo,
@@ -166,12 +192,17 @@ export class ScheduleService {
       const client = await auth.getClient();
       const resToken = await client.getAccessToken();
       const response = await axios.post(
-        'https://us-central1-aiplatform.googleapis.com/v1/projects/sunny-cider-400601/locations/us-central1/publishers/google/models/code-bison-32k:predict',
+        'https://us-central1-aiplatform.googleapis.com/v1/projects/sunny-cider-400601/locations/us-central1/publishers/google/models/text-bison:predict',
         {
-          instances: [suggestDto],
+          instances: [
+            {
+              content: suggestDto.content,
+            },
+          ],
           parameters: {
             maxOutputTokens: 1024,
             temperature: 0.2,
+            candidateCount: 1,
           },
         },
         {
@@ -180,9 +211,105 @@ export class ScheduleService {
           },
         },
       );
-      return await response.data;
+      const data = await response.data;
+      const aiSuggestionData: string[] = get(data, 'predictions[0].content').split('\n');
+      const places: IPayloadPlace[] = aiSuggestionData.map(content => {
+        return this.getPlaceByContent(suggestDto, content);
+      });
+
+      return await Promise.all(
+        places.map(async place => {
+          return this.searchText(place);
+        }),
+      );
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async searchText(payloadPlace: IPayloadPlace): Promise<LocationDating> {
+    try {
+      const results = await this.client.textSearch({
+        params: {
+          key: this.configService.get<string>('GOOGLE_MAP_API_KEY'),
+          query: payloadPlace.textSearch,
+        },
+      });
+      // Trả về kết quả tìm kiếm
+      return this.mappingSuggestLocation(results.data.results, payloadPlace);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async getPlaceById(place_id: string): Promise<Place> {
+    try {
+      const results = await this.client.placeDetails({
+        params: {
+          key: this.configService.get<string>('GOOGLE_MAP_API_KEY'),
+          place_id,
+        },
+      });
+      return results.data.result;
     } catch (error) {
       throw error;
     }
+  }
+
+  async getPhotoByPhotoReference(photoreference: string): Promise<string> {
+    if (!photoreference) {
+      return null;
+    }
+    try {
+      const results = await axios.get(
+        `https://maps.googleapis.com/maps/api/place/photo?photoreference=${photoreference}&sensor=false&maxheight=400&maxwidth=400&key=${this.configService.get<string>(
+          'GOOGLE_MAP_API_KEY',
+        )}`,
+      );
+      return `https://lh3.googleusercontent.com/${results.request.path}`;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async mappingSuggestLocation(results: Place[], payloadPlace: IPayloadPlace): Promise<LocationDating> {
+    const locationDating: LocationDating = new LocationDating();
+    if (!results.length) {
+      locationDating.isEmpty = true;
+      locationDating.name = payloadPlace.name;
+      locationDating.address = payloadPlace.address;
+      return locationDating;
+    }
+    const place = { ...results[0] };
+    const photoReference = get(place, 'photos[0].photo_reference', null);
+    locationDating.address = get(place, 'formatted_address', null);
+    locationDating.name = get(place, 'name', null);
+    locationDating.place_id = get(place, 'place_id', null);
+    locationDating.rating = get(place, 'rating', null);
+    locationDating.userRatingsTotal = get(place, 'user_ratings_total', null);
+    const [placeDetail, photo] = await Promise.all([
+      this.getPlaceById(locationDating.place_id),
+      this.getPhotoByPhotoReference(photoReference),
+    ]);
+    locationDating.website = get(placeDetail, 'website', null);
+    locationDating.url = get(placeDetail, 'url', null);
+    locationDating.reviews = get(placeDetail, 'reviews', null);
+    locationDating.image = photo;
+    // locationDating.geoLocation = [get(placeDetail,)]
+    return locationDating;
+  }
+
+  getPlaceByContent(suggestDto: SuggestLocationDTO, rawContent: string): IPayloadPlace {
+    const place: IPayloadPlace = {};
+    const address = getAddress(rawContent);
+    place.name = getPlaceName(rawContent);
+    place.address = address ? address : suggestDto.location;
+    if (place.name) {
+      place.textSearch = place.name + ' ' + place.address;
+    }
+    place.rawContent = rawContent;
+    return place;
   }
 }

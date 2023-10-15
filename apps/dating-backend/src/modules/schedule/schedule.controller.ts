@@ -22,6 +22,11 @@ export class ScheduleController {
     return await this.scheduleService.findAll(filter);
   }
 
+  @Get(':id')
+  async findOne(@Param('id') id: string, @CurrentUser() user: User): Promise<Schedule> {
+    return await this.scheduleService.getSchedulePlaceDetail(id, user);
+  }
+
   @Post()
   async create(@Body() scheduleDto: CreateScheduleDTO, @CurrentUser() user: User): Promise<IResponse> {
     return await this.scheduleService.create(scheduleDto, user);
@@ -44,5 +49,10 @@ export class ScheduleController {
   @Post('suggest')
   async suggestLocation(@Body() suggestDto: SuggestLocationDTO): Promise<any> {
     return await this.scheduleService.suggestLocation(suggestDto);
+  }
+
+  @Get('searchText')
+  async searchText(): Promise<any> {
+    return await this.scheduleService.getPlaceById('ChIJBSrTl4jPdDER95i-ubBjN04');
   }
 }

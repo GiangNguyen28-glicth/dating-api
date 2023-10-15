@@ -27,6 +27,7 @@ export const QUEUE_NAME = {
   USER_IMAGES_BUILDER: 'user_images_builder',
   MESSAGE_IMAGES_BUILDER: 'message_images_builder',
   NOTIFICATION_UPDATER: 'notification_updater',
+  SEND_MAIL_SCHEDULE_DATING: 'send_mail_schedule_dating',
 };
 
 export const RMQ_CHANNEL = {
@@ -34,6 +35,7 @@ export const RMQ_CHANNEL = {
   PAYMENT_CHANNEL: 'payment_channel',
   MESSAGE_CHANNEL: 'message_channel',
   NOTIFICATION_CHANNEL: 'notification_channel',
+  MAIL_CHANNEL: 'mail_channel',
 };
 
 export const LANGUAGE = {
@@ -48,8 +50,12 @@ export const DATABASE_TYPE = {
 export const REFRESH_TOKEN_TTL = 365 * 24 * 60 * 60 * 1000;
 export const REDIS_KEY_PREFIX = {
   NOTI_MATCHED: 'NOTI_MATCHED_',
-  SOCKET: 'Socket_',
+  SOCKET: 'SOCKET_',
+  AI_SUGGESTION: 'AI_SUGGESTION_',
 };
+
+export type AIAuthor = 'user' | 'bot';
+
 export const SOCKET = 'Socket_';
 export const SMS = 'Sms_';
 export const TOKEN = 'Token_';

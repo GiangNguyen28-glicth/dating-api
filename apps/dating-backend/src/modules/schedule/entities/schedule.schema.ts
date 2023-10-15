@@ -1,26 +1,38 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
 
-import { MongoID, RequestDatingStatus } from '@common/consts';
+import { CreatedDatingType, MongoID, RequestDatingStatus } from '@common/consts';
 import { IEntity } from '@common/interfaces';
 import { User } from '@modules/users/entities';
 
 @Schema({ _id: false })
 export class LocationDating {
-  @Prop()
   name: string;
 
-  @Prop()
-  link: string;
+  url: string;
 
-  @Prop({ type: [String] })
-  images: string[];
+  image: string;
 
-  @Prop()
   address: string;
 
-  @Prop()
   phoneNumber: string;
+
+  @Prop({ type: String })
+  place_id: string;
+
+  website?: string;
+
+  rating?: number;
+
+  userRatingsTotal?: number;
+
+  price_level: number;
+
+  geoLocation?: number[];
+
+  isEmpty?: boolean;
+
+  reviews: any;
 }
 
 @Schema({ timestamps: true })
@@ -40,8 +52,11 @@ export class Schedule implements IEntity {
   @Prop({ required: true })
   appointmentDate: Date;
 
-  @Prop([{ type: LocationDating, default: [] }])
-  locationDating: LocationDating[];
+  @Prop({ type: String, enum: Object.values(CreatedDatingType), default: CreatedDatingType.MANUAL })
+  createdTy: CreatedDatingType;
+
+  @Prop({ type: [String], default: [] })
+  locationDating: string[];
 
   @Prop({ type: MongoID, ref: User.name })
   sender: User | string;

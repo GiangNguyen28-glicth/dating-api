@@ -57,11 +57,17 @@ export class RabbitService implements OnModuleInit, OnModuleDestroy {
       );
     } catch (error) {
       console.log('Connect to Rmq error. Try to reconnect');
-      setTimeout(this.connectRmq.bind(this), 3000);
+      await this.connectRmq();
     }
   }
 
   async createChannel(channelId: string = DEFAULT_CHANNEL_ID) {
+    if (!this.connection) {
+      setTimeout(async () => {
+        await this.createChannel(channelId);
+      }, 3000);
+      return;
+    }
     this.channels[channelId] = await this.connection.createChannel();
     this.channels[channelId]?.on(
       'error',
@@ -79,7 +85,11 @@ export class RabbitService implements OnModuleInit, OnModuleDestroy {
   }
 
   async sendToQueue(queue: string, msg: any, channelId: string = DEFAULT_CHANNEL_ID) {
-    await this.channels[channelId].sendToQueue(queue, Buffer.from(JSON.stringify(msg)), { persistent: true });
+    try {
+      await this.channels[channelId].sendToQueue(queue, Buffer.from(JSON.stringify(msg)), { persistent: true });
+    } catch (error) {
+      await this.sendToQueue(queue, msg, channelId);
+    }
   }
 
   async reject(msg: ConsumeMessage, requeue?: boolean, channelId: string = DEFAULT_CHANNEL_ID) {

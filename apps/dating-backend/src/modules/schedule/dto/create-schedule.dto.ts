@@ -4,20 +4,8 @@ import { IsNotEmpty } from 'class-validator';
 import { LocationDating, Schedule } from '../entities';
 
 export class LocationDatingDTO implements Partial<LocationDating> {
-  @ApiProperty()
-  name?: string;
-
-  @ApiProperty()
-  address?: string;
-
-  @ApiProperty()
-  images?: string[];
-
-  @ApiProperty()
-  phoneNumber?: string;
-
-  @ApiProperty()
-  link?: string;
+  @ApiPropertyOptional()
+  place_id?: string;
 }
 
 export class CreateScheduleDTO implements Partial<Schedule> {
@@ -35,12 +23,19 @@ export class CreateScheduleDTO implements Partial<Schedule> {
   @IsNotEmpty()
   receiver?: string;
 
-  @ApiProperty({ type: [LocationDatingDTO] })
-  locationDating?: LocationDating[];
+  @ApiProperty({ type: [String] })
+  locationDating?: string[];
+
+  @ApiPropertyOptional()
+  isShowLocationDating?: boolean;
 }
 
 export class SuggestLocationDTO {
   @ApiProperty()
   @IsNotEmpty()
-  prefix: string;
+  content: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  location: string;
 }
