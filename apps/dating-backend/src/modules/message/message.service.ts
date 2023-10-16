@@ -1,7 +1,7 @@
 import { Inject, Injectable, OnModuleInit, forwardRef } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
 
-import { DATABASE_TYPE, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
+import { DATABASE_TYPE, MessageType, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
 import { IResponse, IResult } from '@common/interfaces';
 import { MessageRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
@@ -10,7 +10,7 @@ import { User } from '@modules/users/entities';
 import { RabbitService } from '@app/shared';
 
 import { Message } from './entities';
-import { CreateMessageDto, FilterGetAllMessageDTO, SeenMessage, UpdateMessageDto } from './dto';
+import { CreateMessageDto, FilterGetAllMessageDTO, ReviewCallDTO, SeenMessage, UpdateMessageDto } from './dto';
 
 @Injectable()
 export class MessageService implements OnModuleInit {
@@ -109,12 +109,6 @@ export class MessageService implements OnModuleInit {
     return await this.messageRepo.count(queryFilter);
   }
 
-  async findOneAndUpdate(id: string, messageDto: UpdateMessageDto): Promise<Message> {
-    const message = await this.messageRepo.findOneAndUpdate(id, messageDto);
-    throwIfNotExists(message, 'Message không tồn tại');
-    return message;
-  }
-
   async seenMessage(seenMessage: SeenMessage): Promise<void> {
     try {
       await this.messageRepo.seenMessage(seenMessage);
@@ -139,6 +133,12 @@ export class MessageService implements OnModuleInit {
     }
   }
 
+  async findOneAndUpdate(id: string, messageDto: UpdateMessageDto): Promise<Message> {
+    const message = await this.messageRepo.findOneAndUpdate(id, messageDto);
+    throwIfNotExists(message, 'Message không tồn tại');
+    return message;
+  }
+
   async remove(_id: string): Promise<IResponse> {
     try {
       const message = await this.messageRepo.findOneAndUpdate(_id, {
@@ -151,6 +151,27 @@ export class MessageService implements OnModuleInit {
       return {
         success: true,
         message: 'Xóa tin nhắn thành công',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async reviewCallMessage(review: ReviewCallDTO, user: User): Promise<IResponse> {
+    try {
+      const message = await this.messageRepo.findOne({
+        queryFilter: { _id: review.messageId, type: MessageType.CALL },
+      });
+      throwIfNotExists(message, 'Message không tồn tại');
+      await this.conversationService.findOne({ _id: message.conversation.toString() }, user);
+      message.rating = review.rating;
+      if (review.content) {
+        message.reviewMessage = review.content;
+      }
+      await this.messageRepo.save(message);
+      return {
+        success: true,
+        message: 'Ok',
       };
     } catch (error) {
       throw error;

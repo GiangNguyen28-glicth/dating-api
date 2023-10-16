@@ -3,6 +3,12 @@ export enum Gender {
   FEMALE = 'Female',
 }
 
+export enum VerifyUserStatus {
+  ACCEPT = 'Accept',
+  DECLINE = 'Decline',
+  WAIT_FOR_DETECT = 'Wait for detect',
+}
+
 export enum TagType {
   EDUCATION = 'Education',
   PETS = 'Pets',

@@ -3,18 +3,8 @@ import { IsNotEmpty } from 'class-validator';
 
 import { ImageDTO } from '@modules/users/dto';
 import { MessageStatus, MessageType } from '@common/consts';
-import { CallMessage, Message } from '../entities';
+import { Message } from '../entities';
 
-export class CallMessageDTO implements Partial<CallMessage> {
-  @ApiPropertyOptional()
-  startTime?: Date;
-
-  @ApiPropertyOptional()
-  endTime?: Date;
-
-  @ApiPropertyOptional()
-  isMiss?: boolean;
-}
 export class CreateMessageDto implements Partial<Message> {
   @IsNotEmpty()
   @ApiProperty()
@@ -35,9 +25,6 @@ export class CreateMessageDto implements Partial<Message> {
   @ApiProperty()
   @IsNotEmpty()
   conversation?: string;
-
-  @ApiPropertyOptional({ type: CallMessageDTO })
-  callMessage?: CallMessage;
 
   @ApiProperty()
   createdAt?: Date;

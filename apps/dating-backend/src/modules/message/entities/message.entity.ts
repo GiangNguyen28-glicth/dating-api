@@ -5,18 +5,6 @@ import { IEntity, MessageStatus, MessageType, MongoID } from '@dating/common';
 import { Conversation } from '@modules/conversation/entities';
 import { User, Image } from '@modules/users/entities';
 
-@Schema({ _id: false })
-export class CallMessage {
-  @Prop()
-  isMiss: boolean;
-
-  @Prop()
-  startTime: Date;
-
-  @Prop()
-  endTime: Date;
-}
-
 @Schema({ timestamps: true })
 export class Message implements IEntity {
   @Transform(({ value }) => value.toString())
@@ -34,9 +22,6 @@ export class Message implements IEntity {
   @Prop({ type: MongoID, ref: 'Conversation' })
   conversation: Conversation | string;
 
-  @Prop({ type: CallMessage })
-  callMessage: CallMessage;
-
   @Prop({ type: String, trim: true, enum: Object.values(MessageType) })
   type: MessageType;
 
@@ -53,8 +38,11 @@ export class Message implements IEntity {
   @Prop([{ type: Image }])
   images: Image[];
 
-  @Prop({ type: Number })
-  cursor: number;
+  @Prop({ type: Number, max: 5, min: 1 })
+  rating: number;
+
+  @Prop()
+  reviewMessage: string;
 
   @Prop({ type: String })
   uuid: string;

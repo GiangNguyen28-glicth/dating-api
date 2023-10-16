@@ -6,7 +6,7 @@ import { IResponse, IResult } from '@common/interfaces';
 import { CurrentUser } from '@common/decorators';
 import { User } from '@modules/users/entities';
 
-import { CreateMessageDto, FilterGetAllMessageDTO, UpdateMessageDto } from './dto';
+import { CreateMessageDto, FilterGetAllMessageDTO, ReviewCallDTO } from './dto';
 import { Message } from './entities';
 import { MessageService } from './message.service';
 
@@ -26,9 +26,9 @@ export class MessageController {
     return await this.messageService.findAll(filter);
   }
 
-  @Patch(':id')
-  async update(@Param('id') id: string, @Body() messageDto: UpdateMessageDto) {
-    return await this.messageService.findOneAndUpdate(id, messageDto);
+  @Patch('/reviews')
+  async reviewCallMessage(@Body() reviewDto: ReviewCallDTO, @CurrentUser() user: User): Promise<IResponse> {
+    return await this.messageService.reviewCallMessage(reviewDto, user);
   }
 
   @Delete(':id')

@@ -1,4 +1,13 @@
-import { Gender, IEntity, LookingFor, MongoID, RegisterType, RelationshipModeType, Role } from '@dating/common';
+import {
+  Gender,
+  IEntity,
+  LookingFor,
+  MongoID,
+  RegisterType,
+  RelationshipModeType,
+  Role,
+  VerifyUserStatus,
+} from '@dating/common';
 import { Relationship } from '@modules/relationship/entities';
 import { Tag } from '@modules/tag/entities';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -171,6 +180,24 @@ export class GeoLocation {
   coordinates: number[];
 }
 
+@Schema({ _id: false })
+export class Verify {
+  @Prop({ default: false })
+  isVerified: boolean;
+
+  @Prop({ type: String, enum: Object.values(VerifyUserStatus) })
+  status: VerifyUserStatus;
+
+  @Prop()
+  sendAt: Date;
+
+  @Prop({ default: false })
+  receiveDate: boolean;
+
+  @Prop({ default: false })
+  success: boolean;
+}
+
 @Schema({ timestamps: true })
 export class User implements IEntity {
   @Transform(({ value }) => value.toString())
@@ -275,8 +302,8 @@ export class User implements IEntity {
   @Prop()
   stripeCustomerId: string;
 
-  @Prop({ default: false })
-  isVerified: boolean;
+  @Prop({ type: Verify })
+  verifiedDate: Verify;
 
   @Prop({ default: false })
   isBlocked: boolean;

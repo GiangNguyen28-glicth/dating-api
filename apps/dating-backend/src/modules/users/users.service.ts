@@ -241,6 +241,14 @@ export class UserService implements OnModuleInit {
     }
   }
 
+  // async verify(user: User): Promise<IResponse> {
+  //   try {
+  //     await this.userRepo.findOneAndUpdate(user._id, )
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
+
   async updateMany(ids: string[], entities): Promise<void> {
     await this.userRepo.updateMany(ids, entities);
   }

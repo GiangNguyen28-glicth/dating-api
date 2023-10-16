@@ -1,12 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
-import { IsNotEmpty } from 'class-validator';
+import { IsBoolean, IsNotEmpty } from 'class-validator';
 
-import { Gender, LookingFor, RelationshipModeType, TagType } from '@common/consts';
-import { Tag } from '@modules/tag/entities';
+import { Gender, LookingFor, RelationshipModeType, TagType, VerifyUserStatus } from '@common/consts';
 import { Relationship } from '@modules/relationship/entities';
+import { Tag } from '@modules/tag/entities';
 
-import { DiscoverySetting, HiddenProfile, HomeTown, Image, User, UserSetting } from '../entities';
+import { DiscoverySetting, HiddenProfile, HomeTown, Image, User, UserSetting, Verify } from '../entities';
 export class ImageDTO implements Partial<Image> {
   @ApiProperty()
   url: string;
@@ -163,4 +162,11 @@ export class UpdateUserTagDTO {
   @ApiProperty({ type: 'enum', enum: TagType })
   @IsNotEmpty()
   tagType: TagType;
+}
+
+export class VerifyUserDTO implements Partial<Verify> {
+  @IsBoolean()
+  success?: boolean;
+
+  status?: VerifyUserStatus;
 }

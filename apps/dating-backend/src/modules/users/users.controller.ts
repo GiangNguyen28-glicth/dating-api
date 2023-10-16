@@ -6,6 +6,7 @@ import {
   UpdateUserProfileDto,
   UpdateUserSettingDTO,
   UpdateUserTagDTO,
+  VerifyUserDTO,
 } from './dto/update-user.dto';
 import { User } from './entities';
 import { UserService } from './users.service';
@@ -86,6 +87,13 @@ export class UsersController {
   async updateTag(@CurrentUser() user: User, @Body() updateUserTagDto: UpdateUserTagDTO): Promise<IResponse> {
     return await this.userService.updateTag(user, updateUserTagDto);
   }
+
+  // @Patch('/verify')
+  // @ApiBearerAuth()
+  // @UseGuards(AtGuard)
+  // async verify(@CurrentUser() user: User, @Body() verify: VerifyUserDTO): Promise<IResponse> {
+  //   return await this.userService.verify(user, updateUserTagDto);
+  // }
 
   @Post('insertMany')
   async insertMany() {
