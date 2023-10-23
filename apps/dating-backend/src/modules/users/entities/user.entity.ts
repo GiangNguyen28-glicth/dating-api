@@ -1,3 +1,5 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Transform } from 'class-transformer';
 import {
   Gender,
   IEntity,
@@ -10,8 +12,6 @@ import {
 } from '@dating/common';
 import { Relationship } from '@modules/relationship/entities';
 import { Tag } from '@modules/tag/entities';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Transform } from 'class-transformer';
 
 @Schema({ _id: false })
 export class Image {
@@ -183,19 +183,19 @@ export class GeoLocation {
 @Schema({ _id: false })
 export class Verify {
   @Prop({ default: false })
-  isVerified: boolean;
+  isVerified?: boolean;
 
   @Prop({ type: String, enum: Object.values(VerifyUserStatus) })
-  status: VerifyUserStatus;
+  status?: VerifyUserStatus;
 
   @Prop()
-  sendAt: Date;
+  sendAt?: Date;
+
+  @Prop()
+  receiveDate?: Date;
 
   @Prop({ default: false })
-  receiveDate: boolean;
-
-  @Prop({ default: false })
-  success: boolean;
+  success?: boolean;
 }
 
 @Schema({ timestamps: true })
@@ -303,7 +303,7 @@ export class User implements IEntity {
   stripeCustomerId: string;
 
   @Prop({ type: Verify })
-  verifiedDate: Verify;
+  verify: Verify;
 
   @Prop({ default: false })
   isBlocked: boolean;

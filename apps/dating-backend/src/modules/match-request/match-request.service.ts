@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PopulateOptions } from 'mongoose';
 
-import { RedisService } from '@app/shared';
 import { DATABASE_TYPE, MatchRqStatus, NotificationType, PROVIDER_REPO } from '@common/consts';
 import { PaginationDTO } from '@common/dto';
 import { IResponse, IResult, ISocketIdsClient } from '@common/interfaces';
@@ -23,8 +22,7 @@ export class MatchRequestService {
 
     private conversationService: ConversationService,
     private socketGateway: SocketGateway,
-    private notfiService: NotificationService,
-    private redisService: RedisService,
+    private notiService: NotificationService,
   ) {}
   async create(matchRequestDto: CreateMatchRequestDto): Promise<MatchRequest> {
     try {
@@ -99,7 +97,7 @@ export class MatchRequestService {
     });
     matchRq.status = MatchRqStatus.MATCHED;
     const [notification] = await Promise.all([
-      this.notfiService.create({
+      this.notiService.create({
         sender,
         receiver,
         type: NotificationType.MATCHED,

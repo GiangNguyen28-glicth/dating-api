@@ -4,7 +4,6 @@ import { ConfirmChannel } from 'amqplib';
 import { RabbitService } from '@app/shared';
 import {
   DATABASE_TYPE,
-  MessageStatus,
   NotificationStatus,
   NotificationType,
   PROVIDER_REPO,
@@ -14,8 +13,8 @@ import {
 import { IResponse } from '@common/interfaces';
 import { NotificationRepo } from '@dating/repositories';
 import { FilterBuilder, throwIfNotExists } from '@dating/utils';
-import { User } from '@modules/users/entities';
 import { ConversationService } from '@modules/conversation/conversation.service';
+import { User } from '@modules/users/entities';
 
 import {
   CreateNotificationDto,

@@ -1,21 +1,23 @@
-import { IResponse, IResult } from '@common/interfaces';
-import { Client, Place, PlaceData } from '@googlemaps/google-maps-services-js';
+import { Client, Place } from '@googlemaps/google-maps-services-js';
 import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { GoogleAuth } from 'google-auth-library';
 import { get } from 'lodash';
 
-import { DATABASE_TYPE, PROVIDER_REPO, RequestDatingStatus, SortQuery } from '@common/consts';
+import { DATABASE_TYPE, NotificationType, PROVIDER_REPO, RequestDatingStatus, SortQuery } from '@common/consts';
+import { IResponse, IResult } from '@common/interfaces';
 import { ScheduleRepo } from '@dating/repositories';
+import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
 
-import { ConversationService } from '@modules/conversation/conversation.service';
 import { User } from '@modules/users/entities';
 
-import { RedisService } from '@app/shared';
-import { FilterBuilder, docToObject, formatResult, throwIfNotExists } from '@dating/utils';
+import { ConversationService } from '@modules/conversation/conversation.service';
+import { MailService } from '@modules/mail/mail.service';
+import { NotificationService } from '@modules/notification/notification.service';
 import { SocketGateway } from '@modules/socket/socket.gateway';
 import { SocketService } from '@modules/socket/socket.service';
+
 import { CreateScheduleDTO, FilterGetAllScheduleDTO, SuggestLocationDTO, UpdateScheduleDTO } from './dto';
 import { LocationDating, Schedule } from './entities';
 import { IPayloadPlace } from './interfaces';
@@ -46,7 +48,9 @@ export class ScheduleService {
     private conversationService: ConversationService,
     private socketGateway: SocketGateway,
     private socketService: SocketService,
+    private notiService: NotificationService,
     private configService: ConfigService,
+    private mailService: MailService,
   ) {}
 
   async getSchedulePlaceDetail(_id: string, user: User): Promise<Schedule> {
@@ -128,9 +132,21 @@ export class ScheduleService {
       throwIfNotExists(conversation, 'Bạn chưa kết đôi với user này');
       const schedule: Schedule = await this.scheduleRepo.insert(scheduleDto);
       schedule.sender = user._id;
+      const receiver: string = conversation.members.find(member => member != user._id.toString()).toString();
       await this.scheduleRepo.save(schedule);
-      const socketIds = await this.socketService.getSocketIdsByUser(schedule.receiver.toString());
-      await this.socketGateway.sendEventToClient(socketIds, 'abc', schedule);
+      const [socketIds, notification] = await Promise.all([
+        this.socketService.getSocketIdsByUser(schedule.receiver.toString()),
+        this.notiService.create({
+          sender: user,
+          receiver: receiver,
+          type: NotificationType.SCHEDULE_DATING,
+          schedule,
+        }),
+      ]);
+      await this.socketGateway.sendEventToClient(socketIds, 'newSchedule', {
+        notificationId: notification._id,
+        schedule,
+      });
       return {
         success: true,
         message: 'Tạo lịch hẹn thành công',
@@ -169,11 +185,51 @@ export class ScheduleService {
 
   async cancel(_id: string, user: User): Promise<IResponse> {
     try {
-      const schedule = await this.findOne(_id, user);
+      const userField: string = ['_id', 'images', 'email'].join(' ');
+      const schedule = await this.scheduleRepo.findOne({
+        queryFilter: { _id, isDeleted: false },
+        populate: [
+          { path: 'sender', select: userField },
+          { path: 'receiver', select: userField },
+        ],
+      });
+
+      let receiver: User = get(schedule, 'sender', null);
+      if (user._id == (schedule.receiver as User)._id) {
+        receiver = get(schedule, 'receiver', null);
+      }
+
+      throwIfNotExists(schedule, 'Không tìm thấy cuộc hẹn');
+      const conversation = await this.conversationService.findOneByMembers([user._id, receiver._id]);
+      if (!conversation) {
+        throw new ForbiddenException('Forbidden access');
+      }
+
       schedule.status = RequestDatingStatus.CANCEL;
-      const socketIds = await this.socketService.getSocketIdsByUser(schedule.receiver.toString());
       await this.scheduleRepo.save(schedule);
-      await this.socketGateway.sendEventToClient(socketIds, 'abc', schedule);
+
+      const promises: Promise<any>[] = [];
+      if (receiver.email) {
+        promises.push(
+          this.mailService.sendMail({ to: receiver.email, subject: 'Cancel Schedule', html: '<p>Hehe</p>' }),
+        );
+      }
+      promises.push(
+        this.socketService.getSocketIdsByUser(receiver._id.toString()),
+        this.notiService.create({
+          sender: user,
+          receiver,
+          type: NotificationType.CANCEL_SCHEDULE_DATING,
+          schedule,
+        }),
+      );
+
+      const [, socketIds, notification] = await Promise.all(promises);
+      await this.socketGateway.sendEventToClient(socketIds, 'abc', {
+        notificationId: notification._id,
+        schedule,
+      });
+
       return {
         success: true,
         message: 'Hủy cuộc hẹn thành công',

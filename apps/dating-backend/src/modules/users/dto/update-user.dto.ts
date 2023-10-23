@@ -165,8 +165,12 @@ export class UpdateUserTagDTO {
 }
 
 export class VerifyUserDTO implements Partial<Verify> {
+  @ApiPropertyOptional()
   @IsBoolean()
   success?: boolean;
 
+  @ApiPropertyOptional({ type: 'enum', enum: VerifyUserStatus })
   status?: VerifyUserStatus;
+
+  receiveDate?: Date;
 }

@@ -9,11 +9,11 @@ import { BuilderService, PullerService, UpdaterService } from '../processors';
 import { JobsService } from '../jobs.service';
 import { IJobProcessors } from '../interfaces';
 import { Job } from '../entities';
-const UPDATE_BILLING = 'UPDATE_BILLING';
+const UPDATE_BILLING = 'UPDATE_BILLING_EXPIRED';
 const UPDATE_BATCH_SIZE = 500;
 
 @Injectable()
-export class UpdateBillingJob implements IJobProcessors {
+export class UpdateBillingExpiredJob implements IJobProcessors {
   private cronJob: CronJob;
   constructor(
     private pullerService: PullerService,
@@ -42,13 +42,16 @@ export class UpdateBillingJob implements IJobProcessors {
     };
     const jobDoc = await this.jobService.createJob(job);
     try {
-      const billing = await this.pullerService.getAllBillingToUpdateFT();
-      const userIds = this.getAllUserIdsByBilling(billing);
+      const billings = await this.pullerService.getAllBillingToUpdateFT();
+      const userIds = this.getAllUserIdsByBilling(billings);
       jobDoc.totalUpdate = userIds.length;
       while (userIds.length) {
         const batchUsers = userIds.splice(0, UPDATE_BATCH_SIZE);
-        const updateMany = this.builderService.buildUpdateManyUsersFT(batchUsers);
-        await this.updaterService.updateUserFT(updateMany);
+        const batchBillings = billings.splice(0, UPDATE_BATCH_SIZE);
+        const updateManyUser = this.builderService.buildUpdateManyUsersWhenBillingExpired(batchUsers);
+        const updateManyBilling = this.builderService.buildUpdateBillingExpired(batchBillings);
+        await this.updaterService.updateUserFT(updateManyUser);
+        await this.updaterService.updateManyBilling(updateManyBilling);
         if (jobDoc.status === JobStatus.TODO) {
           jobDoc.status = JobStatus.INPROGRESS;
           await this.jobService.save(jobDoc);
@@ -65,7 +68,7 @@ export class UpdateBillingJob implements IJobProcessors {
   }
 
   getAllUserIdsByBilling(billings: Billing[]): string[] {
-    return billings.map(billing => billing.createdBy._id.toString());
+    return billings.map(billing => billing.createdBy.toString());
   }
 
   async start() {

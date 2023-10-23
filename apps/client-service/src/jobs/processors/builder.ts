@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { DEFAULT_LIKES_REMAINING } from '@common/consts';
+import { BillingProcess, DEFAULT_LIKES_REMAINING } from '@common/consts';
 
 import { FeatureAccess, User } from '@modules/users/entities';
 import { Billing } from '@modules/billing/entities';
@@ -16,24 +16,26 @@ export class BuilderService {
         'featureAccess.likes.amount': DEFAULT_LIKES_REMAINING,
         'featureAccess.likes.unlimited': false,
         'featureAccess.blur.unlimited': false,
+      } as any,
+    };
+    return updateMany;
+  }
+
+  buildUpdateManyUsersWhenBillingExpired(userIds: string[]): IUpdateMany<User> {
+    const updateMany: IUpdateMany<User> = {
+      ids: userIds,
+      entities: {
+        featureAccess: new FeatureAccess(),
       },
     };
     return updateMany;
   }
 
-  buildUpdateFTByBilling(billing: Billing): any {
-    const updateUser = {
-      id: billing.createdBy,
-    };
-    return updateUser;
-  }
-
-  buildUpdateManyUsersWhenBillingExpired(users: User[]): IUpdateMany<User> {
-    const userIds = users.map(user => user._id);
-    const updateMany: IUpdateMany<User> = {
-      ids: userIds,
+  buildUpdateBillingExpired(billings: Billing[]): IUpdateMany<Billing> {
+    const updateMany: IUpdateMany<Billing> = {
+      ids: billings.map(billing => billing._id),
       entities: {
-        featureAccess: new FeatureAccess(),
+        process: BillingProcess.EXPIRED,
       },
     };
     return updateMany;

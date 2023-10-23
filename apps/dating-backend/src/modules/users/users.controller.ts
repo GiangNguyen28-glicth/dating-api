@@ -88,12 +88,12 @@ export class UsersController {
     return await this.userService.updateTag(user, updateUserTagDto);
   }
 
-  // @Patch('/verify')
-  // @ApiBearerAuth()
-  // @UseGuards(AtGuard)
-  // async verify(@CurrentUser() user: User, @Body() verify: VerifyUserDTO): Promise<IResponse> {
-  //   return await this.userService.verify(user, updateUserTagDto);
-  // }
+  @Patch('/verify')
+  @ApiBearerAuth()
+  @UseGuards(AtGuard)
+  async verify(@CurrentUser() user: User, @Body() verify: VerifyUserDTO): Promise<IResponse> {
+    return await this.userService.verify(verify, user);
+  }
 
   @Post('insertMany')
   async insertMany() {

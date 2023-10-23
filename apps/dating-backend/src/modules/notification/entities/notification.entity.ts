@@ -5,6 +5,7 @@ import { MongoID, NotificationStatus, NotificationType } from '@common/consts';
 import { User } from '@modules/users/entities';
 import { Conversation } from '@modules/conversation/entities';
 import { Message } from '@modules/message/entities';
+import { Schedule } from '@modules/schedule/entities';
 
 @Schema({ timestamps: true })
 export class Notification {
@@ -15,13 +16,16 @@ export class Notification {
   description: string;
 
   @Prop({ type: MongoID, ref: User.name })
-  sender: User;
+  sender: User | string;
 
   @Prop({ type: MongoID, ref: User.name })
-  receiver: User;
+  receiver: User | string;
 
   @Prop({ type: MongoID, ref: Conversation.name })
   conversation: Conversation;
+
+  @Prop({ type: MongoID, ref: Schedule.name })
+  schedule: Schedule;
 
   @Prop({ type: MongoID, ref: Message.name, autopopulate: { maxDepth: 1 } })
   message: Message;

@@ -136,10 +136,6 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       // This event emit to all tab of user sent the message in order to those tabs update new message
       this.sendEventToClient(socketIdsSender, 'sentMessage', message);
       this.sendEventToClient(socketIdsReceiver, 'newMessage', message);
-      // return {
-      //   ...message,
-      //   uuid: data.uuid,
-      // };
     } catch (error) {
       throw new WsException(error.message);
     }

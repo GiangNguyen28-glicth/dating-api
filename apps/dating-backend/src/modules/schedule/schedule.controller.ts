@@ -32,6 +32,11 @@ export class ScheduleController {
     return await this.scheduleService.create(scheduleDto, user);
   }
 
+  @Post('cancel/:id')
+  async cancel(@Param('id') id: string, @CurrentUser() user: User): Promise<IResponse> {
+    return await this.scheduleService.cancel(id, user);
+  }
+
   @Patch(':id')
   async update(
     @Param('id') _id: string,

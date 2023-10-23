@@ -13,12 +13,13 @@ import {
   PaginationDTO,
   QUEUE_NAME,
   RMQ_CHANNEL,
+  VerifyUserStatus,
 } from '@dating/common';
 import { UserRepo } from '@dating/repositories';
 import { FilterBuilder, downloadImage, formatResult, mappingData, throwIfNotExists } from '@dating/utils';
 import { TagService } from '@modules/tag/tag.service';
 
-import { CreateUserDTO, FilterGetOneUserDTO, UpdateUserTagDTO } from './dto';
+import { CreateUserDTO, FilterGetOneUserDTO, UpdateUserTagDTO, VerifyUserDTO } from './dto';
 import { User } from './entities';
 import { UserHelper } from './helper';
 import { FinalCondRecommendation } from './interfaces';
@@ -241,16 +242,21 @@ export class UserService implements OnModuleInit {
     }
   }
 
-  // async verify(user: User): Promise<IResponse> {
-  //   try {
-  //     await this.userRepo.findOneAndUpdate(user._id, )
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // }
-
-  async updateMany(ids: string[], entities): Promise<void> {
-    await this.userRepo.updateMany(ids, entities);
+  async verify(verifyDto: VerifyUserDTO, user: User): Promise<IResponse> {
+    try {
+      const { status, success } = verifyDto;
+      if (status === VerifyUserStatus.ACCEPT && success) {
+        verifyDto['isVerified'] = true;
+      }
+      verifyDto.receiveDate = new Date();
+      await this.userRepo.findOneAndUpdate(user._id, { verify: verifyDto });
+      return {
+        success: true,
+        message: 'Ok',
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
   async populateTag(user: User): Promise<User> {
