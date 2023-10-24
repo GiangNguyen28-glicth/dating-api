@@ -15,6 +15,7 @@ import {
 } from './dto';
 import { LocationDating, Schedule } from './entities';
 import { ScheduleService } from './schedule.service';
+import { RequestDatingStatus } from '@common/consts';
 
 @Controller('schedule')
 @UseGuards(AtGuard)
@@ -46,7 +47,17 @@ export class ScheduleController {
 
   @Post('cancel/:id')
   async cancel(@Param('id') id: string, @CurrentUser() user: User): Promise<IResponse> {
-    return await this.scheduleService.cancel(id, user);
+    return await this.scheduleService.action(id, user, RequestDatingStatus.CANCEL);
+  }
+
+  @Post('accept/:id')
+  async accept(@Param('id') id: string, @CurrentUser() user: User): Promise<IResponse> {
+    return await this.scheduleService.action(id, user, RequestDatingStatus.ACCEPT);
+  }
+
+  @Post('decline/:id')
+  async decline(@Param('id') id: string, @CurrentUser() user: User): Promise<IResponse> {
+    return await this.scheduleService.action(id, user, RequestDatingStatus.DECLINE);
   }
 
   @Patch(':id')

@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Schedule } from '../entities';
+import { RequestDatingStatus } from '@common/consts';
 
 export class UpdateScheduleDTO implements Partial<Schedule> {
   @ApiPropertyOptional()

@@ -1,5 +1,5 @@
 import { Client, Place } from '@googlemaps/google-maps-services-js';
-import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { GoogleAuth } from 'google-auth-library';
@@ -61,7 +61,8 @@ export class ScheduleService {
         const newLocation = new LocationDating();
         newLocation.place_id = place_id;
         if (placeDetail) {
-          newLocation.image = await this.getPhotoByPhotoReference(placeDetail.photos[0].photo_reference);
+          const photo = get(placeDetail, 'photos.0.photo_reference');
+          newLocation.image = await this.getPhotoByPhotoReference(photo);
           mappingPlaceDetail(placeDetail, newLocation);
         }
         return newLocation;
@@ -82,10 +83,11 @@ export class ScheduleService {
         ],
       });
       throwIfNotExists(schedule, 'Không tìm thấy cuộc hẹn');
-      const conversation = await this.conversationService.findOneByMembers([
-        user._id,
-        get(schedule, 'receiver.id', null),
-      ]);
+      const memberId: string =
+        get(schedule, 'receiver._id', null) == user._id.toString()
+          ? get(schedule, 'sender._id', null)
+          : get(schedule, 'receiver._id', null);
+      const conversation = await this.conversationService.findOneByMembers([user._id, memberId]);
       if (!conversation) {
         throw new ForbiddenException('Forbidden access');
       }
@@ -198,7 +200,7 @@ export class ScheduleService {
     }
   }
 
-  async cancel(_id: string, user: User): Promise<IResponse> {
+  async action(_id: string, user: User, status: RequestDatingStatus): Promise<IResponse> {
     try {
       const userField: string = ['_id', 'images', 'email'].join(' ');
       const schedule = await this.scheduleRepo.findOne({
@@ -208,20 +210,42 @@ export class ScheduleService {
           { path: 'receiver', select: userField },
         ],
       });
-
+      throwIfNotExists(schedule, 'Không tìm thấy cuộc hẹn');
       let receiver: User = get(schedule, 'sender', null);
-      if (user._id == (schedule.receiver as User)._id) {
+      if (user._id == get(schedule, 'receiver._id', null)) {
         receiver = get(schedule, 'receiver', null);
       }
 
-      throwIfNotExists(schedule, 'Không tìm thấy cuộc hẹn');
       const conversation = await this.conversationService.findOneByMembers([user._id, receiver._id]);
       if (!conversation) {
         throw new ForbiddenException('Forbidden access');
       }
 
-      schedule.status = RequestDatingStatus.CANCEL;
-      await this.scheduleRepo.save(schedule);
+      switch (status) {
+        case RequestDatingStatus.ACCEPT:
+          return await this.accept(user, schedule, receiver);
+        case RequestDatingStatus.CANCEL:
+          return await this.cancel(user, schedule, receiver);
+        case RequestDatingStatus.DECLINE:
+          return await this.decline(user, schedule, receiver);
+        default:
+          throw new BadRequestException('Status does not accept');
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async cancel(user: User, schedule: Schedule, receiver: User): Promise<IResponse> {
+    try {
+      if (schedule.status == RequestDatingStatus.WAIT_FOR_APPROVAL) {
+        schedule.status = RequestDatingStatus.SELF_CANCEL;
+        await this.scheduleRepo.save(schedule);
+        return {
+          success: true,
+          message: 'Hủy cuộc hẹn thành công',
+        };
+      }
 
       const promises: Promise<any>[] = [];
       if (receiver.email) {
@@ -229,6 +253,10 @@ export class ScheduleService {
           this.mailService.sendMail({ to: receiver.email, subject: 'Cancel Schedule', html: '<p>Hehe</p>' }),
         );
       }
+
+      schedule.status = RequestDatingStatus.CANCEL;
+      await this.scheduleRepo.save(schedule);
+
       promises.push(
         this.socketService.getSocketIdsByUser(receiver._id.toString()),
         this.notiService.create({
@@ -248,6 +276,84 @@ export class ScheduleService {
       return {
         success: true,
         message: 'Hủy cuộc hẹn thành công',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async accept(user: User, schedule: Schedule, receiver: User): Promise<IResponse> {
+    try {
+      if (schedule.status != RequestDatingStatus.WAIT_FOR_APPROVAL) {
+        throw new BadRequestException('Status is not accept');
+      }
+
+      schedule.status = RequestDatingStatus.ACCEPT;
+      await this.scheduleRepo.save(schedule);
+
+      const promises: Promise<any>[] = [];
+      if (receiver.email) {
+        promises.push(
+          this.mailService.sendMail({ to: receiver.email, subject: 'Accept schedule', html: '<p>Hehe</p>' }),
+        );
+      }
+      promises.push(
+        this.socketService.getSocketIdsByUser(receiver._id.toString()),
+        this.notiService.create({
+          sender: user,
+          receiver,
+          type: NotificationType.ACCEPT_SCHEDULE_DATING,
+          schedule,
+        }),
+      );
+
+      const [, socketIds, notification] = await Promise.all(promises);
+      await this.socketGateway.sendEventToClient(socketIds, 'abc', {
+        notificationId: notification._id,
+        schedule,
+      });
+      return {
+        success: true,
+        message: 'Ok',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async decline(user: User, schedule: Schedule, receiver: User): Promise<IResponse> {
+    try {
+      if (schedule.status != RequestDatingStatus.WAIT_FOR_APPROVAL) {
+        throw new BadRequestException('Status is not accept');
+      }
+
+      schedule.status = RequestDatingStatus.DECLINE;
+      await this.scheduleRepo.save(schedule);
+
+      const promises: Promise<any>[] = [];
+      if (receiver.email) {
+        promises.push(
+          this.mailService.sendMail({ to: receiver.email, subject: 'Decline schedule', html: '<p>Hehe</p>' }),
+        );
+      }
+      promises.push(
+        this.socketService.getSocketIdsByUser(receiver._id.toString()),
+        this.notiService.create({
+          sender: user,
+          receiver,
+          type: NotificationType.DECLINE_SCHEDULE_DATING,
+          schedule,
+        }),
+      );
+
+      const [, socketIds, notification] = await Promise.all(promises);
+      await this.socketGateway.sendEventToClient(socketIds, 'abc', {
+        notificationId: notification._id,
+        schedule,
+      });
+      return {
+        success: true,
+        message: 'Ok',
       };
     } catch (error) {
       throw error;

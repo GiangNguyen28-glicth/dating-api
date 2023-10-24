@@ -122,6 +122,8 @@ export enum NotificationType {
   MATCHED = 'Matched',
   SCHEDULE_DATING = 'Schedule dating',
   CANCEL_SCHEDULE_DATING = 'Cancel schedule dating',
+  ACCEPT_SCHEDULE_DATING = 'Accept schedule dating',
+  DECLINE_SCHEDULE_DATING = 'Decline schedule dating',
 }
 
 export enum NotificationStatus {
@@ -142,7 +144,7 @@ export enum RequestDatingStatus {
   DECLINE = 'Decline',
   WAIT_FOR_APPROVAL = 'Wait for approval',
   CANCEL = 'Cancel',
-  SENT = 'Sent',
+  SELF_CANCEL = 'Self cancel',
 }
 
 export enum CreatedDatingType {
