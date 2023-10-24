@@ -1,7 +1,7 @@
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { FilterGetAll } from '@common/dto';
 import { RequestDatingStatus } from '@common/consts';
 import { Schedule } from '../entities';
-import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class FilterGetAllScheduleDTO extends FilterGetAll implements Partial<Schedule> {
   @ApiPropertyOptional({ type: 'enum', enum: RequestDatingStatus })
@@ -11,5 +11,20 @@ export class FilterGetAllScheduleDTO extends FilterGetAll implements Partial<Sch
   appointmentDate?: Date;
 
   @ApiPropertyOptional()
+  sender?: string;
+
+  userId?: string;
+
+  @ApiPropertyOptional({ type: Date })
+  fromDate?: Date;
+
+  @ApiPropertyOptional({ type: Date })
+  toDate?: Date;
+}
+
+export class FilterCountScheduleDTO implements Partial<Schedule> {
+  @ApiPropertyOptional({ type: 'enum', enum: RequestDatingStatus })
+  status?: RequestDatingStatus;
+
   userId?: string;
 }

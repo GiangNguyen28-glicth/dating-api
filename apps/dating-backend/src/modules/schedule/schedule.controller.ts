@@ -7,8 +7,15 @@ import { User } from '@modules/users/entities';
 import { AtGuard } from '@common/guards';
 
 import { ScheduleService } from './schedule.service';
-import { CreateScheduleDTO, FilterGetAllScheduleDTO, SuggestLocationDTO, UpdateScheduleDTO } from './dto';
-import { Schedule } from './entities';
+import {
+  CreateScheduleDTO,
+  FilterCountScheduleDTO,
+  FilterGetAllScheduleDTO,
+  SuggestLocationDTO,
+  UpdateScheduleDTO,
+} from './dto';
+import { LocationDating, Schedule } from './entities';
+import { RequestDatingStatus } from '@common/consts';
 
 @Controller('schedule')
 @UseGuards(AtGuard)
@@ -18,8 +25,14 @@ export class ScheduleController {
 
   @Get()
   async findAll(@Query() filter: FilterGetAllScheduleDTO, @CurrentUser() user: User): Promise<IResult<Schedule>> {
-    filter.userId = user._id.toString();
+    filter.userId = user._id;
     return await this.scheduleService.findAll(filter);
+  }
+
+  @Get('/count')
+  async countScheduleByStatus(@Query() filter: FilterCountScheduleDTO, @CurrentUser() user: User): Promise<IResponse> {
+    filter.userId = user._id;
+    return await this.scheduleService.countScheduleByStatus(filter);
   }
 
   @Get(':id')
@@ -52,7 +65,7 @@ export class ScheduleController {
   }
 
   @Post('suggest')
-  async suggestLocation(@Body() suggestDto: SuggestLocationDTO): Promise<any> {
+  async suggestLocation(@Body() suggestDto: SuggestLocationDTO): Promise<LocationDating[]> {
     return await this.scheduleService.suggestLocation(suggestDto);
   }
 

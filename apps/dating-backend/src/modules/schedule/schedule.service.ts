@@ -73,8 +73,13 @@ export class ScheduleService {
 
   async findOne(_id: string, user: User): Promise<Schedule> {
     try {
+      const userField: string = ['_id', 'images', 'email', 'name'].join(' ');
       const schedule = await this.scheduleRepo.findOne({
         queryFilter: { _id, isDeleted: false },
+        populate: [
+          { path: 'sender', select: userField },
+          { path: 'receiver', select: userField },
+        ],
       });
       throwIfNotExists(schedule, 'Không tìm thấy cuộc hẹn');
       const conversation = await this.conversationService.findOneByMembers([user._id, schedule.receiver.toString()]);
@@ -89,14 +94,20 @@ export class ScheduleService {
 
   async findAll(filter: FilterGetAllScheduleDTO): Promise<IResult<Schedule>> {
     try {
-      const userField: string = ['_id', 'images', 'email'].join(' ');
-      const [queryFilter] = new FilterBuilder<Schedule>()
+      const userField: string = ['_id', 'images', 'email', 'name'].join(' ');
+      const [queryFilter, sortOption] = new FilterBuilder<Schedule>()
         .setFilterItem('status', '$eq', filter?.status)
+        .setFilterItem('sender', '$eq', filter?.sender)
+        .setFilterItem('status', '$eq', filter?.status)
+        .setFilterItem('appointmentDate', '$gte', filter?.fromDate)
+        .setFilterItem('appointmentDate', '$lte', filter?.toDate)
         .setFilterItemWithObject('$or', [{ receiver: filter?.userId }, { sender: filter?.userId }])
+        .setSortItem('updatedAt', 'descending')
         .buildQuery();
       const [results, totalCount] = await Promise.all([
         this.scheduleRepo.findAll({
           queryFilter,
+          sortOption,
           populate: [
             { path: 'sender', select: userField },
             { path: 'receiver', select: userField },
@@ -367,5 +378,24 @@ export class ScheduleService {
     }
     place.rawContent = rawContent;
     return place;
+  }
+
+  async countScheduleByStatus(filter: FilterGetAllScheduleDTO): Promise<IResponse> {
+    try {
+      const [queryFilter] = new FilterBuilder<Schedule>()
+        .setFilterItem('status', '$eq', filter?.status)
+        .setFilterItem('isDeleted', '$eq', false, true)
+        .setFilterItemWithObject('$or', [{ receiver: filter?.userId }, { sender: filter?.userId }])
+        .buildQuery();
+      const totalCount = await this.scheduleRepo.count(queryFilter);
+      return {
+        success: true,
+        data: {
+          totalCount,
+        },
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 }
