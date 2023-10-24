@@ -25,9 +25,9 @@ export class ScheduleDatingJob implements IJobProcessors, OnModuleInit {
     private rabbitService: RabbitService,
   ) {
     this.cronJob = new CronJob(
-      '14 20 * * *',
+      '13 9 * * *',
       async () => {
-        console.log('Hello world');
+        console.log('ScheduleDatingJob');
         await this.process();
         // your code to run every 12PM
       },
@@ -69,6 +69,7 @@ export class ScheduleDatingJob implements IJobProcessors, OnModuleInit {
       job.totalUpdate = schedules.length;
       await this.processSendMail(schedules, jobDoc);
     } catch (error) {
+      console.log(error);
       job.status = JobStatus.ERROR;
       await this.jobService.save(job);
       return;
@@ -81,6 +82,7 @@ export class ScheduleDatingJob implements IJobProcessors, OnModuleInit {
         let totalProcess = 0;
         const senderMail: string = get(schedule, 'sender.email', null);
         if (senderMail) {
+          console.log(senderMail);
           await this.rabbitService.sendToQueue(
             QUEUE_NAME.SEND_MAIL_SCHEDULE_DATING,
             {
@@ -94,6 +96,8 @@ export class ScheduleDatingJob implements IJobProcessors, OnModuleInit {
         }
         const receiverMail: string = get(schedule, 'receiver.email', null);
         if (receiverMail) {
+          console.log(receiverMail);
+
           await this.rabbitService.sendToQueue(
             QUEUE_NAME.SEND_MAIL_SCHEDULE_DATING,
             {

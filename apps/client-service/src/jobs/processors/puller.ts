@@ -14,7 +14,7 @@ import { User } from '@modules/users/entities';
 
 import { Job, JobModelType } from '../entities';
 import { Schedule } from '@modules/schedule/entities';
-import moment from 'moment-timezone';
+import * as moment from 'moment-timezone';
 import { Types } from 'mongoose';
 
 @Injectable()
@@ -54,7 +54,7 @@ export class PullerService {
 
   async getScheduleByAppointmentDate(job: Job): Promise<Schedule[]> {
     const startOfDate = moment.tz('Asia/Ho_Chi_Minh').startOf('day');
-    const tomorrow = startOfDate.add(1, 'day').endOf('day');
+    const tomorrow = moment.tz('Asia/Ho_Chi_Minh').startOf('day').add(1, 'day').endOf('day');
     const [queryFilter, sortOption] = new FilterBuilder<Schedule>()
       .setFilterItem('status', '$eq', RequestDatingStatus.ACCEPT)
       .setFilterItem('isDeleted', '$eq', false, true)

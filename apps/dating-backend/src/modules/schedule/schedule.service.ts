@@ -82,10 +82,14 @@ export class ScheduleService {
         ],
       });
       throwIfNotExists(schedule, 'Không tìm thấy cuộc hẹn');
-      const conversation = await this.conversationService.findOneByMembers([user._id, schedule.receiver.toString()]);
+      const conversation = await this.conversationService.findOneByMembers([
+        user._id,
+        get(schedule, 'receiver.id', null),
+      ]);
       if (!conversation) {
         throw new ForbiddenException('Forbidden access');
       }
+
       return schedule;
     } catch (error) {
       throw error;
