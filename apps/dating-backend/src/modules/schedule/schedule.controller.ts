@@ -1,12 +1,11 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-import { IResponse, IResult } from '@common/interfaces';
 import { CurrentUser } from '@common/decorators';
-import { User } from '@modules/users/entities';
 import { AtGuard } from '@common/guards';
+import { IResponse, IResult } from '@common/interfaces';
+import { User } from '@modules/users/entities';
 
-import { ScheduleService } from './schedule.service';
 import {
   CreateScheduleDTO,
   FilterCountScheduleDTO,
@@ -15,7 +14,7 @@ import {
   UpdateScheduleDTO,
 } from './dto';
 import { LocationDating, Schedule } from './entities';
-import { RequestDatingStatus } from '@common/consts';
+import { ScheduleService } from './schedule.service';
 
 @Controller('schedule')
 @UseGuards(AtGuard)

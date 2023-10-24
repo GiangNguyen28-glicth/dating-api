@@ -50,6 +50,7 @@ export class UpdateFeatureAccessJob {
         }
       }
       jobDoc.status = JobStatus.DONE;
+      jobDoc.doneAt = new Date();
       await this.jobService.save(jobDoc);
     } catch (error) {
       jobDoc.status = JobStatus.ERROR;

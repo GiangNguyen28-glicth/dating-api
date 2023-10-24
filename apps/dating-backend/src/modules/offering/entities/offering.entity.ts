@@ -49,10 +49,10 @@ export class Package {
   _id?: string;
 
   @Prop({ type: Number })
-  amount: number;
+  price: number;
 
   @Prop({ type: Number })
-  price: number;
+  originalPrice: number;
 
   @Prop({ type: Number, default: 1 })
   refreshInterval: number;

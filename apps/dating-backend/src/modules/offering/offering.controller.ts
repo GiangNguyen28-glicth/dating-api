@@ -15,7 +15,7 @@ export class OfferingController {
 
   @Post()
   async create(@Body() offeringDto: CreateOfferingDto): Promise<IResponse> {
-    return this.offeringService.create(offeringDto);
+    return await this.offeringService.create(offeringDto);
   }
 
   @Get()

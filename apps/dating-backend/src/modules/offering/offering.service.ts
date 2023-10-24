@@ -35,7 +35,7 @@ export class OfferingService {
           queryFilter: { isDeleted: false },
           pagination,
         }),
-        this.offeringRepo.count(),
+        this.offeringRepo.count({ isDeleted: false }),
       ]);
       return formatResult(results, totalCount, pagination);
     } catch (error) {

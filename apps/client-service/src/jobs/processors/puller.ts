@@ -59,7 +59,7 @@ export class PullerService {
       .setFilterItem('status', '$eq', RequestDatingStatus.ACCEPT)
       .setFilterItem('isDeleted', '$eq', false, true)
       .setFilterItemWithObject('appointmentDate', { $lte: tomorrow, $gte: startOfDate })
-      .setFilterItem('_id', '$gte', new Types.ObjectId(job.lastId) || null)
+      // .setFilterItem('_id', '$gte', new Types.ObjectId(job.lastId) || null)
       .setSortItem('_id', 'asc')
       .buildQuery();
     return await this.scheduleService.getScheduleByAppointmentDateJob(queryFilter, sortOption);

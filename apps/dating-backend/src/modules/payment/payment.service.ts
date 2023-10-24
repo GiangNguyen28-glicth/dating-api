@@ -83,7 +83,7 @@ export class PaymentService implements OnModuleInit {
 
   getExpiredDate(_package: Package): Date {
     const now = moment.tz('Asia/Ho_Chi_Minh');
-    const amount = _package.amount;
+    const amount = _package.refreshInterval;
     switch (_package.refreshIntervalUnit) {
       case RefreshIntervalUnit.MONTH:
         now.add(amount, 'months').endOf('date');
@@ -113,7 +113,7 @@ export class PaymentService implements OnModuleInit {
       if (merchandising[key].type == LimitType.UNLIMITED) {
         featureAccess[key].unlimited = true;
       } else {
-        featureAccess[key].amount = _package.amount;
+        featureAccess[key].amount = _package.refreshInterval;
       }
     }
     return {
