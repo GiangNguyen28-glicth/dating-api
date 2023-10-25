@@ -13,6 +13,9 @@ export class FilterGetAllScheduleDTO extends FilterGetAll implements Partial<Sch
   @ApiPropertyOptional()
   sender?: string;
 
+  @ApiPropertyOptional()
+  receiver?: string;
+
   userId?: string;
 
   @ApiPropertyOptional({ type: Date })

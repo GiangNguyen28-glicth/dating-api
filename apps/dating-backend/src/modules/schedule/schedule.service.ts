@@ -104,7 +104,7 @@ export class ScheduleService {
       const [queryFilter, sortOption] = new FilterBuilder<Schedule>()
         .setFilterItem('status', '$eq', filter?.status)
         .setFilterItem('sender', '$eq', filter?.sender)
-        .setFilterItem('status', '$eq', filter?.status)
+        .setFilterItem('receiver', '$eq', filter?.receiver)
         .setFilterItem('appointmentDate', '$gte', filter?.fromDate)
         .setFilterItem('appointmentDate', '$lte', filter?.toDate)
         .setFilterItemWithObject('$or', [{ receiver: filter?.userId }, { sender: filter?.userId }])
