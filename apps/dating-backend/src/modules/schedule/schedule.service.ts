@@ -212,7 +212,7 @@ export class ScheduleService {
       });
       throwIfNotExists(schedule, 'Không tìm thấy cuộc hẹn');
       let receiver: User = get(schedule, 'sender', null);
-      if (user._id == get(schedule, 'receiver._id', null)) {
+      if (user._id.toString() == String(get(schedule, 'sender._id', null))) {
         receiver = get(schedule, 'receiver', null);
       }
 
@@ -239,7 +239,7 @@ export class ScheduleService {
   async cancel(user: User, schedule: Schedule, receiver: User): Promise<IResponse> {
     try {
       if (schedule.status == RequestDatingStatus.WAIT_FOR_APPROVAL) {
-        schedule.status = RequestDatingStatus.SELF_CANCEL;
+        schedule.status = RequestDatingStatus.CANCEL;
         await this.scheduleRepo.save(schedule);
         return {
           success: true,
@@ -247,12 +247,16 @@ export class ScheduleService {
         };
       }
 
-      const promises: Promise<any>[] = [];
-      if (receiver.email) {
-        promises.push(
-          this.mailService.sendMail({ to: receiver.email, subject: 'Cancel Schedule', html: '<p>Hehe</p>' }),
-        );
+      if (schedule.status != RequestDatingStatus.ACCEPT) {
+        throw new BadRequestException('Status is not accept');
       }
+
+      const promises: Promise<any>[] = [];
+      // if (receiver.email) {
+      //   promises.push(
+      //     this.mailService.sendMail({ to: receiver.email, subject: 'Cancel Schedule', html: '<p>Hehe</p>' }),
+      //   );
+      // }
 
       schedule.status = RequestDatingStatus.CANCEL;
       await this.scheduleRepo.save(schedule);

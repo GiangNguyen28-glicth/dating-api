@@ -3,12 +3,14 @@ import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 
 import { CurrentUser } from '@common/decorators';
 import { AtGuard } from '@common/guards';
-import { IResponse } from '@common/interfaces';
+import { IResponse, IResult } from '@common/interfaces';
 import { User } from '@modules/users/entities';
 
 import { DeleteManyNotification, FilterGetAllNotification, UpdateNotificationByUserDto } from './dto';
 import { Notification } from './entities';
 import { NotificationService } from './notification.service';
+import { Schedule } from '@modules/schedule/entities';
+import { PaginationDTO } from '@common/dto';
 
 @ApiTags(Notification.name)
 @Controller('notification')
@@ -17,8 +19,16 @@ export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
   @Get()
-  findAll(@CurrentUser() user: User, @Query() filter: FilterGetAllNotification) {
-    return this.notificationService.findAll(user, filter);
+  async findAll(@CurrentUser() user: User, @Query() filter: FilterGetAllNotification): Promise<any> {
+    return await this.notificationService.findAll(user, filter);
+  }
+
+  @Get('/schedule')
+  async findAllBySchedule(
+    @CurrentUser() user: User,
+    @Query() pagination: PaginationDTO,
+  ): Promise<IResult<Notification>> {
+    return await this.notificationService.findAllBySchedule(user, pagination);
   }
 
   @Get('count')

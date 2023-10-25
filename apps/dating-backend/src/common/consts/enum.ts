@@ -120,7 +120,7 @@ export enum NotificationType {
   PROMOTION = 'Promotion',
   LIKE = 'Like',
   MATCHED = 'Matched',
-  SCHEDULE_DATING = 'Schedule dating',
+  SCHEDULE_DATING = 'Invite schedule dating',
   CANCEL_SCHEDULE_DATING = 'Cancel schedule dating',
   ACCEPT_SCHEDULE_DATING = 'Accept schedule dating',
   DECLINE_SCHEDULE_DATING = 'Decline schedule dating',

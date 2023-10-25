@@ -48,6 +48,7 @@ export interface IResult<T> {
     nextPage?: number;
     prevPage?: number;
   };
+  metadata?: any;
 }
 
 export interface ISocketIdsClient {

@@ -10,9 +10,9 @@ import {
   QUEUE_NAME,
   RMQ_CHANNEL,
 } from '@common/consts';
-import { IResponse } from '@common/interfaces';
+import { IResponse, IResult } from '@common/interfaces';
 import { NotificationRepo } from '@dating/repositories';
-import { FilterBuilder, throwIfNotExists } from '@dating/utils';
+import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
 import { ConversationService } from '@modules/conversation/conversation.service';
 import { User } from '@modules/users/entities';
 
@@ -24,6 +24,7 @@ import {
 } from './dto';
 import { Notification } from './entities';
 import { INotificationResult } from './interfaces';
+import { PaginationDTO } from '@common/dto';
 
 @Injectable()
 export class NotificationService implements OnModuleInit {
@@ -98,6 +99,40 @@ export class NotificationService implements OnModuleInit {
       });
 
       return notificationResults;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async findAllBySchedule(user: User, pagination: PaginationDTO): Promise<IResult<Notification>> {
+    try {
+      const [queryFilter, sortOption] = new FilterBuilder<Notification>()
+        .setFilterItem('type', '$in', [
+          NotificationType.ACCEPT_SCHEDULE_DATING,
+          NotificationType.DECLINE_SCHEDULE_DATING,
+          NotificationType.SCHEDULE_DATING,
+          NotificationType.CANCEL_SCHEDULE_DATING,
+        ])
+        .setFilterItem('receiver', '$eq', user._id)
+        .setFilterItem('isDeleted', '$eq', false, true)
+        .setSortItem('createdAt', 'desc')
+        .buildQuery();
+      const countFilter = JSON.parse(JSON.stringify(queryFilter));
+      countFilter['$and'].push({ status: NotificationStatus.NOT_SEEN });
+      const [results, totalNewNotification, totalCount] = await Promise.all([
+        this.notificationRepo.findAll({
+          queryFilter,
+          populate: [{ path: 'schedule' }, { path: 'sender' }],
+          sortOption,
+        }),
+        this.notificationRepo.count(countFilter),
+        this.notificationRepo.count(queryFilter),
+      ]);
+      const response = formatResult(results, totalCount, pagination);
+      response.metadata = {
+        totalNewNotification,
+      };
+      return response;
     } catch (error) {
       throw error;
     }
