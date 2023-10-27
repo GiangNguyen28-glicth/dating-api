@@ -108,10 +108,10 @@ export class NotificationService implements OnModuleInit {
     try {
       const [queryFilter, sortOption] = new FilterBuilder<Notification>()
         .setFilterItem('type', '$in', [
-          NotificationType.ACCEPT_SCHEDULE_DATING,
-          NotificationType.DECLINE_SCHEDULE_DATING,
           NotificationType.SCHEDULE_DATING,
+          NotificationType.ACCEPT_SCHEDULE_DATING,
           NotificationType.CANCEL_SCHEDULE_DATING,
+          NotificationType.DECLINE_SCHEDULE_DATING,
         ])
         .setFilterItem('receiver', '$eq', user._id)
         .setFilterItem('isDeleted', '$eq', false, true)
@@ -170,7 +170,9 @@ export class NotificationService implements OnModuleInit {
 
   async deleteMany(data: DeleteManyNotification, user: User): Promise<void> {
     try {
-      await this.notificationRepo.deleteManyByReceiver(data.ids, user);
+      console.log('@@@@@@@@@@@@@@@@=Delete notification=@@@@@@@@@@@@@@@@');
+      data.receiver = user._id;
+      await this.notificationRepo.deleteByFilter(data);
     } catch (error) {
       throw error;
     }
@@ -182,7 +184,7 @@ export class NotificationService implements OnModuleInit {
       await this.notificationRepo.updateManyByReceiver(ids, notification, user);
       return {
         success: true,
-        message: 'Cap nhat notification thanh cong',
+        message: 'Ok',
       };
     } catch (error) {
       throw error;

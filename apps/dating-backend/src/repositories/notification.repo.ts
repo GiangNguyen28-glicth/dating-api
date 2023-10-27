@@ -7,6 +7,7 @@ import { User } from '@modules/users/entities';
 export interface NotificationRepo extends CrudRepo<Notification> {
   updateManyByReceiver(ids: string[], entities: Partial<Notification>, user: User): Promise<void>;
   deleteManyByReceiver(ids: string[], user: User): Promise<void>;
+  deleteByFilter(filter: Partial<Notification>): Promise<void>;
 }
 export class NotificationMongoRepo extends MongoRepo<Notification> {
   constructor(
@@ -22,6 +23,10 @@ export class NotificationMongoRepo extends MongoRepo<Notification> {
 
   async deleteManyByReceiver(ids: string[], user: User): Promise<void> {
     await this.notificationModel.deleteMany({ _id: { $in: ids }, receiver: user._id });
+  }
+
+  async deleteByFilter(filter: Partial<Notification>): Promise<void> {
+    await this.notificationModel.deleteMany(filter);
   }
 }
 

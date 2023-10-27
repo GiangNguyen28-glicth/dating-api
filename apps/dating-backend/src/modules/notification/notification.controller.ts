@@ -41,11 +41,6 @@ export class NotificationController {
     return this.notificationService.remove(id);
   }
 
-  @Delete('delete-many')
-  async deleteMany(@Body() data: DeleteManyNotification, user: User): Promise<void> {
-    await this.notificationService.deleteMany(data, user);
-  }
-
   @Patch()
   @ApiBearerAuth()
   @ApiBody({ type: UpdateNotificationByUserDto })

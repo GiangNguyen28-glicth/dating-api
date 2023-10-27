@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { GoogleAuth } from 'google-auth-library';
 import { get } from 'lodash';
+import { google } from 'googleapis';
 
 import { DATABASE_TYPE, NotificationType, PROVIDER_REPO, RequestDatingStatus, SortQuery } from '@common/consts';
 import { IResponse, IResult } from '@common/interfaces';
@@ -20,8 +21,9 @@ import { SocketService } from '@modules/socket/socket.service';
 
 import { CreateScheduleDTO, FilterGetAllScheduleDTO, SuggestLocationDTO, UpdateScheduleDTO } from './dto';
 import { LocationDating, Schedule } from './entities';
-import { IPayloadPlace } from './interfaces';
+import { IPayloadPlace, IReviewDating } from './interfaces';
 import { getAddress, getPlaceName, mappingPlaceDetail } from './utils';
+import { JwtService } from '@nestjs/jwt';
 
 const serviceAccountInfo = {
   type: 'service_account',
@@ -51,6 +53,7 @@ export class ScheduleService {
     private notiService: NotificationService,
     private configService: ConfigService,
     private mailService: MailService,
+    private jwtService: JwtService,
   ) {}
 
   async getSchedulePlaceDetail(_id: string, user: User): Promise<Schedule> {
@@ -240,7 +243,10 @@ export class ScheduleService {
     try {
       if (schedule.status == RequestDatingStatus.WAIT_FOR_APPROVAL) {
         schedule.status = RequestDatingStatus.CANCEL;
-        await this.scheduleRepo.save(schedule);
+        await Promise.all([
+          this.scheduleRepo.save(schedule),
+          this.notiService.deleteMany({ schedule: schedule._id, type: NotificationType.SCHEDULE_DATING }, user),
+        ]);
         return {
           success: true,
           message: 'Hủy cuộc hẹn thành công',
@@ -260,7 +266,6 @@ export class ScheduleService {
 
       schedule.status = RequestDatingStatus.CANCEL;
       await this.scheduleRepo.save(schedule);
-
       promises.push(
         this.socketService.getSocketIdsByUser(receiver._id.toString()),
         this.notiService.create({
@@ -271,7 +276,9 @@ export class ScheduleService {
         }),
       );
 
-      const [, socketIds, notification] = await Promise.all(promises);
+      // const [, , socketIds, notification] = await Promise.all(promises);
+      const [socketIds, notification] = await Promise.all(promises);
+
       await this.socketGateway.sendEventToClient(socketIds, 'abc', {
         notificationId: notification._id,
         schedule,
@@ -296,12 +303,13 @@ export class ScheduleService {
       await this.scheduleRepo.save(schedule);
 
       const promises: Promise<any>[] = [];
-      if (receiver.email) {
-        promises.push(
-          this.mailService.sendMail({ to: receiver.email, subject: 'Accept schedule', html: '<p>Hehe</p>' }),
-        );
-      }
+      // if (receiver.email) {
+      //   promises.push(
+      //     this.mailService.sendMail({ to: receiver.email, subject: 'Accept schedule', html: '<p>Hehe</p>' }),
+      //   );
+      // }
       promises.push(
+        this.notiService.deleteMany({ schedule: schedule._id, type: NotificationType.SCHEDULE_DATING }, user),
         this.socketService.getSocketIdsByUser(receiver._id.toString()),
         this.notiService.create({
           sender: user,
@@ -311,6 +319,7 @@ export class ScheduleService {
         }),
       );
 
+      // const [, , socketIds, notification] = await Promise.all(promises);
       const [, socketIds, notification] = await Promise.all(promises);
       await this.socketGateway.sendEventToClient(socketIds, 'abc', {
         notificationId: notification._id,
@@ -335,12 +344,13 @@ export class ScheduleService {
       await this.scheduleRepo.save(schedule);
 
       const promises: Promise<any>[] = [];
-      if (receiver.email) {
-        promises.push(
-          this.mailService.sendMail({ to: receiver.email, subject: 'Decline schedule', html: '<p>Hehe</p>' }),
-        );
-      }
+      // if (receiver.email) {
+      //   promises.push(
+      //     this.mailService.sendMail({ to: receiver.email, subject: 'Decline schedule', html: '<p>Hehe</p>' }),
+      //   );
+      // }
       promises.push(
+        this.notiService.deleteMany({ schedule: schedule._id, type: NotificationType.SCHEDULE_DATING }, user),
         this.socketService.getSocketIdsByUser(receiver._id.toString()),
         this.notiService.create({
           sender: user,
@@ -350,6 +360,7 @@ export class ScheduleService {
         }),
       );
 
+      // const [, , socketIds, notification] = await Promise.all(promises);
       const [, socketIds, notification] = await Promise.all(promises);
       await this.socketGateway.sendEventToClient(socketIds, 'abc', {
         notificationId: notification._id,
@@ -511,5 +522,33 @@ export class ScheduleService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async decodeReviewDating(token: string): Promise<IResponse> {
+    try {
+      const payload = await this.jwtService.verify(token, {
+        secret: this.configService.get<string>('JWT_VERIFICATION_REVIEW_SCHEDULE_TOKEN_SECRET'),
+      });
+      console.log(payload);
+      return {
+        success: true,
+        message: 'Ok',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async sendReviewDating(): Promise<string> {
+    const payload = {
+      schedule: '653b5dafad999ede52bbae77',
+      user1: '64f08a5118c177fcf6952244',
+      user2: '64ee8e2eb274cf6e9e5a5762',
+    };
+    const token = await this.jwtService.signAsync(payload, {
+      secret: this.configService.get<string>('JWT_VERIFICATION_REVIEW_SCHEDULE_TOKEN_SECRET'),
+      expiresIn: this.configService.get<number>('JWT_VERIFICATION_REVIEW_SCHEDULE_EXPIRATION_TIME'),
+    });
+    return token;
   }
 }

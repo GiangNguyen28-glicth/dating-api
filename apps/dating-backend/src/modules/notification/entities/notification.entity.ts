@@ -25,7 +25,7 @@ export class Notification {
   conversation: Conversation;
 
   @Prop({ type: MongoID, ref: Schedule.name })
-  schedule: Schedule;
+  schedule: Schedule | string;
 
   @Prop({ type: MongoID, ref: Message.name, autopopulate: { maxDepth: 1 } })
   message: Message;

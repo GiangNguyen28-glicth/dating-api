@@ -2,6 +2,8 @@ import { JwtService } from '@nestjs/jwt';
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import * as twilio from 'twilio';
 import axios from 'axios';
+import { ConfigService } from '@nestjs/config';
+
 import { RedisService } from '@app/shared';
 import { IResponse, REFRESH_TOKEN_TTL, RegisterType, SMS, TOKEN } from '@dating/common';
 import {
@@ -13,7 +15,6 @@ import {
 } from '@dating/utils';
 import { User } from '@modules/users/entities';
 import { UserService } from '@modules/users/users.service';
-import { ConfigService } from '@nestjs/config';
 import { SmsDTO, VerifyOTPDTO } from './dto';
 import { IToken } from './interfaces';
 

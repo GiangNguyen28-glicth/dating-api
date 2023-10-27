@@ -4,6 +4,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '@common/decorators';
 import { AtGuard } from '@common/guards';
 import { IResponse, IResult } from '@common/interfaces';
+import { RequestDatingStatus } from '@common/consts';
+
 import { User } from '@modules/users/entities';
 
 import {
@@ -15,7 +17,6 @@ import {
 } from './dto';
 import { LocationDating, Schedule } from './entities';
 import { ScheduleService } from './schedule.service';
-import { RequestDatingStatus } from '@common/consts';
 
 @Controller('schedule')
 @UseGuards(AtGuard)
@@ -35,7 +36,13 @@ export class ScheduleController {
     return await this.scheduleService.countScheduleByStatus(filter);
   }
 
-  @Get(':id')
+  @Get('/review')
+  async review(@Query() data: any): Promise<IResponse> {
+    const { token } = data;
+    return await this.scheduleService.decodeReviewDating(token);
+  }
+
+  @Get('/:id')
   async findOne(@Param('id') id: string, @CurrentUser() user: User): Promise<Schedule> {
     return await this.scheduleService.getSchedulePlaceDetail(id, user);
   }
@@ -74,13 +81,8 @@ export class ScheduleController {
     return await this.scheduleService.delete(_id, user);
   }
 
-  @Post('suggest')
+  @Post('/suggest')
   async suggestLocation(@Body() suggestDto: SuggestLocationDTO): Promise<LocationDating[]> {
     return await this.scheduleService.suggestLocation(suggestDto);
-  }
-
-  @Get('searchText')
-  async searchText(): Promise<any> {
-    return await this.scheduleService.getPlaceById('ChIJBSrTl4jPdDER95i-ubBjN04');
   }
 }
