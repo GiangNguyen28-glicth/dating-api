@@ -21,6 +21,7 @@ import {
   DeleteManyNotification,
   FilterGetAllNotification,
   UpdateNotificationByUserDto,
+  UpdateNotificationDto,
 } from './dto';
 import { Notification } from './entities';
 import { INotificationResult } from './interfaces';
@@ -155,6 +156,28 @@ export class NotificationService implements OnModuleInit {
     };
   }
 
+  async countSchedule(user: User): Promise<IResponse> {
+    const [queryFilter] = new FilterBuilder<Notification>()
+      .setFilterItem('type', '$in', [
+        NotificationType.SCHEDULE_DATING,
+        NotificationType.ACCEPT_SCHEDULE_DATING,
+        NotificationType.CANCEL_SCHEDULE_DATING,
+        NotificationType.DECLINE_SCHEDULE_DATING,
+      ])
+      .setFilterItem('receiver', '$eq', user._id)
+      .setFilterItem('isDeleted', '$eq', false, true)
+      .setFilterItem('status', '$eq', NotificationStatus.NOT_RECEIVED)
+      .setSortItem('createdAt', 'desc')
+      .buildQuery();
+    const totalCount = await this.notificationRepo.count(queryFilter);
+    return {
+      success: true,
+      data: {
+        totalCount,
+      },
+    };
+  }
+
   async remove(id: string): Promise<IResponse> {
     try {
       const notification = await this.notificationRepo.delete(id);
@@ -181,7 +204,22 @@ export class NotificationService implements OnModuleInit {
   async updateMany(notiDto: UpdateNotificationByUserDto, user: User): Promise<IResponse> {
     try {
       const { ids, notification } = notiDto;
-      await this.notificationRepo.updateManyByReceiver(ids, notification, user);
+      await this.notificationRepo.updateManyByIds(ids, notification, user);
+      return {
+        success: true,
+        message: 'Ok',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateManyBySchedule(user: User, update: UpdateNotificationDto): Promise<IResponse> {
+    try {
+      await this.notificationRepo.updateManyByFilter(
+        { receiver: user._id, status: NotificationStatus.NOT_RECEIVED },
+        update,
+      );
       return {
         success: true,
         message: 'Ok',

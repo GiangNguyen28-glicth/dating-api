@@ -17,7 +17,12 @@ export class OfferingService {
   ) {}
   async create(offeringDto: CreateOfferingDto): Promise<IResponse> {
     try {
-      const offering = await this.offeringRepo.insert(offeringDto);
+      // offeringDto.packages.map(_package => {
+      //   if(_package.discount > 0) {
+      //     _package.price =
+      //   }
+      // })
+      const offering: Offering = await this.offeringRepo.insert(offeringDto);
       await this.offeringRepo.save(offering);
       return {
         success: true,

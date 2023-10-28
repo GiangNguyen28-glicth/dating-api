@@ -12,6 +12,12 @@ export class MerchandisingItem {
   @Prop({ type: Number })
   amount: number;
 
+  @Prop()
+  iconUrl: string;
+
+  @Prop({ required: true })
+  text: string;
+
   @Prop({ type: Number })
   refreshInterval: number;
 
@@ -48,7 +54,7 @@ export class Package {
   @Transform(({ value }) => value.toString())
   _id?: string;
 
-  @Prop({ type: Number })
+  @Prop({ type: Number, required: true })
   price: number;
 
   @Prop({ type: Number })

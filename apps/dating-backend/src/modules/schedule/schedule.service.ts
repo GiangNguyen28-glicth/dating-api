@@ -6,7 +6,14 @@ import { GoogleAuth } from 'google-auth-library';
 import { get } from 'lodash';
 import { google } from 'googleapis';
 
-import { DATABASE_TYPE, NotificationType, PROVIDER_REPO, RequestDatingStatus, SortQuery } from '@common/consts';
+import {
+  DATABASE_TYPE,
+  NotificationStatus,
+  NotificationType,
+  PROVIDER_REPO,
+  RequestDatingStatus,
+  SortQuery,
+} from '@common/consts';
 import { IResponse, IResult } from '@common/interfaces';
 import { ScheduleRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
@@ -163,10 +170,7 @@ export class ScheduleService {
           schedule,
         }),
       ]);
-      await this.socketGateway.sendEventToClient(socketIds, 'newSchedule', {
-        notificationId: notification._id,
-        schedule,
-      });
+      await this.socketGateway.sendEventToClient(socketIds, 'notiSchedule', notification);
       return {
         success: true,
         message: 'Tạo lịch hẹn thành công',
@@ -279,10 +283,7 @@ export class ScheduleService {
       // const [, , socketIds, notification] = await Promise.all(promises);
       const [socketIds, notification] = await Promise.all(promises);
 
-      await this.socketGateway.sendEventToClient(socketIds, 'abc', {
-        notificationId: notification._id,
-        schedule,
-      });
+      await this.socketGateway.sendEventToClient(socketIds, 'notiSchedule', notification);
 
       return {
         success: true,
@@ -321,7 +322,7 @@ export class ScheduleService {
 
       // const [, , socketIds, notification] = await Promise.all(promises);
       const [, socketIds, notification] = await Promise.all(promises);
-      await this.socketGateway.sendEventToClient(socketIds, 'abc', {
+      await this.socketGateway.sendEventToClient(socketIds, 'notiSchedule', {
         notificationId: notification._id,
         schedule,
       });
@@ -362,7 +363,7 @@ export class ScheduleService {
 
       // const [, , socketIds, notification] = await Promise.all(promises);
       const [, socketIds, notification] = await Promise.all(promises);
-      await this.socketGateway.sendEventToClient(socketIds, 'abc', {
+      await this.socketGateway.sendEventToClient(socketIds, 'notiSchedule', {
         notificationId: notification._id,
         schedule,
       });

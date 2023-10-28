@@ -36,6 +36,12 @@ export class MerchandisingItemDTO implements MerchandisingItem {
   @ApiProperty({ type: 'enum', enum: LimitType, default: LimitType.UNLIMITED })
   type: LimitType;
 
+  @ApiProperty()
+  iconUrl: string;
+
+  @ApiProperty()
+  text: string;
+
   @ApiProperty({ default: 12 })
   @IsNumber()
   amount: number;

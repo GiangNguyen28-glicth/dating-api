@@ -5,7 +5,6 @@ import { CreatedDatingType, MongoID, RequestDatingStatus } from '@common/consts'
 import { IEntity } from '@common/interfaces';
 import { User } from '@modules/users/entities';
 
-@Schema({ _id: false })
 export class LocationDating {
   name: string;
 
@@ -17,7 +16,6 @@ export class LocationDating {
 
   phoneNumber: string;
 
-  @Prop({ type: String })
   place_id: string;
 
   website?: string;
@@ -33,6 +31,14 @@ export class LocationDating {
   isEmpty?: boolean;
 
   reviews: any;
+}
+
+@Schema({ _id: false })
+export class Review {
+  createdBy: string;
+
+  @Prop({ default: true })
+  isContinueDating: boolean;
 }
 
 @Schema({ timestamps: true })
@@ -69,6 +75,9 @@ export class Schedule implements IEntity {
 
   @Prop({ type: [String], default: [] })
   excludedUsers: string[];
+
+  @Prop([{ type: Review, default: [] }])
+  reviews: Review[];
 
   @Prop({ default: true })
   isShowLocationDating: boolean;

@@ -1,11 +1,13 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { CrudRepo, DATABASE_TYPE, NotificationModelType, PROVIDER_REPO } from '@dating/common';
+import { CrudRepo, DATABASE_TYPE, NotificationModelType, NotificationStatus, PROVIDER_REPO } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
 import { Notification } from '@modules/notification/entities';
 import { User } from '@modules/users/entities';
+import { UpdateNotificationDto } from '@modules/notification/dto';
 
 export interface NotificationRepo extends CrudRepo<Notification> {
-  updateManyByReceiver(ids: string[], entities: Partial<Notification>, user: User): Promise<void>;
+  updateManyByIds(ids: string[], entities: Partial<Notification>, user: User): Promise<void>;
+  updateManyByFilter(filter: Partial<Notification>, update: UpdateNotificationDto): Promise<void>;
   deleteManyByReceiver(ids: string[], user: User): Promise<void>;
   deleteByFilter(filter: Partial<Notification>): Promise<void>;
 }
@@ -17,11 +19,15 @@ export class NotificationMongoRepo extends MongoRepo<Notification> {
     super(notificationModel);
   }
 
-  async updateManyByReceiver(ids: string[], entities: Partial<Notification>, user: User): Promise<void> {
+  async updateManyByIds(ids: string[], entities: Partial<Notification>, user: User): Promise<void> {
     await this.notificationModel.updateMany({ _id: { $in: ids }, receiver: user._id }, entities);
   }
 
-  async deleteManyByReceiver(ids: string[], user: User): Promise<void> {
+  async updateManyByFilter(filter: Partial<Notification>, update: UpdateNotificationDto): Promise<void> {
+    await this.notificationModel.updateMany(filter, update);
+  }
+
+  async deleteManyByIds(ids: string[], user: User): Promise<void> {
     await this.notificationModel.deleteMany({ _id: { $in: ids }, receiver: user._id });
   }
 

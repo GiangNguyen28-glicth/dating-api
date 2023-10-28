@@ -8,6 +8,8 @@ import { User } from '@modules/users/entities';
 export class UpdateNotificationDto implements Partial<Notification> {
   @ApiPropertyOptional({ type: NotificationStatus, enum: NotificationStatus })
   status?: NotificationStatus;
+
+  receiver?: string | User;
 }
 
 export class UpdateNotificationByUserDto {

@@ -1,6 +1,6 @@
 import { User } from '@modules/users/entities';
 import { Notification } from '../entities';
-import { NotificationType } from '@common/consts';
+import { NotificationStatus, NotificationType } from '@common/consts';
 import { Conversation } from '@modules/conversation/entities';
 import { Message } from '@modules/message/entities';
 import { Schedule } from '@modules/schedule/entities';
@@ -13,4 +13,5 @@ export class CreateNotificationDto implements Partial<Notification> {
   conversation?: Conversation;
   message?: Message;
   schedule?: Schedule;
+  status?: NotificationStatus;
 }

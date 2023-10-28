@@ -6,11 +6,17 @@ import { AtGuard } from '@common/guards';
 import { IResponse, IResult } from '@common/interfaces';
 import { User } from '@modules/users/entities';
 
-import { DeleteManyNotification, FilterGetAllNotification, UpdateNotificationByUserDto } from './dto';
+import {
+  DeleteManyNotification,
+  FilterGetAllNotification,
+  UpdateNotificationByUserDto,
+  UpdateNotificationDto,
+} from './dto';
 import { Notification } from './entities';
 import { NotificationService } from './notification.service';
 import { Schedule } from '@modules/schedule/entities';
 import { PaginationDTO } from '@common/dto';
+import { NotificationStatus } from '@common/consts';
 
 @ApiTags(Notification.name)
 @Controller('notification')
@@ -32,8 +38,13 @@ export class NotificationController {
   }
 
   @Get('count')
-  async findOne(@CurrentUser() user: User): Promise<IResponse> {
+  async count(@CurrentUser() user: User): Promise<IResponse> {
     return await this.notificationService.countNoti(user);
+  }
+
+  @Get('count-schedule')
+  async countSchedule(@CurrentUser() user: User): Promise<IResponse> {
+    return await this.notificationService.countSchedule(user);
   }
 
   @Delete(':id')
@@ -46,5 +57,14 @@ export class NotificationController {
   @ApiBody({ type: UpdateNotificationByUserDto })
   async updateMany(@Body() notiDto: UpdateNotificationByUserDto, @CurrentUser() user: User): Promise<IResponse> {
     return await this.notificationService.updateMany(notiDto, user);
+  }
+
+  @Patch('/schedule')
+  @ApiBearerAuth()
+  async updateNotiBySchedule(@CurrentUser() user: User): Promise<IResponse> {
+    const update: UpdateNotificationDto = {
+      status: NotificationStatus.RECEIVED,
+    };
+    return await this.notificationService.updateManyBySchedule(user, update);
   }
 }
