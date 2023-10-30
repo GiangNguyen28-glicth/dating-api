@@ -50,9 +50,9 @@ export class ReviewDetailDTO implements Partial<ReviewDetail> {
 }
 
 export class ReviewDatingDTO implements Partial<Review> {
+  @ApiProperty()
   createdAt?: Date;
 
-  @ApiProperty()
   createdBy: string;
 
   @ApiProperty({ type: [ReviewDetailDTO] })
