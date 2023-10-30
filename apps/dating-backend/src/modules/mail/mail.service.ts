@@ -1,9 +1,9 @@
-import { BadRequestException, CACHE_MANAGER, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
-import SMTPTransport from 'nodemailer/lib/smtp-transport';
+import { BadRequestException, CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Cache } from 'cache-manager';
-import { ConfigService } from '@nestjs/config';
+import * as nodemailer from 'nodemailer';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { ISendMail } from './interfaces';
 
 @Injectable()
@@ -40,28 +40,4 @@ export class MailService {
       throw error;
     }
   }
-
-  //   async confirmEmail(email: string, code: number): Promise<boolean> {
-  //     const [user, cacheValue] = await Promise.all([
-  //       this.userService.getOne({ email }),
-  //       this.cacheManager.get(`${Constants.VERIFY_ACCOUNT_CODE}_${email}`),
-  //     ]);
-  //     if (!user) {
-  //       throw new UnauthorizedException("This token can't use with email");
-  //     }
-  //     if (user.isConfirmMail) {
-  //       throw new BadRequestException('Email đã được xác thực');
-  //     }
-  //     if (cacheValue !== code) {
-  //       throw new BadRequestException('Code hiện tại không còn khả dụng !');
-  //     }
-  //     await Promise.all([
-  //       this.userService.findOneAndUpdate(
-  //         { email },
-  //         { $set: { isConfirmMail: true } },
-  //       ),
-  //       this.cacheManager.del(`${Constants.VERIFY_ACCOUNT_CODE}_${email}`),
-  //     ]);
-  //     return true;
-  //   }
 }

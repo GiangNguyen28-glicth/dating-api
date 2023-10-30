@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
 
-import { CreatedDatingType, MongoID, RequestDatingStatus } from '@common/consts';
+import { CreatedDatingType, DatingStatus, MongoID, RequestDatingStatus } from '@common/consts';
 import { IEntity } from '@common/interfaces';
 import { User } from '@modules/users/entities';
 
@@ -34,11 +34,30 @@ export class LocationDating {
 }
 
 @Schema({ _id: false })
+export class ReviewDetail {
+  @Prop({ trim: true })
+  question: string;
+
+  @Prop({ trim: true })
+  answer: string;
+}
+
+@Schema({ _id: false })
 export class Review {
+  @Prop()
   createdBy: string;
 
+  @Prop([{ type: ReviewDetail, default: [] }])
+  detail?: ReviewDetail[];
+
+  @Prop({ type: Date, default: new Date() })
+  createdAt?: Date;
+
   @Prop({ default: true })
-  isContinueDating: boolean;
+  isJoin: boolean;
+
+  @Prop({ type: String, enum: DatingStatus })
+  datingStatus?: DatingStatus;
 }
 
 @Schema({ timestamps: true })
@@ -59,7 +78,7 @@ export class Schedule implements IEntity {
   appointmentDate: Date;
 
   @Prop({ type: String, enum: Object.values(CreatedDatingType), default: CreatedDatingType.MANUAL })
-  createdTy: CreatedDatingType;
+  createdType: CreatedDatingType;
 
   @Prop({ type: [String], default: [] })
   locationDating: string[];

@@ -3,7 +3,7 @@ import { BadRequestException, ForbiddenException, Inject, Injectable } from '@ne
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { GoogleAuth } from 'google-auth-library';
-import { get } from 'lodash';
+import { get, isNil } from 'lodash';
 import { google } from 'googleapis';
 
 import {
@@ -26,8 +26,14 @@ import { NotificationService } from '@modules/notification/notification.service'
 import { SocketGateway } from '@modules/socket/socket.gateway';
 import { SocketService } from '@modules/socket/socket.service';
 
-import { CreateScheduleDTO, FilterGetAllScheduleDTO, SuggestLocationDTO, UpdateScheduleDTO } from './dto';
-import { LocationDating, Schedule } from './entities';
+import {
+  CreateScheduleDTO,
+  FilterGetAllScheduleDTO,
+  ReviewDatingDTO,
+  SuggestLocationDTO,
+  UpdateScheduleDTO,
+} from './dto';
+import { LocationDating, Review, Schedule } from './entities';
 import { IPayloadPlace, IReviewDating } from './interfaces';
 import { getAddress, getPlaceName, mappingPlaceDetail } from './utils';
 import { JwtService } from '@nestjs/jwt';
@@ -64,7 +70,7 @@ export class ScheduleService {
   ) {}
 
   async getSchedulePlaceDetail(_id: string, user: User): Promise<Schedule> {
-    const schedule = this.scheduleRepo.toJSON(await this.findOne(_id, user));
+    const schedule = this.scheduleRepo.toJSON(await this.findOne(_id, user._id.toString()));
     const locationsDating = await Promise.all(
       schedule.locationDating.map(async place_id => {
         const placeDetail = await this.getPlaceById(place_id);
@@ -82,7 +88,7 @@ export class ScheduleService {
     return schedule;
   }
 
-  async findOne(_id: string, user: User): Promise<Schedule> {
+  async findOne(_id: string, userId: string): Promise<Schedule> {
     try {
       const userField: string = ['_id', 'images', 'email', 'name'].join(' ');
       const schedule = await this.scheduleRepo.findOne({
@@ -94,10 +100,10 @@ export class ScheduleService {
       });
       throwIfNotExists(schedule, 'Không tìm thấy cuộc hẹn');
       const memberId: string =
-        get(schedule, 'receiver._id', null) == user._id.toString()
+        get(schedule, 'receiver._id', null) == userId
           ? get(schedule, 'sender._id', null)
           : get(schedule, 'receiver._id', null);
-      const conversation = await this.conversationService.findOneByMembers([user._id, memberId]);
+      const conversation = await this.conversationService.findOneByMembers([userId, memberId]);
       if (!conversation) {
         throw new ForbiddenException('Forbidden access');
       }
@@ -182,7 +188,7 @@ export class ScheduleService {
 
   async update(_id: string, updateDto: UpdateScheduleDTO, user: User): Promise<IResponse> {
     try {
-      const schedule = await this.findOne(_id, user);
+      const schedule = await this.findOne(_id, user._id.toString());
       await this.scheduleRepo.save(Object.assign(schedule, updateDto));
       return {
         success: true,
@@ -195,7 +201,7 @@ export class ScheduleService {
 
   async delete(_id: string, user: User): Promise<IResponse> {
     try {
-      const schedule = await this.findOne(_id, user);
+      const schedule = await this.findOne(_id, user._id.toString());
       schedule.isDeleted = true;
       await this.scheduleRepo.save(schedule);
       return {
@@ -525,12 +531,19 @@ export class ScheduleService {
     }
   }
 
-  async decodeReviewDating(token: string): Promise<IResponse> {
+  async reviewDating(token: string, review: ReviewDatingDTO): Promise<IResponse> {
     try {
-      const payload = await this.jwtService.verify(token, {
+      const payload: IReviewDating = await this.jwtService.verify(token, {
         secret: this.configService.get<string>('JWT_VERIFICATION_REVIEW_SCHEDULE_TOKEN_SECRET'),
       });
-      console.log(payload);
+      review.createdBy = payload.user;
+      const schedule = await this.findOne(payload.schedule, payload.user);
+      const isSubmitReview = schedule.reviews.find(review => review.createdBy === payload.user);
+      if (!isNil(isSubmitReview)) {
+        throw new BadRequestException('Đánh giá cho cuộc hẹn đã được submit');
+      }
+      schedule.reviews.push(review);
+      await this.scheduleRepo.save(schedule);
       return {
         success: true,
         message: 'Ok',
@@ -541,15 +554,46 @@ export class ScheduleService {
   }
 
   async sendReviewDating(): Promise<string> {
-    const payload = {
-      schedule: '653b5dafad999ede52bbae77',
-      user1: '64f08a5118c177fcf6952244',
-      user2: '64ee8e2eb274cf6e9e5a5762',
+    const payload: IReviewDating = {
+      schedule: '653c8006e2cda21eb19f8e26',
+      user: '64f08a5118c177fcf6952244',
     };
     const token = await this.jwtService.signAsync(payload, {
       secret: this.configService.get<string>('JWT_VERIFICATION_REVIEW_SCHEDULE_TOKEN_SECRET'),
       expiresIn: this.configService.get<number>('JWT_VERIFICATION_REVIEW_SCHEDULE_EXPIRATION_TIME'),
     });
     return token;
+  }
+
+  async verifyTokenReviewDating(token: string): Promise<IResponse> {
+    try {
+      const payload: IReviewDating = await this.jwtService.verify(token, {
+        secret: this.configService.get<string>('JWT_VERIFICATION_REVIEW_SCHEDULE_TOKEN_SECRET'),
+      });
+      const schedule = await this.findOne(payload.schedule, payload.user);
+      const currentUser = get(schedule, 'sender._id', null) === payload.user ? schedule.sender : schedule.receiver;
+      if (!schedule.reviews.length) {
+        return {
+          success: true,
+          data: {
+            schedule,
+            currentUser,
+          },
+        };
+      }
+      const isSubmitReview = schedule.reviews.find(review => review.createdBy === payload.user);
+      if (!isNil(isSubmitReview)) {
+        throw new BadRequestException('Đánh giá cho cuộc hẹn đã được submit');
+      }
+      return {
+        success: true,
+        data: {
+          schedule,
+          currentUser,
+        },
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 }

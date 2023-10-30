@@ -1,7 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty } from 'class-validator';
 
-import { LocationDating, Schedule } from '../entities';
+import { LocationDating, Review, ReviewDetail, Schedule } from '../entities';
+import { DatingStatus } from '@common/consts';
 
 export class LocationDatingDTO implements Partial<LocationDating> {
   @ApiPropertyOptional()
@@ -38,4 +39,29 @@ export class SuggestLocationDTO {
   @ApiProperty()
   @IsNotEmpty()
   location: string;
+}
+
+export class ReviewDetailDTO implements Partial<ReviewDetail> {
+  @ApiProperty()
+  question?: string;
+
+  @ApiProperty()
+  answer?: string;
+}
+
+export class ReviewDatingDTO implements Partial<Review> {
+  createdAt?: Date;
+
+  @ApiProperty()
+  createdBy: string;
+
+  @ApiProperty({ type: [ReviewDetailDTO] })
+  detail?: ReviewDetail[];
+
+  @ApiProperty()
+  @IsNotEmpty()
+  isJoin: boolean;
+
+  @ApiProperty({ type: 'enum', enum: DatingStatus })
+  datingStatus?: DatingStatus;
 }

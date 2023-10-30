@@ -25,6 +25,11 @@ export class FilterGetAll extends PaginationDTO {
   sort?: string[];
 }
 
+export class TokenDTO {
+  @ApiProperty()
+  token: string;
+}
+
 export class FilterGetOne {
   _id?: string;
   populate?: boolean;

@@ -1,13 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber } from 'class-validator';
+import { IsNumber } from 'class-validator';
 
 import { Currency, LimitType, OfferingType, RefreshIntervalUnit } from '@common/consts';
 
 import { Merchandising, MerchandisingItem, Offering, Package } from '../entities';
 export class PackageDTO implements Package {
-  @ApiProperty({ default: 300000 })
-  @IsNotEmpty()
   price: number;
+  save: number;
 
   @ApiProperty({ default: 300000 })
   @IsNumber()
@@ -84,6 +83,12 @@ export class MerchandisingDTO implements Merchandising {
 export class CreateOfferingDto implements Partial<Offering> {
   @ApiProperty()
   iconUrl?: string;
+
+  @ApiProperty()
+  text?: string;
+
+  @ApiProperty()
+  background?: string;
 
   @ApiProperty({ type: 'enum', enum: OfferingType })
   type?: OfferingType;

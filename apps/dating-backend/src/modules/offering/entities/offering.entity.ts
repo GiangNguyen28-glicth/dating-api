@@ -71,6 +71,9 @@ export class Package {
 
   @Prop({ type: Number })
   discount: number;
+
+  @Prop({ type: Number })
+  save: number;
 }
 
 @Schema({ timestamps: true })
@@ -80,6 +83,15 @@ export class Offering implements IEntity {
 
   @Prop({ trim: true })
   iconUrl: string;
+
+  @Prop({ trim: true, required: true })
+  text: string;
+
+  @Prop({ trim: true })
+  background: string;
+
+  @Prop({ trim: true })
+  primaryColor: string;
 
   @Prop({
     type: String,

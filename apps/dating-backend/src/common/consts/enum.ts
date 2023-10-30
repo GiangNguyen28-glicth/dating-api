@@ -152,7 +152,8 @@ export enum CreatedDatingType {
   AI = 'AI',
 }
 
-export enum ReactionStatus {
-  VERY_HAPPY = 'Very happy',
-  DISAPPOINTED = 'Disappointed',
+export enum DatingStatus {
+  YES = 'Yes',
+  NO = 'No',
+  HALFWAY = 'Halfway',
 }

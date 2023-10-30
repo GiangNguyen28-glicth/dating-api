@@ -1,7 +1,9 @@
-import { GoogleGuard, IResponse } from '@dating/common';
 import { Body, Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
+
+import { GoogleGuard, IResponse, TokenDTO } from '@dating/common';
+
 import { AuthService } from './auth.service';
 import { SmsDTO, VerifyOTPDTO } from './dto';
 import { IToken } from './interfaces';
@@ -25,14 +27,14 @@ export class AuthController {
 
   @Get('google/verify')
   @ApiQuery({ name: 'token', type: 'string' })
-  async verifyTokenGoogle(@Query() data): Promise<IToken> {
+  async verifyTokenGoogle(@Query() data: TokenDTO): Promise<IToken> {
     const { token } = data;
     return await this.authService.verifyTokenGoogle(token);
   }
 
   @Get('facebook/verify')
   @ApiQuery({ name: 'token', type: 'string' })
-  async verifyTokenFacebook(@Query() data): Promise<IToken> {
+  async verifyTokenFacebook(@Query() data: TokenDTO): Promise<IToken> {
     const { token } = data;
     return await this.authService.verifyTokenFacebook(token);
   }
