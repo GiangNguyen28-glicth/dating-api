@@ -27,7 +27,7 @@ export const QUEUE_NAME = {
   USER_IMAGES_BUILDER: 'user_images_builder',
   MESSAGE_IMAGES_BUILDER: 'message_images_builder',
   NOTIFICATION_UPDATER: 'notification_updater',
-  SEND_MAIL_SCHEDULE_DATING: 'send_mail_schedule_dating',
+  SEND_MAIL: 'send_mail',
 };
 
 export const RMQ_CHANNEL = {

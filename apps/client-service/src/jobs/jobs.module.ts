@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 import { BillingModule } from '@modules/billing';
 import { ScheduleModule } from '@modules/schedule';
+import { JwtService } from '@nestjs/jwt';
 
 import { Job, JobSchema } from './entities';
 import { BuilderService, PullerService, UpdaterService } from './processors';
@@ -13,6 +14,7 @@ import { ScheduleDatingJob, UpdateBillingExpiredJob, UpdateFeatureAccessJob } fr
 @Module({
   imports: [MongooseModule.forFeature([{ name: Job.name, schema: JobSchema }]), BillingModule, ScheduleModule],
   providers: [
+    JwtService,
     PullerService,
     BuilderService,
     UpdaterService,

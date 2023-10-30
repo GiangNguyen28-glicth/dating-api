@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import * as moment from 'moment-timezone';
 
 import { BillingProcess, BillingStatus, DEFAULT_LIKES_REMAINING, RequestDatingStatus } from '@common/consts';
 import { IOptionFilterGetAll } from '@common/interfaces';
@@ -11,10 +12,9 @@ import { ScheduleService } from '@modules/schedule/schedule.service';
 
 import { Billing } from '@modules/billing/entities';
 import { User } from '@modules/users/entities';
+import { Schedule } from '@modules/schedule/entities';
 
 import { Job, JobModelType } from '../entities';
-import { Schedule } from '@modules/schedule/entities';
-import * as moment from 'moment-timezone';
 import { Types } from 'mongoose';
 
 @Injectable()
@@ -53,13 +53,33 @@ export class PullerService {
   }
 
   async getScheduleByAppointmentDate(job: Job): Promise<Schedule[]> {
+    let cursor = null;
+    if (job.lastId) {
+      cursor = new Types.ObjectId(job.lastId);
+    }
     const startOfDate = moment.tz('Asia/Ho_Chi_Minh').startOf('day');
-    const tomorrow = moment.tz('Asia/Ho_Chi_Minh').startOf('day').add(1, 'day').endOf('day');
+    const tomorrow = moment.tz('Asia/Ho_Chi_Minh').add(1, 'day').endOf('day');
     const [queryFilter, sortOption] = new FilterBuilder<Schedule>()
       .setFilterItem('status', '$eq', RequestDatingStatus.ACCEPT)
       .setFilterItem('isDeleted', '$eq', false, true)
       .setFilterItemWithObject('appointmentDate', { $lte: tomorrow, $gte: startOfDate })
-      // .setFilterItem('_id', '$gte', new Types.ObjectId(job.lastId) || null)
+      .setFilterItem('_id', '$gte', cursor)
+      .setSortItem('_id', 'asc')
+      .buildQuery();
+    return await this.scheduleService.getScheduleByAppointmentDateJob(queryFilter, sortOption);
+  }
+
+  async getScheduleToReview(job: Job): Promise<Schedule[]> {
+    let cursor = null;
+    if (job.lastId) {
+      cursor = new Types.ObjectId(job.lastId);
+    }
+    const yesterday = moment.tz('Asia/Ho_Chi_Minh').startOf('day').subtract(1, 'day').startOf('day');
+    const [queryFilter, sortOption] = new FilterBuilder<Schedule>()
+      .setFilterItem('status', '$eq', RequestDatingStatus.ACCEPT)
+      .setFilterItem('isDeleted', '$eq', false, true)
+      .setFilterItemWithObject('appointmentDate', { $gte: yesterday })
+      .setFilterItem('_id', '$gte', cursor)
       .setSortItem('_id', 'asc')
       .buildQuery();
     return await this.scheduleService.getScheduleByAppointmentDateJob(queryFilter, sortOption);

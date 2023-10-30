@@ -22,7 +22,7 @@ export class SendMailConsumer implements OnModuleInit, OnModuleDestroy {
     this.channel = await this.rabbitService.createChannel(RMQ_CHANNEL.MAIL_CHANNEL);
     await this.rabbitService.assertQueue(
       {
-        queue: QUEUE_NAME.SEND_MAIL_SCHEDULE_DATING,
+        queue: QUEUE_NAME.SEND_MAIL,
         options: {
           durable: true,
           arguments: {
@@ -39,7 +39,7 @@ export class SendMailConsumer implements OnModuleInit, OnModuleDestroy {
   async consumeSendMail(): Promise<void> {
     const hook = async () => {
       this.channel.consume(
-        QUEUE_NAME.SEND_MAIL_SCHEDULE_DATING,
+        QUEUE_NAME.SEND_MAIL,
         async msg => {
           try {
             const content: ISendMail = this.rabbitService.getContentFromMessage(msg);

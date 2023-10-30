@@ -1,6 +1,7 @@
 import { Global, Module } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 
-import { BillingModule } from '@dating/modules';
+import { BillingModule } from '@modules/billing';
 import { MessageModule } from '@modules/message';
 
 import { MessageConsumer, PaymentConsumer, SendMailConsumer, UserConsumer } from './consumer';
@@ -8,7 +9,7 @@ import { MessageConsumer, PaymentConsumer, SendMailConsumer, UserConsumer } from
 @Global()
 @Module({
   imports: [BillingModule, MessageModule],
-  providers: [PaymentConsumer, UserConsumer, MessageConsumer, SendMailConsumer],
+  providers: [JwtService, PaymentConsumer, UserConsumer, MessageConsumer, SendMailConsumer],
   exports: [],
 })
 export class RabbitConsumerModule {}

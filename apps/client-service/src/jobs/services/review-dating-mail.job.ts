@@ -2,11 +2,15 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { CronJob } from 'cron';
 import { ConfirmChannel } from 'amqplib';
 import { get } from 'lodash';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 import { JobStatus, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
 import { RabbitService } from '@app/shared';
 
+import { IReviewDating } from '@modules/schedule/interfaces';
 import { Schedule } from '@modules/schedule/entities';
+
 import { Job } from '../entities';
 import { IJobProcessors } from '../interfaces';
 import { JobsService } from '../jobs.service';
@@ -15,7 +19,7 @@ import { PullerService } from '../processors';
 const SENT_NOTIFICATION_SCHEDULE_APPOINTMENT_DATE_TO_MAIL = 'SENT_NOTIFICATION_SCHEDULE_APPOINTMENT_DATE_TO_MAIL';
 
 @Injectable()
-export class ScheduleDatingJob implements IJobProcessors, OnModuleInit {
+export class ReviewDatingJob implements IJobProcessors, OnModuleInit {
   private cronJob: CronJob;
   private channel: ConfirmChannel;
 
@@ -23,11 +27,13 @@ export class ScheduleDatingJob implements IJobProcessors, OnModuleInit {
     private pullerService: PullerService,
     private jobService: JobsService,
     private rabbitService: RabbitService,
+    private jwtService: JwtService,
+    private configService: ConfigService,
   ) {
     this.cronJob = new CronJob(
       '45 12 * * *',
       async () => {
-        console.log('ScheduleDatingJob');
+        console.log('ReviewDatingJob');
         await this.process();
         // your code to run every 12PM
       },
@@ -65,7 +71,7 @@ export class ScheduleDatingJob implements IJobProcessors, OnModuleInit {
     };
     const jobDoc = await this.jobService.createJob(job);
     try {
-      const schedules = await this.pullerService.getScheduleByAppointmentDate(job);
+      const schedules = await this.pullerService.getScheduleToReview(job);
       job.totalUpdate = schedules.length;
       await this.processSendMail(schedules, jobDoc);
       jobDoc.status = JobStatus.DONE;
@@ -77,6 +83,14 @@ export class ScheduleDatingJob implements IJobProcessors, OnModuleInit {
       await this.jobService.save(job);
       return;
     }
+  }
+
+  async getToken(payload: IReviewDating): Promise<string> {
+    const token = await this.jwtService.signAsync(payload, {
+      secret: this.configService.get<string>('JWT_VERIFICATION_REVIEW_SCHEDULE_TOKEN_SECRET'),
+      expiresIn: this.configService.get<number>('JWT_VERIFICATION_REVIEW_SCHEDULE_EXPIRATION_TIME'),
+    });
+    return token;
   }
 
   async processSendMail(schedules: Schedule[], job: Job): Promise<void> {
