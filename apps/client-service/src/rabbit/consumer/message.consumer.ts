@@ -1,18 +1,21 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
 
 import { RabbitService } from '@app/shared';
-import { QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
+import { DATABASE_TYPE, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
 import { IMessageImageBuilder } from '@common/message';
 import { MessageService } from '@modules/message';
 import { ImageService } from '../../images/image.service';
+import { MessageRepo } from '@dating/repositories';
 
 @Injectable()
 export class MessageConsumer implements OnModuleInit, OnModuleDestroy {
   private channel: ConfirmChannel;
 
   constructor(
-    private messageService: MessageService,
+    @Inject(PROVIDER_REPO.MESSAGE + DATABASE_TYPE.MONGO)
+    private messageRepo: MessageRepo,
+
     private rabbitService: RabbitService,
     private imageService: ImageService,
   ) {}
@@ -71,7 +74,7 @@ export class MessageConsumer implements OnModuleInit, OnModuleDestroy {
           }
         }),
       );
-      await this.messageService.findOneAndUpdate(messageId, { images });
+      await this.messageRepo.findOneAndUpdate(messageId, { images });
     } catch (error) {
       throw error;
     }

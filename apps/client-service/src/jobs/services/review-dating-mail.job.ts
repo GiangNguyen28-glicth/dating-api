@@ -16,7 +16,7 @@ import { IJobProcessors } from '../interfaces';
 import { JobsService } from '../jobs.service';
 import { PullerService } from '../processors';
 
-const SENT_NOTIFICATION_SCHEDULE_APPOINTMENT_DATE_TO_MAIL = 'SENT_NOTIFICATION_SCHEDULE_APPOINTMENT_DATE_TO_MAIL';
+const REVIEW_DATING = 'REVIEW_DATING';
 
 @Injectable()
 export class ReviewDatingJob implements IJobProcessors, OnModuleInit {
@@ -65,7 +65,7 @@ export class ReviewDatingJob implements IJobProcessors, OnModuleInit {
 
   async process(): Promise<void> {
     const job: Job = {
-      name: SENT_NOTIFICATION_SCHEDULE_APPOINTMENT_DATE_TO_MAIL,
+      name: REVIEW_DATING,
       status: JobStatus.TODO,
       numOfProcessRecord: 0,
     };
@@ -96,34 +96,34 @@ export class ReviewDatingJob implements IJobProcessors, OnModuleInit {
   async processSendMail(schedules: Schedule[], job: Job): Promise<void> {
     try {
       for (const schedule of schedules) {
-        let totalProcess = 0;
         const senderMail: string = get(schedule, 'sender.email', null);
         if (senderMail) {
+          const token = await this.getToken({ schedule: schedule._id, user: get(schedule, 'sender._id', null) });
           await this.rabbitService.sendToQueue(
             QUEUE_NAME.SEND_MAIL,
             {
               to: senderMail,
               subject: 'Hello world',
-              html: '<p>Haha</p>',
+              html: `<p>${token}</p>`,
             },
             RMQ_CHANNEL.MAIL_CHANNEL,
           );
-          totalProcess++;
         }
         const receiverMail: string = get(schedule, 'receiver.email', null);
         if (receiverMail) {
+          const token = await this.getToken({ schedule: schedule._id, user: get(schedule, 'receiver._id', null) });
           await this.rabbitService.sendToQueue(
             QUEUE_NAME.SEND_MAIL,
             {
               to: receiverMail,
               subject: 'Hello world',
-              html: '<p>Haha</p>',
+              html: `<p>${token}</p>`,
             },
             RMQ_CHANNEL.MAIL_CHANNEL,
           );
-          totalProcess++;
         }
-        job.numOfProcessRecord += totalProcess;
+        job.numOfProcessRecord += 1;
+        job.lastId = schedule._id;
         await this.jobService.save(job);
       }
     } catch (error) {

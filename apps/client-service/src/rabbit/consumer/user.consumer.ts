@@ -1,23 +1,25 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
 import { isNil } from 'lodash';
 
 import { RabbitService } from '@app/shared';
-import { QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
-import { UserService } from '@modules/users/users.service';
+import { DATABASE_TYPE, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
 import { IUserImageBuilder } from '@common/message';
 
-import { SpotifyInfo, User } from '@modules/users/entities';
 import { ImageDTO } from '@modules/users/dto';
+import { SpotifyInfo, User } from '@modules/users/entities';
 import { ImageService } from '../../images/image.service';
+import { UserRepo } from '@dating/repositories';
 
 @Injectable()
 export class UserConsumer implements OnModuleInit, OnModuleDestroy {
   private channel: ConfirmChannel;
 
   constructor(
+    @Inject(PROVIDER_REPO.USER + DATABASE_TYPE.MONGO)
+    private userRepo: UserRepo,
+
     private rabbitService: RabbitService,
-    private userService: UserService,
     private imageService: ImageService,
   ) {}
 
@@ -90,7 +92,7 @@ export class UserConsumer implements OnModuleInit, OnModuleDestroy {
       if (msg.spotifyInfo) {
         entities.spotifyInfo = await this.processBlurImagesSpotify(msg.spotifyInfo);
       }
-      await this.userService.findOneAndUpdate(msg.userId, entities);
+      await this.userRepo.findOneAndUpdate(msg.userId, entities);
     } catch (error) {
       throw error;
     }

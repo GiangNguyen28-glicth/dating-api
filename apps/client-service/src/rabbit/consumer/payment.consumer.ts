@@ -1,20 +1,23 @@
+import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 
-import { BillingStatus, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
 import { RabbitService } from '@app/shared';
+import { BillingStatus, DATABASE_TYPE, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
 import { IPaymentMessage } from '@common/message';
 
-import { UserService } from '@modules/users/users.service';
-import { BillingService } from '@modules/billing/billing.service';
+import { BillingRepo, UserRepo } from '@dating/repositories';
 
 @Injectable()
 export class PaymentConsumer implements OnModuleInit, OnModuleDestroy {
   private channel: ConfirmChannel;
 
   constructor(
-    private userService: UserService,
-    private billingService: BillingService,
+    @Inject(PROVIDER_REPO.USER + DATABASE_TYPE.MONGO)
+    private userRepo: UserRepo,
+
+    @Inject(PROVIDER_REPO.BILLING + DATABASE_TYPE.MONGO)
+    private billingRepo: BillingRepo,
+
     private rabbitService: RabbitService,
   ) {}
 
@@ -63,10 +66,10 @@ export class PaymentConsumer implements OnModuleInit, OnModuleDestroy {
 
   async updateUserFeatureAccess(msg: IPaymentMessage) {
     try {
-      await this.billingService.findOneAndUpdate(msg.billingId, {
+      await this.billingRepo.findOneAndUpdate(msg.billingId, {
         status: BillingStatus.SUCCESS,
       });
-      await this.userService.findOneAndUpdate(msg.userId, {
+      await this.userRepo.findOneAndUpdate(msg.userId, {
         featureAccess: msg.featureAccess,
       });
     } catch (error) {

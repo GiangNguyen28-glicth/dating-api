@@ -4,16 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { GoogleAuth } from 'google-auth-library';
 import { get, isNil } from 'lodash';
-import { google } from 'googleapis';
 
-import {
-  DATABASE_TYPE,
-  NotificationStatus,
-  NotificationType,
-  PROVIDER_REPO,
-  RequestDatingStatus,
-  SortQuery,
-} from '@common/consts';
+import { DATABASE_TYPE, NotificationType, PROVIDER_REPO, RequestDatingStatus, SortQuery } from '@common/consts';
 import { IResponse, IResult } from '@common/interfaces';
 import { ScheduleRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
@@ -26,6 +18,7 @@ import { NotificationService } from '@modules/notification/notification.service'
 import { SocketGateway } from '@modules/socket/socket.gateway';
 import { SocketService } from '@modules/socket/socket.service';
 
+import { JwtService } from '@nestjs/jwt';
 import {
   CreateScheduleDTO,
   FilterGetAllScheduleDTO,
@@ -33,10 +26,9 @@ import {
   SuggestLocationDTO,
   UpdateScheduleDTO,
 } from './dto';
-import { LocationDating, Review, Schedule } from './entities';
+import { LocationDating, Schedule } from './entities';
 import { IPayloadPlace, IReviewDating } from './interfaces';
 import { getAddress, getPlaceName, mappingPlaceDetail } from './utils';
-import { JwtService } from '@nestjs/jwt';
 
 const serviceAccountInfo = {
   type: 'service_account',
