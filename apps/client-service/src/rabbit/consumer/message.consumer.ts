@@ -4,9 +4,9 @@ import { ConfirmChannel } from 'amqplib';
 import { RabbitService } from '@app/shared';
 import { DATABASE_TYPE, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
 import { IMessageImageBuilder } from '@common/message';
-import { MessageService } from '@modules/message';
-import { ImageService } from '../../images/image.service';
 import { MessageRepo } from '@dating/repositories';
+
+import { ImageService } from '../../images/image.service';
 
 @Injectable()
 export class MessageConsumer implements OnModuleInit, OnModuleDestroy {

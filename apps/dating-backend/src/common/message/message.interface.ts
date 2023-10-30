@@ -1,11 +1,11 @@
 import { ImageDTO } from '@modules/users/dto';
-import { FeatureAccess, SpotifyInfo } from '@modules/users/entities';
+import { FeatureAccessItem, SpotifyInfo } from '@modules/users/entities';
 import { Notification } from '@modules/notification/entities';
 //============= PAYMENT MESSAGE //=============
 export interface IPaymentMessage {
   userId?: string;
   billingId?: string;
-  featureAccess: FeatureAccess;
+  featureAccess: FeatureAccessItem[];
 }
 
 //============= USER MESSAGE //=============

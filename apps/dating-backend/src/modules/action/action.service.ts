@@ -1,6 +1,6 @@
 import { BadRequestException, Inject, Injectable, forwardRef } from '@nestjs/common';
 
-import { DATABASE_TYPE, MatchRqStatus, PROVIDER_REPO } from '@common/consts';
+import { DATABASE_TYPE, LimitType, MatchRqStatus, MerchandisingType, PROVIDER_REPO } from '@common/consts';
 import { IResponse } from '@common/interfaces';
 import { ActionRepo } from '@dating/repositories';
 import { FilterBuilder, throwIfNotExists } from '@dating/utils';
@@ -48,7 +48,9 @@ export class ActionService {
 
   async like(sender: User, receiverId: string): Promise<IResponse> {
     try {
-      if (!sender.featureAccess.likes.unlimited && sender.featureAccess.likes.amount < 1) {
+      const idxLike = sender.featureAccess.findIndex(item => item.name === MerchandisingType.LIKE);
+      const inxBlur = sender.featureAccess.findIndex(item => item.name === MerchandisingType.UN_BLUR);
+      if (!sender.featureAccess[idxLike].unlimited && sender.featureAccess[idxLike].amount < 1) {
         throw new BadRequestException('Đã sử dụng hết lượt like ngày hôm nay');
       }
       const receiver = await this.userService.findOne({ _id: receiverId });
@@ -67,7 +69,7 @@ export class ActionService {
       const socketIdsClient = await this.socketService.getSocketIdsMatchedUser(sender._id.toString(), receiverId);
 
       if (matchRq) {
-        if (!receiver.featureAccess.blur) {
+        if (!receiver.featureAccess[inxBlur].unlimited) {
           sender.images = [];
         }
         await this.matchReqService.matched(sender, receiver, socketIdsClient, matchRq);
@@ -85,20 +87,15 @@ export class ActionService {
         message: 'Like thành công',
       };
 
-      if (!sender.featureAccess.likes.unlimited) {
+      if (!sender.featureAccess[idxLike].unlimited) {
+        sender.featureAccess[idxLike].amount = sender.featureAccess[idxLike].amount - 1;
         await this.userService.findOneAndUpdate(sender._id, {
-          featureAccess: {
-            likes: {
-              unlimited: false,
-              amount: sender.featureAccess.likes.amount - 1,
-            },
-            rewind: sender.featureAccess.rewind,
-          },
+          featureAccess: sender.featureAccess,
         });
         resp['data'] = {
           featureAccess: {
             likes: {
-              amount: sender.featureAccess.likes.amount - 1,
+              amount: sender.featureAccess[idxLike].amount - 1,
             },
           },
         };

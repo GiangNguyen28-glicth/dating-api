@@ -1,21 +1,21 @@
 import { BadRequestException, Inject, Injectable, OnModuleInit, forwardRef } from '@nestjs/common';
+import { ConfirmChannel } from 'amqplib';
 import axios from 'axios';
 import { v2 } from 'cloudinary';
 import * as _ from 'lodash';
 import { Types } from 'mongoose';
-import { ConfirmChannel } from 'amqplib';
-import { GoogleAuth } from 'google-auth-library';
 
-import { DATABASE_TYPE, LookingFor, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
-import { FilterBuilder } from '@dating/utils';
-import { ActionService } from '@modules/action/action.service';
-import { IResponse } from '@common/interfaces';
 import { RabbitService } from '@app/shared';
+import { DATABASE_TYPE, LookingFor, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
+import { IResponse } from '@common/interfaces';
 import { UserRepo } from '@dating/repositories';
+import { FilterBuilder } from '@dating/utils';
 
+import { ActionService } from '@modules/action/action.service';
+
+import { UpdateUserProfileDto, calField } from '../dto';
 import { Image, SpotifyInfo, User, UserAddress } from '../entities';
 import { InsPayload, SpotifyPayload } from '../interfaces';
-import { UpdateUserProfileDto, calField } from '../dto';
 
 @Injectable()
 export class UserHelper implements OnModuleInit {

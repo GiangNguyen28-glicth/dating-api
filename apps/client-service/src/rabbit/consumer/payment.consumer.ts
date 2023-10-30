@@ -2,10 +2,9 @@ import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/commo
 import { ConfirmChannel } from 'amqplib';
 
 import { RabbitService } from '@app/shared';
+import { BillingRepo, UserRepo } from '@dating/repositories';
 import { BillingStatus, DATABASE_TYPE, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
 import { IPaymentMessage } from '@common/message';
-
-import { BillingRepo, UserRepo } from '@dating/repositories';
 
 @Injectable()
 export class PaymentConsumer implements OnModuleInit, OnModuleDestroy {

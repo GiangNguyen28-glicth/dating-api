@@ -7,15 +7,15 @@ import { BillingStatus, LimitType, QUEUE_NAME, RMQ_CHANNEL, RefreshIntervalUnit 
 import { IResponse } from '@common/interfaces';
 import { BillingService } from '@modules/billing/billing.service';
 import { Billing } from '@modules/billing/entities';
-import { Offering, Package } from '@modules/offering/entities';
+import { MerchandisingItem, Offering, Package } from '@modules/offering/entities';
 import { OfferingService } from '@modules/offering/offering.service';
-import { FeatureAccess, User } from '@modules/users/entities';
 import { docToObject } from '@dating/utils';
 
 import { CheckoutDTO } from './dto/card.dto';
 import { StripePaymentStrategy } from './strategies/stripe.strategy';
 import { RabbitService } from '@app/shared';
 import { IPaymentMessage } from '@common/message';
+import { FeatureAccessItem, User } from '@modules/users/entities';
 
 @Injectable()
 export class PaymentService implements OnModuleInit {
@@ -103,17 +103,16 @@ export class PaymentService implements OnModuleInit {
     return new Date(now.toISOString());
   }
 
-  buildMessage(offering: Offering, _package: Package, featureAccess: FeatureAccess): IPaymentMessage {
+  buildMessage(offering: Offering, _package: Package, featureAccess: FeatureAccessItem[]): IPaymentMessage {
     const { merchandising } = docToObject(offering);
 
-    for (const key in merchandising) {
-      if (!merchandising[key]) {
-        continue;
-      }
-      if (merchandising[key].type == LimitType.UNLIMITED) {
-        featureAccess[key].unlimited = true;
+    for (const merchandisingItem of merchandising) {
+      const index = featureAccess.findIndex(item => item.name === merchandisingItem.name);
+      if (merchandisingItem.type == LimitType.UNLIMITED) {
+        featureAccess[index].unlimited = true;
       } else {
-        featureAccess[key].amount = _package.refreshInterval;
+        featureAccess[index].unlimited = false;
+        featureAccess[index].amount = _package.refreshInterval;
       }
     }
     return {

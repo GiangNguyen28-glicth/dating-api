@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
 import { BillingProcess, BillingStatus, MongoID } from '@common/consts';
 import { IEntity } from '@common/interfaces';
-import { Merchandising, Offering, Package } from '@modules/offering/entities';
+import { MerchandisingItem, Offering, Package } from '@modules/offering/entities';
 import { User } from '@modules/users/entities';
 
 @Schema({ timestamps: true })
@@ -19,8 +19,8 @@ export class Billing implements IEntity {
   @Prop({ type: Package })
   latestPackage: Package;
 
-  @Prop({ type: Merchandising })
-  lastMerchandising: Merchandising;
+  @Prop([{ type: MerchandisingItem }])
+  lastMerchandising: MerchandisingItem[];
 
   @Prop({ type: String, enum: Object.values(BillingStatus) })
   status: BillingStatus;

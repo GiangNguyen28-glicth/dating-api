@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { BillingProcess, DEFAULT_LIKES_REMAINING } from '@common/consts';
 
-import { FeatureAccess, User } from '@modules/users/entities';
+import { User } from '@modules/users/entities';
 import { Billing } from '@modules/billing/entities';
 
 import { IUpdateMany } from '../interfaces';
@@ -25,7 +25,7 @@ export class BuilderService {
     const updateMany: IUpdateMany<User> = {
       ids: userIds,
       entities: {
-        featureAccess: new FeatureAccess(),
+        featureAccess: User.getDefaultFeatureAccess(),
       },
     };
     return updateMany;

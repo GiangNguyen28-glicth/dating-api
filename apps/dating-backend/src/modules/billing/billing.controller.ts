@@ -15,10 +15,7 @@ export class BillingController {
   constructor(private readonly billingService: BillingService) {}
 
   @Get()
-  async findAllByUser(
-    @Query() filter: FilterGetAllBillingDTO,
-    @CurrentUser() user: User,
-  ): Promise<IResult<Billing>> {
+  async findAllByUser(@Query() filter: FilterGetAllBillingDTO, @CurrentUser() user: User): Promise<IResult<Billing>> {
     return await this.billingService.findAll(filter, user);
   }
 

@@ -4,6 +4,7 @@ import {
   Gender,
   IEntity,
   LookingFor,
+  MerchandisingType,
   MongoID,
   RegisterType,
   RelationshipModeType,
@@ -12,6 +13,7 @@ import {
 } from '@dating/common';
 import { Relationship } from '@modules/relationship/entities';
 import { Tag } from '@modules/tag/entities';
+import { MerchandisingItem } from '@modules/offering/entities';
 
 @Schema({ _id: false })
 export class Image {
@@ -27,6 +29,9 @@ export class Image {
 
 @Schema({ _id: false })
 export class FeatureAccessItem {
+  @Prop({ type: String, enum: MerchandisingType })
+  name: MerchandisingType;
+
   @Prop({ type: Boolean, default: false })
   unlimited?: boolean;
 
@@ -47,30 +52,6 @@ export class ControlWhoYouSee {
 export class ControlWhoSeesYou {
   @Prop({ default: false })
   onlyPeopleIveLiked: boolean;
-}
-
-@Schema({ _id: false })
-export class FeatureAccess {
-  @Prop({ type: FeatureAccessItem, default: new FeatureAccessItem(0) })
-  blur?: FeatureAccessItem;
-
-  @Prop({ type: FeatureAccessItem, default: new FeatureAccessItem(100) })
-  likes?: FeatureAccessItem;
-
-  @Prop({ type: FeatureAccessItem, default: new FeatureAccessItem(0) })
-  rewind?: FeatureAccessItem;
-
-  @Prop({ type: FeatureAccessItem, default: new FeatureAccessItem(0) })
-  superLike?: FeatureAccessItem;
-
-  @Prop({ type: FeatureAccessItem, default: new FeatureAccessItem(0) })
-  hideAds?: FeatureAccessItem;
-
-  @Prop({ type: FeatureAccessItem, default: new FeatureAccessItem(0) })
-  controlWhoSeesYou?: FeatureAccessItem;
-
-  @Prop({ type: FeatureAccessItem, default: new FeatureAccessItem(0) })
-  controlWhoYouSee?: FeatureAccessItem;
 }
 
 @Schema({ _id: false })
@@ -260,8 +241,8 @@ export class User implements IEntity {
   @Prop({ type: UserSetting, default: new UserSetting() })
   setting: UserSetting;
 
-  @Prop({ type: FeatureAccess, default: new FeatureAccess() })
-  featureAccess: FeatureAccess;
+  @Prop([{ type: FeatureAccessItem }, { default: User.getDefaultFeatureAccess() }])
+  featureAccess: FeatureAccessItem[];
 
   @Prop({ type: String, enum: Object.values(Role) })
   role: Role;
@@ -322,6 +303,26 @@ export class User implements IEntity {
 
   createdAt?: Date;
   updatedAt?: Date;
+
+  static getDefaultFeatureAccess(): FeatureAccessItem[] {
+    const defaultValue: FeatureAccessItem[] = [];
+    const defaultType = [MerchandisingType.HIDE_ADS, MerchandisingType.SUPER_LIKE, MerchandisingType.UN_BLUR];
+    for (const i in defaultType) {
+      defaultValue.push({ name: defaultType[i], unlimited: false, amount: 0 });
+    }
+    return defaultValue.concat([
+      {
+        name: MerchandisingType.LIKE,
+        unlimited: false,
+        amount: 20,
+      },
+      {
+        name: MerchandisingType.REWIND,
+        unlimited: false,
+        amount: 2,
+      },
+    ]);
+  }
 }
 export const UserSchema = SchemaFactory.createForClass(User);
 UserSchema.index({

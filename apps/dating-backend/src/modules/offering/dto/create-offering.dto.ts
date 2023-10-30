@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber } from 'class-validator';
 
-import { Currency, LimitType, OfferingType, RefreshIntervalUnit } from '@common/consts';
+import { Currency, LimitType, MerchandisingType, OfferingType, RefreshIntervalUnit } from '@common/consts';
 
-import { Merchandising, MerchandisingItem, Offering, Package } from '../entities';
+import { MerchandisingItem, Offering, Package } from '../entities';
 export class PackageDTO implements Package {
   price: number;
   save: number;
@@ -32,6 +32,9 @@ export class PackageDTO implements Package {
 }
 
 export class MerchandisingItemDTO implements MerchandisingItem {
+  @ApiProperty({ type: 'enum', enum: MerchandisingType })
+  name: MerchandisingType;
+
   @ApiProperty({ type: 'enum', enum: LimitType, default: LimitType.UNLIMITED })
   type: LimitType;
 
@@ -57,29 +60,6 @@ export class MerchandisingItemDTO implements MerchandisingItem {
   @IsNumber()
   refreshIntervalUnit: RefreshIntervalUnit;
 }
-
-export class MerchandisingDTO implements Merchandising {
-  @ApiProperty({ type: MerchandisingItemDTO })
-  blur: MerchandisingItem;
-
-  @ApiProperty({ type: MerchandisingItemDTO })
-  hideAds: MerchandisingItem;
-
-  @ApiProperty({ type: MerchandisingItemDTO })
-  rewind: MerchandisingItem;
-
-  @ApiProperty({ type: MerchandisingItemDTO })
-  controlWhoSeesYou: MerchandisingItem;
-
-  @ApiProperty({ type: MerchandisingItemDTO })
-  controlWhoYouSee: MerchandisingItem;
-
-  @ApiProperty({ type: MerchandisingItemDTO })
-  likes: MerchandisingItem;
-
-  @ApiProperty({ type: MerchandisingItemDTO })
-  superLike: MerchandisingItem;
-}
 export class CreateOfferingDto implements Partial<Offering> {
   @ApiProperty()
   iconUrl?: string;
@@ -96,6 +76,6 @@ export class CreateOfferingDto implements Partial<Offering> {
   @ApiProperty({ type: [PackageDTO] })
   packages?: Package[];
 
-  @ApiProperty({ type: MerchandisingDTO })
-  merchandising?: Merchandising;
+  @ApiProperty({ type: [MerchandisingItemDTO] })
+  merchandising?: MerchandisingItem[];
 }

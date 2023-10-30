@@ -4,6 +4,8 @@ import { map } from 'rxjs/operators';
 import { IResult } from '@common/interfaces';
 import { User } from '@modules/users/entities';
 import { MatchRequest } from '../entities';
+import { LimitType, MerchandisingType } from '@common/consts';
+import { isNil } from 'lodash';
 
 @Injectable()
 export class BlurImageInterceptor implements NestInterceptor {
@@ -12,7 +14,8 @@ export class BlurImageInterceptor implements NestInterceptor {
     const user: User = request.user;
     return next.handle().pipe(
       map((data: IResult<MatchRequest>) => {
-        if (user.featureAccess.blur.unlimited) {
+        const unBlur = user.featureAccess.find(item => item.name === MerchandisingType.UN_BLUR && item.unlimited);
+        if (!isNil(unBlur)) {
           return data;
         }
 

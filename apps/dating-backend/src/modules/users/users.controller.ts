@@ -1,6 +1,7 @@
 import { AtGuard, CurrentUser, IResponse, IResult, PaginationDTO } from '@dating/common';
-import { Body, Controller, Delete, Get, Patch, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Patch, Post, Query, UseGuards, UseInterceptors, Param } from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiTags, ApiParam } from '@nestjs/swagger';
+import { throwIfNotExists } from '@dating/utils';
 import {
   UpdateUserLocationDTO,
   UpdateUserProfileDto,
@@ -24,23 +25,28 @@ export class UsersController {
     return await this.userService.populateTag(user);
   }
 
-  // @Get(':id')
-  // @ApiParam({ type: 'string', name: 'id' })
-  // async findOne(@Param('id') id: string) {
-  //   try {
-  //     const user = await this.userService.findOne({ _id: id });
-  //     throwIfNotExists(user, 'Không tìm thấy User');
-  //     return user;
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // }
-
   @Get('recommendation')
   @ApiBearerAuth()
   @UseGuards(AtGuard)
   async recommendation(@CurrentUser() user: User, @Query() pagination: PaginationDTO): Promise<IResult<User>> {
     return await this.userService.recommendation(user, pagination);
+  }
+
+  @Get('migrate')
+  async migrate() {
+    return this.userService.migrate();
+  }
+
+  @Get(':id')
+  @ApiParam({ type: 'string', name: 'id' })
+  async findOne(@Param('id') id: string) {
+    try {
+      const user = await this.userService.findOne({ _id: id });
+      throwIfNotExists(user, 'Không tìm thấy User');
+      return user;
+    } catch (error) {
+      throw error;
+    }
   }
 
   @Patch('update_profile')
@@ -104,10 +110,5 @@ export class UsersController {
   @Delete('deleteMany')
   async deleteMany() {
     return this.userService.deleteMany();
-  }
-
-  @Get('migrate')
-  async migrate() {
-    return this.userService.migrate();
   }
 }

@@ -32,13 +32,15 @@ export class UserMongoRepo extends MongoRepo<User> {
   async migrateData(): Promise<User[]> {
     const users = await this.userModel.find();
     for (const user of users) {
-      // user.tags = [
-      //   '64ee243aa7626b0485f03331',
-      //   '64ee243aa7626b0485f03350',
-      //   '64ee243aa7626b0485f0336b',
-      //   '64ee243aa7626b0485f03345',
-      //   '64ee243aa7626b0485f03325',
-      // ];
+      const tags: any[] = [
+        '64ee243aa7626b0485f03331',
+        '64ee243aa7626b0485f03350',
+        '64ee243aa7626b0485f0336b',
+        '64ee243aa7626b0485f03345',
+        '64ee243aa7626b0485f03325',
+      ];
+      user.featureAccess = User.getDefaultFeatureAccess();
+      user.tags = tags;
       await user.save();
     }
     return users;

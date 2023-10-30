@@ -75,6 +75,14 @@ export enum OfferingType {
   FINDER_BASIC = 'Finder basic',
 }
 
+export enum MerchandisingType {
+  HIDE_ADS = 'Hide ads',
+  LIKE = 'Like',
+  REWIND = 'Rewind',
+  SUPER_LIKE = 'Super like',
+  UN_BLUR = 'UnBlur',
+}
+
 export enum LimitType {
   UNLIMITED = 'Unlimited',
   RENEWABLE = 'Renewable',
