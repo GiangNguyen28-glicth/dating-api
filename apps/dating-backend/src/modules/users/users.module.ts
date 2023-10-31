@@ -30,6 +30,9 @@ import { UpdateUserProfileInterceptor } from './interceptors';
             if (!isNil(this.spotifyInfo) && !this.spotifyInfo.length) {
               this.spotifyInfo = null;
             }
+            if (!this.featureAccess.length) {
+              this.featureAccess = User.getDefaultFeatureAccess();
+            }
             return next();
           });
           return UserSchema;

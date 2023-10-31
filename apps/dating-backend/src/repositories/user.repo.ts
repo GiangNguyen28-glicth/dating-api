@@ -39,7 +39,7 @@ export class UserMongoRepo extends MongoRepo<User> {
         '64ee243aa7626b0485f03345',
         '64ee243aa7626b0485f03325',
       ];
-      user.featureAccess = User.getDefaultFeatureAccess();
+      // user.featureAccess = User.getDefaultFeatureAccess();
       user.tags = tags;
       await user.save();
     }
