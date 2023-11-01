@@ -134,13 +134,13 @@ export class UserAddress {
 @Schema({ _id: false })
 export class HomeTown {
   @Prop({ trim: true })
-  province: string;
+  province?: string;
 
   @Prop({ trim: true })
-  district: string;
+  district?: string;
 
   @Prop({ trim: true })
-  ward: string;
+  ward?: string;
 }
 
 @Schema({ _id: false })

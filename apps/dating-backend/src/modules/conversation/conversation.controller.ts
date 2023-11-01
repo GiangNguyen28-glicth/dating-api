@@ -15,11 +15,6 @@ import { CreateConversationDto, FilterGetAllConversationDTO } from './dto';
 export class ConversationController {
   constructor(private readonly conversationService: ConversationService) {}
 
-  @Post()
-  create(@Body() createConversationDto: CreateConversationDto) {
-    return this.conversationService.create(createConversationDto);
-  }
-
   @Get()
   async findAll(
     @CurrentUser() user: User,

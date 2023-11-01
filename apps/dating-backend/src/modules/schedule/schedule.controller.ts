@@ -44,9 +44,9 @@ export class ScheduleController {
     return await this.scheduleService.verifyTokenReviewDating(token);
   }
 
-  @Get('sample-token')
-  async sampleToken(): Promise<string> {
-    return await this.scheduleService.sendReviewDating();
+  @Post('sample-token')
+  async sampleToken(@Body() data: any): Promise<string> {
+    return await this.scheduleService.sendReviewDating(data);
   }
 
   @Get('/:id')

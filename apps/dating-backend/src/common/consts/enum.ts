@@ -73,6 +73,7 @@ export enum OfferingType {
   FINDER_GOLD = 'Finder gold',
   FINDER_PREMIUM = 'Finder premium',
   FINDER_BASIC = 'Finder basic',
+  FINDER_BOOSTS = 'Finder boosts',
 }
 
 export enum MerchandisingType {
@@ -81,6 +82,7 @@ export enum MerchandisingType {
   REWIND = 'Rewind',
   SUPER_LIKE = 'Super like',
   UN_BLUR = 'UnBlur',
+  BOOSTS = 'Boosts',
 }
 
 export enum LimitType {

@@ -545,11 +545,7 @@ export class ScheduleService {
     }
   }
 
-  async sendReviewDating(): Promise<string> {
-    const payload: IReviewDating = {
-      schedule: '653c8006e2cda21eb19f8e26',
-      user: '64f08a5118c177fcf6952244',
-    };
+  async sendReviewDating(payload: IReviewDating): Promise<string> {
     const token = await this.jwtService.signAsync(payload, {
       secret: this.configService.get<string>('JWT_VERIFICATION_REVIEW_SCHEDULE_TOKEN_SECRET'),
       expiresIn: this.configService.get<number>('JWT_VERIFICATION_REVIEW_SCHEDULE_EXPIRATION_TIME'),

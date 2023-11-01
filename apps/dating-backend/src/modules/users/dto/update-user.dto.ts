@@ -69,13 +69,13 @@ export class UpdateUserSettingDTO implements Partial<UserSetting> {
 
 export class UpdateHomeTownDTO implements Partial<HomeTown> {
   @ApiPropertyOptional()
-  province: string;
+  province?: string;
 
   @ApiPropertyOptional()
-  district: string;
+  district?: string;
 
   @ApiPropertyOptional()
-  ward: string;
+  ward?: string;
 }
 
 export class UpdateHiddenProfileField {
