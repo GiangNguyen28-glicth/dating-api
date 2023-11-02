@@ -90,8 +90,6 @@ export class PaymentService implements OnModuleInit {
       } else if (offering.type === OfferingType.FINDER_BOOSTS) {
         message.boostsSession = {
           amount: checkoutDto.amount,
-          refreshIntervalUnit: _package.refreshIntervalUnit,
-          refreshInterval: _package.refreshInterval,
           effectiveTime: _package.effectiveTime,
           effectiveUnit: _package.effectiveUnit,
         };

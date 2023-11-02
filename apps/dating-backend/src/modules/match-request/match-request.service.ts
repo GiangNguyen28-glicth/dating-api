@@ -1,18 +1,30 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PopulateOptions } from 'mongoose';
 
-import { DATABASE_TYPE, MatchRqStatus, NotificationType, PROVIDER_REPO } from '@common/consts';
+import {
+  ConversationType,
+  DATABASE_TYPE,
+  MatchRqStatus,
+  MerchandisingType,
+  NotificationType,
+  PROVIDER_REPO,
+} from '@common/consts';
 import { PaginationDTO } from '@common/dto';
-import { IResponse, IResult, ISocketIdsClient } from '@common/interfaces';
+import { IResponse, IResult } from '@common/interfaces';
 import { MatchRequestRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult } from '@dating/utils';
+
 import { ConversationService } from '@modules/conversation/conversation.service';
 import { NotificationService } from '@modules/notification/notification.service';
 import { SocketGateway } from '@modules/socket/socket.gateway';
 import { User } from '@modules/users/entities';
 
+import { ACTION } from '@modules/action/dto';
+import { CreateConversationDto } from '@modules/conversation/dto';
+import { CreateNotificationDto } from '@modules/notification/dto';
 import { CreateMatchRequestDto, FilterGelAllMqDTO, FilterGetOneMq } from './dto';
 import { MatchRequest } from './entities';
+import { IMatchedAction } from './interfaces';
 
 @Injectable()
 export class MatchRequestService {
@@ -24,6 +36,7 @@ export class MatchRequestService {
     private socketGateway: SocketGateway,
     private notiService: NotificationService,
   ) {}
+
   async create(matchRequestDto: CreateMatchRequestDto): Promise<MatchRequest> {
     try {
       const matchRequest = await this.matchRequestRepo.insert(matchRequestDto);
@@ -65,9 +78,11 @@ export class MatchRequestService {
   async findOne(filter: FilterGetOneMq): Promise<MatchRequest> {
     try {
       const [queryFilter] = new FilterBuilder<MatchRequest>()
-        .setFilterItem('receiver', '$eq', filter?.receiver)
-        .setFilterItem('sender', '$eq', filter?.sender)
         .setFilterItem('status', '$eq', filter?.status)
+        .setFilterItemWithObject('$or', [
+          { receiver: filter?.sender, sender: filter?.receiver },
+          { receiver: filter?.receiver, sender: filter?.sender },
+        ])
         .setSortItem('createdAt', 'descending')
         .buildQuery();
       const populate: PopulateOptions[] = [];
@@ -91,28 +106,40 @@ export class MatchRequestService {
     }
   }
 
-  async matched(sender: User, receiver: User, socketIdsClient: ISocketIdsClient, matchRq: MatchRequest): Promise<void> {
-    const conversation = await this.conversationService.create({
+  async matched(matchedAction: IMatchedAction): Promise<void> {
+    const { sender, receiver, socketIdsClient, matchRq, action } = matchedAction;
+    const conversationDto: CreateConversationDto = {
       members: [sender, receiver],
-    });
+    };
+    const notificationDto: CreateNotificationDto = {
+      sender,
+      receiver,
+      type: NotificationType.MATCHED,
+    };
     matchRq.status = MatchRqStatus.MATCHED;
+    if (action == MerchandisingType.SUPER_LIKE) {
+      conversationDto.type = ConversationType.SUPER_LIKE;
+      notificationDto.type = NotificationType.SUPER_LIKE;
+      matchRq.status = MatchRqStatus.SUPER_LIKE;
+    }
+    const conversation = await this.conversationService.create(conversationDto);
+    notificationDto.conversation = conversation;
+
     const [notification] = await Promise.all([
-      this.notiService.create({
-        sender,
-        receiver,
-        type: NotificationType.MATCHED,
-        conversation,
-      }),
+      this.notiService.create(notificationDto),
       this.matchRequestRepo.save(matchRq),
     ]);
 
     const newConversation = await this.conversationService.toJSON(conversation);
     newConversation.members = [sender, receiver];
     const socketIds = socketIdsClient.receiver.concat(socketIdsClient.sender);
-    this.socketGateway.sendEventToClient(socketIds, 'newMatched', {
-      conversation: newConversation,
-      notificationId: notification._id,
-    });
+
+    if (action == ACTION.LIKE) {
+      this.socketGateway.sendEventToClient(socketIds, 'newMatched', {
+        conversation: newConversation,
+        notificationId: notification._id,
+      });
+    }
   }
 
   async countMatchRequest(user: User): Promise<IResponse> {

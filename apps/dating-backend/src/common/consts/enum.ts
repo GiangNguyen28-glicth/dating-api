@@ -46,6 +46,11 @@ export enum MessageStatus {
   RECEIVED = 'Received',
 }
 
+export enum ConversationType {
+  MATCHED = 'Matched',
+  SUPER_LIKE = 'Super like',
+}
+
 export enum BillingStatus {
   SUCCESS = 'Success',
   INPROGRESS = 'Inprogress',
@@ -131,6 +136,7 @@ export enum NotificationType {
   MESSAGE = 'Message',
   PROMOTION = 'Promotion',
   LIKE = 'Like',
+  SUPER_LIKE = 'Super like',
   MATCHED = 'Matched',
   SCHEDULE_DATING = 'Invite schedule dating',
   CANCEL_SCHEDULE_DATING = 'Cancel schedule dating',
@@ -149,6 +155,7 @@ export enum MatchRqStatus {
   MATCHED = 'Matched',
   REQUESTED = 'Requested',
   SKIP = 'Skip',
+  SUPER_LIKE = 'Super like',
 }
 
 export enum RequestDatingStatus {

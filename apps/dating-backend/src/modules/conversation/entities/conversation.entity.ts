@@ -1,8 +1,10 @@
-import { IEntity, MongoID } from '@dating/common';
-import { Message } from '@modules/message/entities/message.entity';
-import { User } from '@modules/users/entities/user.entity';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
+
+import { ConversationType, IEntity, MongoID } from '@dating/common';
+
+import { Message } from '@modules/message/entities';
+import { User } from '@modules/users/entities';
 
 @Schema({ timestamps: true })
 export class Conversation implements IEntity {
@@ -17,6 +19,9 @@ export class Conversation implements IEntity {
 
   @Prop({ type: [MongoID], ref: User.name })
   members: (User | string)[];
+
+  @Prop({ type: String, enum: Object.values(ConversationType), default: ConversationType.MATCHED })
+  type: ConversationType;
 
   @Prop({ type: Boolean, default: false })
   isDeleted: boolean;

@@ -6,8 +6,9 @@ import { PaginationDTO } from '@common/dto';
 import { formatResult, throwIfNotExists } from '@dating/utils';
 import { IResponse, IResult } from '@common/interfaces';
 
-import { Offering, Package } from './entities';
+import { MerchandisingItem, Offering, Package } from './entities';
 import { CreateOfferingDto } from './dto';
+import { uniqBy } from 'lodash';
 
 @Injectable()
 export class OfferingService {
@@ -44,7 +45,14 @@ export class OfferingService {
         }),
         this.offeringRepo.count({ isDeleted: false }),
       ]);
-      return formatResult(results, totalCount, pagination);
+      let featureGroup: MerchandisingItem[] = [];
+      for (const offering of results) {
+        if (!offering.isRetail) featureGroup.push(...offering.merchandising);
+      }
+      featureGroup = uniqBy(featureGroup, 'name');
+      const response = formatResult(results, totalCount, pagination);
+      response.metadata = { featureGroup };
+      return response;
     } catch (error) {
       throw error;
     }

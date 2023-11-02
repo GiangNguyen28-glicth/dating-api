@@ -97,6 +97,9 @@ export class Offering implements IEntity {
   merchandising: MerchandisingItem[];
 
   @Prop({ default: false })
+  isRetail: boolean;
+
+  @Prop({ default: false })
   isDeleted: boolean;
   createdAt?: Date;
   updatedAt?: Date;

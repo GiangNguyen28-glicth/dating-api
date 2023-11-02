@@ -1,5 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
+import * as moment from 'moment-timezone';
+
 import {
   Gender,
   IEntity,
@@ -14,7 +16,6 @@ import {
 } from '@dating/common';
 import { Relationship } from '@modules/relationship/entities';
 import { Tag } from '@modules/tag/entities';
-import * as moment from 'moment-timezone';
 
 @Schema({ _id: false })
 export class Image {
@@ -158,7 +159,7 @@ export class GeoLocation {
   @Prop({ type: String, enum: ['Point'], default: 'Point' })
   type: string;
 
-  @Prop({ type: [Number], required: true })
+  @Prop({ type: [Number], required: true, default: [] })
   coordinates: number[];
 }
 
@@ -188,12 +189,6 @@ export class BoostsSession {
   @Prop({ default: new Date() })
   expiredDate?: Date;
 
-  @Prop({ type: Number, default: 1 })
-  refreshInterval: number;
-
-  @Prop({ type: String, enum: Object.values(RefreshIntervalUnit) })
-  refreshIntervalUnit: RefreshIntervalUnit;
-
   @Prop({ type: Number })
   effectiveTime: number;
 
@@ -206,7 +201,7 @@ export class User implements IEntity {
   @Transform(({ value }) => value.toString())
   _id: string;
 
-  @Prop({ trim: true, required: true })
+  @Prop({ trim: true })
   name: string;
 
   @Prop({ trim: true })

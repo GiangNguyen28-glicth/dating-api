@@ -117,7 +117,7 @@ export class UserHelper implements OnModuleInit {
   }
 
   getFilterByDistance(user: User, filter) {
-    if (!user.setting.discovery.onlyShowDistanceThisRange) {
+    if (!user.setting.discovery.onlyShowDistanceThisRange || _.isNil(user.geoLocation)) {
       return { $match: filter };
     }
     return {

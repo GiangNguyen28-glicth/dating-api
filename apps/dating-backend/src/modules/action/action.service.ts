@@ -16,8 +16,9 @@ import { UserService } from '@modules/users/users.service';
 import { User } from '@modules/users/entities';
 
 import { CreateMatchRequestDto } from '@modules/match-request/dto';
-import { FilterGetOneActionDTO } from './dto';
+import { ACTION, FilterGetOneActionDTO } from './dto';
 import { Action } from './entities';
+import { IMatchedAction } from '@modules/match-request/interfaces';
 
 @Injectable()
 export class ActionService {
@@ -50,67 +51,89 @@ export class ActionService {
     } catch (error) {}
   }
 
-  async like(sender: User, receiverId: string): Promise<IResponse> {
+  async action(sender: User, receiverId: string, action: MerchandisingType): Promise<IResponse> {
     try {
-      const idxLike = sender.featureAccess.findIndex(item => item.name === MerchandisingType.LIKE);
-
-      if (!sender.featureAccess[idxLike].unlimited && sender.featureAccess[idxLike].amount < 1) {
-        throw new BadRequestException('Đã sử dụng hết lượt like ngày hôm nay');
+      const idx = sender.featureAccess.findIndex(item => item.name === action);
+      if (!Action.isByPassAction(sender.featureAccess[idx])) {
+        throw new BadRequestException(`Đã sử dụng hết lượt ${action.toLowerCase()} ngày hôm nay`);
       }
-      const receiver = await this.userService.findOne({ _id: receiverId });
-      const matchRq = await this.matchReqService.findOne({
-        sender: receiverId,
-        receiver: sender._id.toString(),
-      });
 
-      if (matchRq?.status == MatchRqStatus.MATCHED) {
+      const [receiver, matchRq] = await Promise.all([
+        this.userService.findOne({ _id: receiverId }),
+        this.matchReqService.findOne({
+          sender: receiverId,
+          receiver: sender._id.toString(),
+        }),
+      ]);
+      if (Action.isDuplicateAction(matchRq, sender)) {
         return {
-          success: true,
+          success: false,
           message: 'Duplicate match request',
         };
       }
 
       const socketIdsClient = await this.socketService.getSocketIdsMatchedUser(sender._id.toString(), receiverId);
-
+      const matchedAction: IMatchedAction = { sender, receiver, socketIdsClient, action };
       if (matchRq) {
-        await this.matchReqService.matched(sender, receiver, socketIdsClient, matchRq);
+        matchedAction.matchRq = matchRq;
+        await this.matchReqService.matched(matchedAction);
       } else {
         this.socketGateway.sendEventToClient(socketIdsClient.receiver, 'newMatchRequest', sender);
         const matchRqDto: CreateMatchRequestDto = {
           sender: sender._id,
           receiver: receiverId,
         };
-        if (get(sender, 'boostsSession.expiredDate', null) > new Date()) {
-          matchRqDto.isBoosts = true;
-          const { effectiveTime, effectiveUnit } = sender.boostsSession;
-          matchRqDto.expiredAt = moment()
-            .add(effectiveTime, effectiveUnit as DurationInputArg2)
-            .toDate();
+        if (action == MerchandisingType.LIKE) {
+          matchRqDto.status = MatchRqStatus.REQUESTED;
+          await this.like(sender, matchRqDto);
+          await this.matchReqService.create(matchRqDto);
+        } else {
+          matchRqDto.status = MatchRqStatus.SUPER_LIKE;
+          const superMatchRq = await this.matchReqService.create(matchRqDto);
+          matchedAction.matchRq = superMatchRq;
+          await this.superLike(matchedAction);
         }
-        await this.matchReqService.create(matchRqDto);
       }
 
       await this.actionRepo.like(sender, receiverId);
       const resp: IResponse = {
         success: true,
-        message: 'Like thành công',
+        message: 'Ok',
       };
 
-      if (!sender.featureAccess[idxLike].unlimited) {
-        sender.featureAccess[idxLike].amount = sender.featureAccess[idxLike].amount - 1;
+      if (!sender.featureAccess[idx].unlimited) {
+        sender.featureAccess[idx].amount = sender.featureAccess[idx].amount - 1;
         await this.userService.findOneAndUpdate(sender._id, {
           featureAccess: sender.featureAccess,
         });
         resp['data'] = {
           featureAccess: {
             likes: {
-              amount: sender.featureAccess[idxLike].amount - 1,
+              amount: sender.featureAccess[idx].amount,
             },
           },
         };
       }
 
       return resp;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async like(sender: User, matchRqDto: CreateMatchRequestDto): Promise<void> {
+    if (get(sender, 'boostsSession.expiredDate', null) > new Date()) {
+      matchRqDto.isBoosts = true;
+      const { effectiveTime, effectiveUnit } = sender.boostsSession;
+      matchRqDto.expiredAt = moment()
+        .add(effectiveTime, effectiveUnit as DurationInputArg2)
+        .toDate();
+    }
+  }
+
+  async superLike(matchedAction: IMatchedAction): Promise<void> {
+    try {
+      await this.matchReqService.matched(matchedAction);
     } catch (error) {
       throw error;
     }
@@ -148,18 +171,6 @@ export class ActionService {
       };
     } catch (error) {
       throw error;
-    }
-  }
-
-  async sampleData(): Promise<void> {
-    const users = await this.userService.findAll();
-    for (const user of users) {
-      if (user._id.toString() != '64f08a5118c177fcf6952244') {
-        await this.matchReqService.create({
-          sender: user._id,
-          receiver: '64f08a5118c177fcf6952244',
-        });
-      }
     }
   }
 }

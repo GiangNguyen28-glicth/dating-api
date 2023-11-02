@@ -1,7 +1,12 @@
-import { MongoID } from '@common/consts';
-import { User } from '@modules/users/entities/user.entity';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
+
+import { get } from 'lodash';
+
+import { MongoID } from '@common/consts';
+
+import { MatchRequest } from '@modules/match-request/entities';
+import { FeatureAccessItem, User } from '@modules/users/entities';
 
 @Schema({ timestamps: true })
 export class Action {
@@ -26,6 +31,23 @@ export class Action {
   createdAt?: Date;
 
   updatedAt?: Date;
+
+  static isByPassAction(featureAccess: FeatureAccessItem): boolean {
+    if (!featureAccess.unlimited && featureAccess.amount < 1) {
+      return false;
+    }
+    return true;
+  }
+
+  static isDuplicateAction(matchRq: MatchRequest, sender: User): boolean {
+    if (!matchRq) {
+      return false;
+    }
+    if (get(matchRq, 'sender', null) == sender._id.toString()) {
+      return true;
+    }
+    return false;
+  }
 }
 export const ActionSchema = SchemaFactory.createForClass(Action);
 ActionSchema.index({ userId: 1, countLiked: 1, countUnLiked: 1 });

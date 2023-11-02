@@ -22,6 +22,10 @@ export class MatchRequest implements IEntity {
   @Prop({ default: false })
   isBoosts: boolean;
 
+  static isBoostsSession(matchRq: MatchRequest): boolean {
+    return matchRq.isBoosts && matchRq.expiredAt > new Date();
+  }
+
   @Prop()
   expiredAt: Date;
   createdAt?: Date;

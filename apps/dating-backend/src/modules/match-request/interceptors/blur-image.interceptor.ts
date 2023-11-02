@@ -16,14 +16,16 @@ export class BlurImageInterceptor implements NestInterceptor {
       map((data: IResult<MatchRequest>) => {
         const unBlur = user.featureAccess.find(item => item.name === MerchandisingType.UN_BLUR && item.unlimited);
         const boostsMatchRequest: MatchRequest[] = [];
-        for (const index in data.results) {
+        for (const [index, matchRq] of data.results.entries()) {
           if (!isNil(unBlur)) {
             (data.results[index].sender as User).images = [];
           }
-          if (data.results[index].isBoosts && data.results[index].expiredAt < new Date()) {
+          if (MatchRequest.isBoostsSession(matchRq)) {
+            boostsMatchRequest.push(matchRq);
+            data.results.slice(index, 1);
           }
         }
-
+        data.results = boostsMatchRequest.concat(data.results);
         return data;
       }),
     );

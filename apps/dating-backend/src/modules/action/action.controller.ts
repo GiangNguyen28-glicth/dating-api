@@ -1,6 +1,7 @@
-import { Controller, Param, Post, UseGuards, Get } from '@nestjs/common';
+import { Controller, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
+import { MerchandisingType } from '@common/consts';
 import { CurrentUser } from '@common/decorators';
 import { AtGuard } from '@common/guards';
 import { User } from '@modules/users/entities';
@@ -21,12 +22,11 @@ export class ActionController {
 
   @Post('like/:id')
   async like(@CurrentUser() sender: User, @Param('id') id: string) {
-    return await this.actionService.like(sender, id);
+    return await this.actionService.action(sender, id, MerchandisingType.LIKE);
   }
 
-  @Get('sample-data')
-  async sampleData(): Promise<boolean> {
-    await this.actionService.sampleData();
-    return true;
+  @Post('super-like/:id')
+  async superLike(@CurrentUser() sender: User, @Param('id') id: string) {
+    return await this.actionService.action(sender, id, MerchandisingType.SUPER_LIKE);
   }
 }
