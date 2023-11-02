@@ -27,7 +27,7 @@ export class UserConsumer implements OnModuleInit, OnModuleDestroy {
     await this.rabbitService.connectRmq();
     this.rabbitService.setChannelName(RMQ_CHANNEL.USER_CHANNEL);
     this.channel = await this.rabbitService.createChannel(RMQ_CHANNEL.USER_CHANNEL);
-    this.channel.prefetch(4);
+    this.channel.prefetch(100);
 
     await this.rabbitService.assertQueue(
       {
@@ -94,6 +94,7 @@ export class UserConsumer implements OnModuleInit, OnModuleDestroy {
       }
       await this.userRepo.findOneAndUpdate(msg.userId, entities);
     } catch (error) {
+      console.log(error);
       throw error;
     }
   }

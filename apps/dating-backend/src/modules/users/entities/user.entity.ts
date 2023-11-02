@@ -6,6 +6,7 @@ import {
   LookingFor,
   MerchandisingType,
   MongoID,
+  RefreshIntervalUnit,
   RegisterType,
   RelationshipModeType,
   Role,
@@ -13,7 +14,6 @@ import {
 } from '@dating/common';
 import { Relationship } from '@modules/relationship/entities';
 import { Tag } from '@modules/tag/entities';
-import { MerchandisingItem } from '@modules/offering/entities';
 
 @Schema({ _id: false })
 export class Image {
@@ -179,6 +179,27 @@ export class Verify {
   success?: boolean;
 }
 
+@Schema({ _id: false })
+export class BoostsSession {
+  @Prop({ default: 0 })
+  amount?: number;
+
+  @Prop({ default: new Date() })
+  expiredDate?: Date;
+
+  @Prop({ type: Number, default: 1 })
+  refreshInterval: number;
+
+  @Prop({ type: String, enum: Object.values(RefreshIntervalUnit) })
+  refreshIntervalUnit: RefreshIntervalUnit;
+
+  @Prop({ type: Number })
+  effectiveTime: number;
+
+  @Prop({ type: String, enum: Object.values(RefreshIntervalUnit) })
+  effectiveUnit: RefreshIntervalUnit;
+}
+
 @Schema({ timestamps: true })
 export class User implements IEntity {
   @Transform(({ value }) => value.toString())
@@ -234,6 +255,9 @@ export class User implements IEntity {
 
   @Prop({ type: HomeTown, default: new HomeTown() })
   liveAt: HomeTown;
+
+  @Prop({ type: BoostsSession, default: new BoostsSession() })
+  boostsSession: BoostsSession;
 
   @Prop({ type: GeoLocation })
   geoLocation: GeoLocation;

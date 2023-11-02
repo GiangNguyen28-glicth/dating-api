@@ -9,6 +9,15 @@ export class Package {
   @Transform(({ value }) => value.toString())
   _id?: string;
 
+  @Prop()
+  amount?: number;
+
+  @Prop()
+  effectiveTime?: number;
+
+  @Prop({ type: String, enum: Object.values(RefreshIntervalUnit) })
+  effectiveUnit?: RefreshIntervalUnit;
+
   @Prop({ type: Number, required: true })
   price: number;
 

@@ -3,8 +3,9 @@ import { ConfirmChannel } from 'amqplib';
 
 import { RabbitService } from '@app/shared';
 import { BillingRepo, UserRepo } from '@dating/repositories';
-import { BillingStatus, DATABASE_TYPE, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
+import { BillingStatus, DATABASE_TYPE, OfferingType, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
 import { IPaymentMessage } from '@common/message';
+import { User } from '@modules/users/entities';
 
 @Injectable()
 export class PaymentConsumer implements OnModuleInit, OnModuleDestroy {
@@ -68,9 +69,17 @@ export class PaymentConsumer implements OnModuleInit, OnModuleDestroy {
       await this.billingRepo.findOneAndUpdate(msg.billingId, {
         status: BillingStatus.SUCCESS,
       });
-      await this.userRepo.findOneAndUpdate(msg.userId, {
-        featureAccess: msg.featureAccess,
-      });
+      let entities: Partial<User> = null;
+      if (msg.offeringType === OfferingType.FINDER_BOOSTS) {
+        entities = {
+          boostsSession: msg.boostsSession,
+        };
+      } else {
+        entities = {
+          featureAccess: msg.featureAccess,
+        };
+      }
+      await this.userRepo.findOneAndUpdate(msg.userId, entities);
     } catch (error) {
       throw error;
     }

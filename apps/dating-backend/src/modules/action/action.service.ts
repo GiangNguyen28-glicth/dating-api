@@ -1,17 +1,21 @@
 import { BadRequestException, Inject, Injectable, forwardRef } from '@nestjs/common';
+import * as moment from 'moment-timezone';
+import { DurationInputArg2 } from 'moment-timezone';
+import { get } from 'lodash';
 
-import { DATABASE_TYPE, LimitType, MatchRqStatus, MerchandisingType, PROVIDER_REPO } from '@common/consts';
+import { DATABASE_TYPE, MatchRqStatus, MerchandisingType, PROVIDER_REPO } from '@common/consts';
 import { IResponse } from '@common/interfaces';
 import { ActionRepo } from '@dating/repositories';
 import { FilterBuilder, throwIfNotExists } from '@dating/utils';
 
 import { MatchRequestService } from '@modules/match-request/match-request.service';
-import { SocketService } from '@modules/socket/socket.service';
 import { SocketGateway } from '@modules/socket/socket.gateway';
+import { SocketService } from '@modules/socket/socket.service';
 import { UserService } from '@modules/users/users.service';
 
 import { User } from '@modules/users/entities';
 
+import { CreateMatchRequestDto } from '@modules/match-request/dto';
 import { FilterGetOneActionDTO } from './dto';
 import { Action } from './entities';
 
@@ -49,7 +53,7 @@ export class ActionService {
   async like(sender: User, receiverId: string): Promise<IResponse> {
     try {
       const idxLike = sender.featureAccess.findIndex(item => item.name === MerchandisingType.LIKE);
-      const inxBlur = sender.featureAccess.findIndex(item => item.name === MerchandisingType.UN_BLUR);
+
       if (!sender.featureAccess[idxLike].unlimited && sender.featureAccess[idxLike].amount < 1) {
         throw new BadRequestException('Đã sử dụng hết lượt like ngày hôm nay');
       }
@@ -69,16 +73,21 @@ export class ActionService {
       const socketIdsClient = await this.socketService.getSocketIdsMatchedUser(sender._id.toString(), receiverId);
 
       if (matchRq) {
-        if (!receiver.featureAccess[inxBlur].unlimited) {
-          sender.images = [];
-        }
         await this.matchReqService.matched(sender, receiver, socketIdsClient, matchRq);
       } else {
         this.socketGateway.sendEventToClient(socketIdsClient.receiver, 'newMatchRequest', sender);
-        await this.matchReqService.create({
+        const matchRqDto: CreateMatchRequestDto = {
           sender: sender._id,
           receiver: receiverId,
-        });
+        };
+        if (get(sender, 'boostsSession.expiredDate', null) > new Date()) {
+          matchRqDto.isBoosts = true;
+          const { effectiveTime, effectiveUnit } = sender.boostsSession;
+          matchRqDto.expiredAt = moment()
+            .add(effectiveTime, effectiveUnit as DurationInputArg2)
+            .toDate();
+        }
+        await this.matchReqService.create(matchRqDto);
       }
 
       await this.actionRepo.like(sender, receiverId);

@@ -58,6 +58,8 @@ export enum BillingProcess {
 }
 
 export enum RefreshIntervalUnit {
+  MINUTES = 'minutes',
+  HOURS = 'hours',
   DAY = 'Day',
   WEEK = 'Week',
   MONTH = 'Month',

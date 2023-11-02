@@ -10,23 +10,17 @@ export class StripePaymentStrategy implements IPaymentStrategy {
   };
   private stripe: Stripe;
   constructor(private configService: ConfigService) {
-    this.stripe = new Stripe(
-      this.configService.get('STRIPE_CLIENT_SECRET'),
-      this.stripeConfig,
-    );
+    this.stripe = new Stripe(this.configService.get('STRIPE_CLIENT_SECRET'), this.stripeConfig);
   }
 
-  async createPayment(
-    user: User,
-    cardDto: CheckoutDTO,
-  ): Promise<Stripe.Response<Stripe.PaymentIntent>> {
+  async createPayment(user: User, cardDto: CheckoutDTO): Promise<Stripe.Response<Stripe.PaymentIntent>> {
     const paymentMethod = await this.createPaymentMethod(user, cardDto);
     const { id } = paymentMethod;
     const paymentIntent = await this.stripe.paymentIntents.create({
       //   customer: '123',
       setup_future_usage: 'on_session',
-      amount: 1099,
-      currency: 'usd',
+      amount: cardDto.price,
+      currency: 'vnd',
       confirm: true,
       payment_method_types: ['card'],
       payment_method: id,
@@ -34,10 +28,7 @@ export class StripePaymentStrategy implements IPaymentStrategy {
     return paymentIntent;
   }
 
-  async createPaymentMethod(
-    user: User,
-    card: CheckoutDTO,
-  ): Promise<Stripe.Response<Stripe.PaymentMethod>> {
+  async createPaymentMethod(user: User, card: CheckoutDTO): Promise<Stripe.Response<Stripe.PaymentMethod>> {
     const paymentMethod = await this.stripe.paymentMethods.create({
       type: 'card',
       card: card.cardNumber,

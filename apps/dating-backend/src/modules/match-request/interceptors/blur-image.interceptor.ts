@@ -1,11 +1,11 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { MerchandisingType } from '@common/consts';
 import { IResult } from '@common/interfaces';
 import { User } from '@modules/users/entities';
-import { MatchRequest } from '../entities';
-import { LimitType, MerchandisingType } from '@common/consts';
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import { isNil } from 'lodash';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { MatchRequest } from '../entities';
 
 @Injectable()
 export class BlurImageInterceptor implements NestInterceptor {
@@ -15,13 +15,15 @@ export class BlurImageInterceptor implements NestInterceptor {
     return next.handle().pipe(
       map((data: IResult<MatchRequest>) => {
         const unBlur = user.featureAccess.find(item => item.name === MerchandisingType.UN_BLUR && item.unlimited);
-        if (!isNil(unBlur)) {
-          return data;
+        const boostsMatchRequest: MatchRequest[] = [];
+        for (const index in data.results) {
+          if (!isNil(unBlur)) {
+            (data.results[index].sender as User).images = [];
+          }
+          if (data.results[index].isBoosts && data.results[index].expiredAt < new Date()) {
+          }
         }
 
-        for (const index in data.results) {
-          (data.results[index].sender as User).images = [];
-        }
         return data;
       }),
     );

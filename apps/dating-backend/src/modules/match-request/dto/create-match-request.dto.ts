@@ -4,4 +4,5 @@ export class CreateMatchRequestDto implements Partial<MatchRequest> {
   sender?: string;
   receiver?: string;
   isBoosts?: boolean;
+  expiredAt?: Date;
 }

@@ -8,6 +8,16 @@ export class PackageDTO implements Package {
   price: number;
   save: number;
 
+  @ApiProperty()
+  effectiveTime?: number;
+
+  @ApiProperty({
+    type: 'enum',
+    enum: RefreshIntervalUnit,
+    default: RefreshIntervalUnit.MINUTES,
+  })
+  effectiveUnit?: RefreshIntervalUnit;
+
   @ApiProperty({ default: 300000 })
   @IsNumber()
   originalPrice: number;

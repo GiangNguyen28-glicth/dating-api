@@ -3,7 +3,7 @@ import { ConfirmChannel } from 'amqplib';
 import { ConfigService } from '@nestjs/config';
 import * as moment from 'moment-timezone';
 
-import { BillingStatus, LimitType, QUEUE_NAME, RMQ_CHANNEL, RefreshIntervalUnit } from '@common/consts';
+import { BillingStatus, LimitType, OfferingType, QUEUE_NAME, RMQ_CHANNEL, RefreshIntervalUnit } from '@common/consts';
 import { IResponse } from '@common/interfaces';
 import { BillingService } from '@modules/billing/billing.service';
 import { Billing } from '@modules/billing/entities';
@@ -15,7 +15,7 @@ import { CheckoutDTO } from './dto/card.dto';
 import { StripePaymentStrategy } from './strategies/stripe.strategy';
 import { RabbitService } from '@app/shared';
 import { IPaymentMessage } from '@common/message';
-import { FeatureAccessItem, User } from '@modules/users/entities';
+import { BoostsSession, FeatureAccessItem, User } from '@modules/users/entities';
 
 @Injectable()
 export class PaymentService implements OnModuleInit {
@@ -55,14 +55,23 @@ export class PaymentService implements OnModuleInit {
         throw new BadRequestException('Không tìm thấy Package');
       }
 
+      checkoutDto.price = _package.price;
+
       const billing: Billing = await this.billingService.create({
         latestPackage: _package,
         offering: offering._id.toString(),
         createdBy: user,
         lastMerchandising: offering.merchandising,
         status: BillingStatus.INPROGRESS,
-        expiredDate: this.getExpiredDate(_package),
+        expiredDate: this.getExpiredDate(_package.refreshIntervalUnit, _package.refreshInterval),
       });
+
+      if (offering.type === OfferingType.FINDER_BOOSTS) {
+        if (!checkoutDto.amount) {
+          throw new BadRequestException('Amount is not accept');
+        }
+        checkoutDto.price = _package.price * checkoutDto.amount;
+      }
 
       const paymentIntent = await this.stripe.createPayment(user, checkoutDto);
       if (paymentIntent['status'] !== 'succeeded') {
@@ -71,9 +80,22 @@ export class PaymentService implements OnModuleInit {
         });
         throw new BadRequestException('Thanh toán thất bại');
       }
-      const message = this.buildMessage(offering, _package, user.featureAccess);
-      message['billingId'] = billing._id;
-      message['userId'] = user._id;
+      const message: IPaymentMessage = {
+        offeringType: offering.type,
+        billingId: billing._id,
+        userId: user._id,
+      };
+      if (offering.type != OfferingType.FINDER_BOOSTS) {
+        message.featureAccess = this.buildMessage(offering, _package, user.featureAccess);
+      } else if (offering.type === OfferingType.FINDER_BOOSTS) {
+        message.boostsSession = {
+          amount: checkoutDto.amount,
+          refreshIntervalUnit: _package.refreshIntervalUnit,
+          refreshInterval: _package.refreshInterval,
+          effectiveTime: _package.effectiveTime,
+          effectiveUnit: _package.effectiveUnit,
+        };
+      }
       await this.rabbitService.sendToQueue(QUEUE_NAME.UPDATE_FEATURE_ACCESS, message);
       return null;
     } catch (error) {
@@ -81,10 +103,12 @@ export class PaymentService implements OnModuleInit {
     }
   }
 
-  getExpiredDate(_package: Package): Date {
+  getExpiredDate(refreshIntervalUnit: RefreshIntervalUnit, amount: number): Date {
     const now = moment.tz('Asia/Ho_Chi_Minh');
-    const amount = _package.refreshInterval;
-    switch (_package.refreshIntervalUnit) {
+    switch (refreshIntervalUnit) {
+      case RefreshIntervalUnit.MINUTES:
+        now.add(amount, 'minutes');
+        break;
       case RefreshIntervalUnit.MONTH:
         now.add(amount, 'months').endOf('date');
         break;
@@ -103,7 +127,7 @@ export class PaymentService implements OnModuleInit {
     return new Date(now.toISOString());
   }
 
-  buildMessage(offering: Offering, _package: Package, featureAccess: FeatureAccessItem[]): IPaymentMessage {
+  buildMessage(offering: Offering, _package: Package, featureAccess: FeatureAccessItem[]): FeatureAccessItem[] {
     const { merchandising } = docToObject(offering);
 
     for (const merchandisingItem of merchandising) {
@@ -115,8 +139,6 @@ export class PaymentService implements OnModuleInit {
         featureAccess[index].amount = _package.refreshInterval;
       }
     }
-    return {
-      featureAccess,
-    };
+    return featureAccess;
   }
 }

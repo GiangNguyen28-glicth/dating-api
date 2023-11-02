@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CardNumberDTO {
   @ApiProperty({ default: '4242424242424242' })
@@ -29,4 +29,9 @@ export class CheckoutDTO {
 
   @ApiProperty({ required: true })
   packageId: string;
+
+  @ApiPropertyOptional()
+  amount: number;
+
+  price: number;
 }
