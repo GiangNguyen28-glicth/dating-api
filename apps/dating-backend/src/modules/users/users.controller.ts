@@ -101,6 +101,13 @@ export class UsersController {
     return await this.userService.verify(verify, user);
   }
 
+  @Post('/boosts')
+  @ApiBearerAuth()
+  @UseGuards(AtGuard)
+  async boosts(@CurrentUser() user: User): Promise<IResponse> {
+    return await this.userService.boosts(user);
+  }
+
   @Post('insertMany')
   async insertMany() {
     await this.userService.insertManyUser();

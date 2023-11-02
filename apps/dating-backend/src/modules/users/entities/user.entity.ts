@@ -14,6 +14,7 @@ import {
 } from '@dating/common';
 import { Relationship } from '@modules/relationship/entities';
 import { Tag } from '@modules/tag/entities';
+import * as moment from 'moment-timezone';
 
 @Schema({ _id: false })
 export class Image {
@@ -346,6 +347,15 @@ export class User implements IEntity {
         amount: 2,
       },
     ]);
+  }
+
+  static getBoostsSession(boostsSession: BoostsSession): BoostsSession {
+    boostsSession.amount = boostsSession.amount - 1;
+    const { effectiveTime, effectiveUnit } = boostsSession;
+    boostsSession.expiredDate = moment()
+      .add(effectiveTime, effectiveUnit as moment.DurationInputArg2)
+      .toDate();
+    return boostsSession;
   }
 }
 export const UserSchema = SchemaFactory.createForClass(User);

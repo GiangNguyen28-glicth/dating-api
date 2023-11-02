@@ -1,4 +1,4 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
 import { get } from 'lodash';
 import { PipelineStage } from 'mongoose';
@@ -261,6 +261,22 @@ export class UserService implements OnModuleInit {
 
   async populateTag(user: User): Promise<User> {
     return this.userRepo.populate(user as unknown as Document, [{ path: 'tags' }]);
+  }
+
+  async boosts(user: User): Promise<IResponse> {
+    try {
+      if (user.boostsSession.amount <= 0) {
+        throw new BadRequestException('So luong boosts khong du');
+      }
+      user.boostsSession = User.getBoostsSession(user.boostsSession);
+      await this.userRepo.save(user);
+      return {
+        success: true,
+        message: 'Ok',
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
   async insertManyUser(): Promise<boolean> {
