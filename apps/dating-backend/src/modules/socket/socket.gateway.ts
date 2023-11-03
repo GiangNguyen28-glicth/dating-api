@@ -102,10 +102,9 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       console.log('========================Disconnection========================');
       if (!socketIds.length) {
         await this.userService.findOneAndUpdate(userId, { onlineNow: false });
-        return;
       }
     } catch (error) {
-      throw new WsException(error.message);
+      return;
     }
   }
 
