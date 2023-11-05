@@ -63,8 +63,8 @@ export enum BillingProcess {
 }
 
 export enum RefreshIntervalUnit {
-  MINUTES = 'minutes',
-  HOURS = 'hours',
+  MINUTES = 'Minutes',
+  HOURS = 'Hours',
   DAY = 'Day',
   WEEK = 'Week',
   MONTH = 'Month',
@@ -77,10 +77,10 @@ export enum Currency {
 }
 
 export enum OfferingType {
-  FINDER_GOLD = 'Finder gold',
-  FINDER_PREMIUM = 'Finder premium',
-  FINDER_BASIC = 'Finder basic',
-  FINDER_BOOSTS = 'Finder boosts',
+  FINDER_GOLD = 'Gold',
+  FINDER_PREMIUM = 'Premium',
+  FINDER_PLUS = 'Plus',
+  FINDER_BOOSTS = 'Boosts',
 }
 
 export enum MerchandisingType {

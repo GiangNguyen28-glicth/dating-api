@@ -7,6 +7,7 @@ import {
   BillingStatus,
   DATABASE_TYPE,
   DEFAULT_LIKES_REMAINING,
+  MerchandisingType,
   PROVIDER_REPO,
   RequestDatingStatus,
 } from '@common/consts';
@@ -57,12 +58,9 @@ export class PullerService {
 
   async getAllUserToUpdateFT(): Promise<User[]> {
     const [queryFilter, sortOption] = new FilterBuilder<User>()
-      .setFilterItemWithObject('featureAccess.likes.amount', {
-        $lt: DEFAULT_LIKES_REMAINING,
-      })
-      .setFilterItemWithObject('featureAccess.likes.unlimited', {
-        $eq: false,
-      })
+      .setFilterItem('isBlocked', '$eq', false, true)
+      .setFilterItem('isDeleted', '$eq', false, true)
+      // .setFilterItem('lastActiveDate','')
       .setSortItem('createdAt', 'asc')
       .buildQuery();
     return await this.userRepo.findAll({ queryFilter, sortOption });

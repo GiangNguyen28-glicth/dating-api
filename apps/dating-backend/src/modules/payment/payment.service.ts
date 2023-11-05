@@ -90,8 +90,8 @@ export class PaymentService implements OnModuleInit {
       } else if (offering.type === OfferingType.FINDER_BOOSTS) {
         message.boostsSession = {
           amount: checkoutDto.amount,
-          effectiveTime: _package.effectiveTime,
-          effectiveUnit: _package.effectiveUnit,
+          refreshInterval: _package.refreshInterval,
+          refreshIntervalUnit: _package.refreshIntervalUnit,
         };
       }
       await this.rabbitService.sendToQueue(QUEUE_NAME.UPDATE_FEATURE_ACCESS, message);

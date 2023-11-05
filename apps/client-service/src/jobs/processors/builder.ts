@@ -1,34 +1,61 @@
 import { Injectable } from '@nestjs/common';
 
-import { BillingProcess, DEFAULT_LIKES_REMAINING } from '@common/consts';
+import { BillingProcess, IBulkWrite, MerchandisingType } from '@common/consts';
 
-import { User } from '@modules/users/entities';
 import { Billing } from '@modules/billing/entities';
+import { FeatureAccessItem, User } from '@modules/users/entities';
 
 import { IUpdateMany } from '../interfaces';
 
 @Injectable()
 export class BuilderService {
-  buildUpdateManyUsersFT(userIds: string[]): IUpdateMany<User> {
-    const updateMany: IUpdateMany<User> = {
-      ids: userIds,
-      entities: {
-        'featureAccess.likes.amount': DEFAULT_LIKES_REMAINING,
-        'featureAccess.likes.unlimited': false,
-        'featureAccess.blur.unlimited': false,
-      } as any,
+  buildUpdateManyUsersFT(users: User[]): IBulkWrite[] {
+    const isDefaultUpdate = (listing: FeatureAccessItem[]): boolean => {
+      for (const item of listing) {
+        if (item.name === MerchandisingType.SUPER_LIKE && item.amount > 1) {
+          return false;
+        }
+        if (item.name === MerchandisingType.BOOSTS && item.amount > 0) {
+          return false;
+        }
+      }
+      return true;
     };
-    return updateMany;
-  }
 
-  buildUpdateManyUsersWhenBillingExpired(userIds: string[]): IUpdateMany<User> {
-    const updateMany: IUpdateMany<User> = {
-      ids: userIds,
-      entities: {
-        featureAccess: User.getDefaultFeatureAccess(),
+    const mapping = (defaultAccess: FeatureAccessItem[], listing: FeatureAccessItem[]): FeatureAccessItem[] => {
+      const indexSuperLike = defaultAccess.findIndex(item => item.name === MerchandisingType.SUPER_LIKE);
+      const indexBoosts = defaultAccess.findIndex(item => item.name === MerchandisingType.BOOSTS);
+      for (const item of listing) {
+        if (item.name === MerchandisingType.SUPER_LIKE) {
+          defaultAccess[indexSuperLike].amount = item.amount;
+        }
+        if (item.name === MerchandisingType.BOOSTS) {
+          defaultAccess[indexBoosts].amount = item.amount;
+        }
+      }
+      return defaultAccess;
+    };
+    const bulkWriteDefault: string[] = [];
+    const updateOneList: IBulkWrite[] = [];
+    for (const user of users) {
+      if (isDefaultUpdate(user.featureAccess)) {
+        bulkWriteDefault.push(user._id);
+      } else {
+        updateOneList.push({
+          updateOne: {
+            filter: { _id: user._id },
+            update: { $set: { featureAccess: mapping(User.getDefaultFeatureAccess(), user.featureAccess) } },
+          },
+        });
+      }
+    }
+    const updateDefault: IBulkWrite = {
+      updateMany: {
+        filter: { _id: { $in: bulkWriteDefault } },
+        update: { $set: { featureAccess: User.getDefaultFeatureAccess() } },
       },
     };
-    return updateMany;
+    return [updateDefault].concat(updateOneList);
   }
 
   buildUpdateBillingExpired(billings: Billing[]): IUpdateMany<Billing> {

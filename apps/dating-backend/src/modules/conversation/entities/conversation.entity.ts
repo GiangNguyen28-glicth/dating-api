@@ -23,6 +23,9 @@ export class Conversation implements IEntity {
   @Prop({ type: String, enum: Object.values(ConversationType), default: ConversationType.MATCHED })
   type: ConversationType;
 
+  @Prop({ type: String })
+  createdBy: string;
+
   @Prop({ type: Boolean, default: false })
   isDeleted: boolean;
 

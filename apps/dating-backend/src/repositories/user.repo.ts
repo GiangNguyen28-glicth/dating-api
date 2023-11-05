@@ -1,13 +1,14 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { PipelineStage, PopulateOptions } from 'mongoose';
 
-import { CrudRepo, DATABASE_TYPE, PROVIDER_REPO, UserModelType } from '@dating/common';
+import { CrudRepo, DATABASE_TYPE, IBulkWrite, PROVIDER_REPO, UserModelType } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
 import { User } from '@modules/users/entities';
 export interface UserRepo extends CrudRepo<User> {
-  recommendation(filter: PipelineStage[]);
+  recommendation(filter: PipelineStage[]): User[];
   countRecommendation(filter: PipelineStage[]): number;
   populate(document: Document, populate: PopulateOptions[]): Promise<User>;
+  bulkWrite(bulkWrite: IBulkWrite[]): Promise<void>;
   deleteManyUser();
   migrateData(): Promise<User[]>;
 }
@@ -27,6 +28,10 @@ export class UserMongoRepo extends MongoRepo<User> {
 
   async deleteManyUser() {
     await this.userModel.deleteMany();
+  }
+
+  async bulkWrite(bulkWrite: IBulkWrite[]): Promise<void> {
+    await this.userModel.bulkWrite(bulkWrite as any);
   }
 
   async migrateData(): Promise<User[]> {

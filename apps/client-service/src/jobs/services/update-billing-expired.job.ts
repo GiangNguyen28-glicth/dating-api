@@ -48,14 +48,20 @@ export class UpdateBillingExpiredJob implements IJobProcessors {
       while (userIds.length) {
         const batchUsers = userIds.splice(0, UPDATE_BATCH_SIZE);
         const batchBillings = billings.splice(0, UPDATE_BATCH_SIZE);
-        const updateManyUser = this.builderService.buildUpdateManyUsersWhenBillingExpired(batchUsers);
+
+        const queryFilter: any = { _id: { $in: batchUsers } };
+        const users = await this.pullerService.getAllUser({ queryFilter });
+
+        const updateManyUser = this.builderService.buildUpdateManyUsersFT(users);
         const updateManyBilling = this.builderService.buildUpdateBillingExpired(batchBillings);
         await this.updaterService.updateUserFT(updateManyUser);
         await this.updaterService.updateManyBilling(updateManyBilling);
         if (jobDoc.status === JobStatus.TODO) {
           jobDoc.status = JobStatus.INPROGRESS;
-          await this.jobService.save(jobDoc);
         }
+        jobDoc.numOfProcessRecord += batchBillings.length;
+        jobDoc.lastId = batchBillings[batchBillings.length - 1]._id;
+        await this.jobService.save(jobDoc);
       }
       jobDoc.status = JobStatus.DONE;
       jobDoc.doneAt = new Date();

@@ -69,10 +69,10 @@ export class PaymentConsumer implements OnModuleInit, OnModuleDestroy {
       await this.billingRepo.findOneAndUpdate(msg.billingId, {
         status: BillingStatus.SUCCESS,
       });
-      let entities: Partial<User> = null;
+      let entities = null;
       if (msg.offeringType === OfferingType.FINDER_BOOSTS) {
         entities = {
-          boostsSession: msg.boostsSession,
+          $inc: { 'boostsSession.amount': msg.boostsSession.amount },
         };
       } else {
         entities = {

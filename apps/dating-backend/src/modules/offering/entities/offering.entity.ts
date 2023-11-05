@@ -12,12 +12,6 @@ export class Package {
   @Prop()
   amount?: number;
 
-  @Prop()
-  effectiveTime?: number;
-
-  @Prop({ type: String, enum: Object.values(RefreshIntervalUnit) })
-  effectiveUnit?: RefreshIntervalUnit;
-
   @Prop({ type: Number, required: true })
   price: number;
 
@@ -67,6 +61,21 @@ export class MerchandisingItem {
   refreshIntervalUnit: RefreshIntervalUnit;
 }
 
+@Schema({ _id: false })
+export class Style {
+  @Prop()
+  buttonColor: string;
+
+  @Prop()
+  buttonBackground: string;
+
+  @Prop()
+  background: string;
+
+  @Prop()
+  primaryColor: string;
+}
+
 @Schema({ timestamps: true })
 export class Offering implements IEntity {
   @Transform(({ value }) => value.toString())
@@ -78,11 +87,8 @@ export class Offering implements IEntity {
   @Prop({ trim: true })
   text: string;
 
-  @Prop({ trim: true })
-  background: string;
-
-  @Prop({ trim: true })
-  primaryColor: string;
+  @Prop({ type: Style })
+  style: Style;
 
   @Prop({
     type: String,

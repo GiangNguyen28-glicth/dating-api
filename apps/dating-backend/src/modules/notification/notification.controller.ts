@@ -6,17 +6,11 @@ import { AtGuard } from '@common/guards';
 import { IResponse, IResult } from '@common/interfaces';
 import { User } from '@modules/users/entities';
 
-import {
-  DeleteManyNotification,
-  FilterGetAllNotification,
-  UpdateNotificationByUserDto,
-  UpdateNotificationDto,
-} from './dto';
+import { NotificationStatus } from '@common/consts';
+import { PaginationDTO } from '@common/dto';
+import { FilterGetAllNotification, UpdateNotificationByUserDto, UpdateNotificationDto } from './dto';
 import { Notification } from './entities';
 import { NotificationService } from './notification.service';
-import { Schedule } from '@modules/schedule/entities';
-import { PaginationDTO } from '@common/dto';
-import { NotificationStatus } from '@common/consts';
 
 @ApiTags(Notification.name)
 @Controller('notification')

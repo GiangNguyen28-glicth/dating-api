@@ -28,6 +28,9 @@ export class UpdateFeatureAccessJob {
       true,
       'Asia/Ho_Chi_Minh',
     );
+    // setTimeout(async () => {
+    //   await this.process();
+    // });
     this.start();
   }
 
@@ -42,12 +45,14 @@ export class UpdateFeatureAccessJob {
       jobDoc.totalUpdate = users.length;
       while (users.length) {
         const batchUsers = users.splice(0, UPDATE_BATCH_SIZE);
-        const updateMany = this.builderService.buildUpdateManyUsersFT(batchUsers.map(user => user._id));
+        const updateMany = this.builderService.buildUpdateManyUsersFT(batchUsers);
         await this.updaterService.updateUserFT(updateMany);
         if (jobDoc.status === JobStatus.TODO) {
           jobDoc.status = JobStatus.INPROGRESS;
-          await this.jobService.save(jobDoc);
         }
+        jobDoc.numOfProcessRecord += batchUsers.length;
+        jobDoc.lastId = batchUsers[batchUsers.length - 1]._id;
+        await this.jobService.save(jobDoc);
       }
       jobDoc.status = JobStatus.DONE;
       jobDoc.doneAt = new Date();

@@ -119,6 +119,7 @@ export class MatchRequestService {
     matchRq.status = MatchRqStatus.MATCHED;
     if (action == MerchandisingType.SUPER_LIKE) {
       conversationDto.type = ConversationType.SUPER_LIKE;
+      conversationDto.createdBy = sender._id;
       notificationDto.type = NotificationType.SUPER_LIKE;
       matchRq.status = MatchRqStatus.SUPER_LIKE;
     }

@@ -7,4 +7,5 @@ import { Conversation } from '../entities';
 export class CreateConversationDto implements Partial<Conversation> {
   members?: User[];
   type?: ConversationType;
+  createdBy?: string;
 }

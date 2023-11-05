@@ -124,13 +124,12 @@ export class UserService implements OnModuleInit {
           $project: {
             __v: 0,
             geoLocation: 0,
-            featureAccess: 0,
             setting: 0,
             registerType: 0,
           },
         },
         {
-          $sort: { _id: -1 },
+          $sort: { 'boostsSession.expiredDate': -1, _id: -1 },
         },
         {
           $skip: (pagination?.page - 1) * pagination?.size || 0,
@@ -266,9 +265,9 @@ export class UserService implements OnModuleInit {
   async boosts(user: User): Promise<IResponse> {
     try {
       if (user.boostsSession.amount <= 0) {
-        throw new BadRequestException('So luong boosts khong du');
+        throw new BadRequestException('Số lượng boosts không đủ !');
       }
-      user.boostsSession = User.getBoostsSession(user.boostsSession);
+      user.boostsSession = User.boostsSession(user.boostsSession);
       await this.userRepo.save(user);
       return {
         success: true,

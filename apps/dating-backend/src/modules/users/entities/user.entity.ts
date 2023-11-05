@@ -14,6 +14,7 @@ import {
   Role,
   VerifyUserStatus,
 } from '@dating/common';
+
 import { Relationship } from '@modules/relationship/entities';
 import { Tag } from '@modules/tag/entities';
 
@@ -39,6 +40,15 @@ export class FeatureAccessItem {
 
   @Prop({ type: Number })
   amount?: number;
+
+  @Prop({ default: new Date() })
+  expiredDate?: Date;
+
+  @Prop({ type: Number })
+  refreshInterval?: number;
+
+  @Prop({ type: String, enum: Object.values(RefreshIntervalUnit) })
+  refreshIntervalUnit?: RefreshIntervalUnit;
 
   constructor(amount: number) {
     this.amount = amount;
@@ -177,23 +187,23 @@ export class Verify {
   @Prop()
   receiveDate?: Date;
 
-  @Prop({ default: false })
+  @Prop()
   success?: boolean;
 }
 
 @Schema({ _id: false })
 export class BoostsSession {
-  @Prop({ default: 0 })
+  @Prop()
   amount?: number;
 
-  @Prop({ default: new Date() })
+  @Prop()
   expiredDate?: Date;
 
-  @Prop({ type: Number })
-  effectiveTime: number;
+  @Prop({ default: 30 })
+  refreshInterval: number;
 
-  @Prop({ type: String, enum: Object.values(RefreshIntervalUnit) })
-  effectiveUnit: RefreshIntervalUnit;
+  @Prop({ type: String, enum: Object.values(RefreshIntervalUnit), default: RefreshIntervalUnit.MINUTES })
+  refreshIntervalUnit: RefreshIntervalUnit;
 }
 
 @Schema({ timestamps: true })
@@ -252,9 +262,6 @@ export class User implements IEntity {
   @Prop({ type: HomeTown, default: new HomeTown() })
   liveAt: HomeTown;
 
-  @Prop({ type: BoostsSession, default: new BoostsSession() })
-  boostsSession: BoostsSession;
-
   @Prop({ type: GeoLocation })
   geoLocation: GeoLocation;
 
@@ -291,6 +298,9 @@ export class User implements IEntity {
   })
   relationshipStatus: Relationship;
 
+  @Prop({ type: BoostsSession, default: new BoostsSession() })
+  boostsSession: BoostsSession;
+
   @Prop({ default: 0 })
   totalFinishProfile: number;
 
@@ -303,7 +313,7 @@ export class User implements IEntity {
   @Prop()
   stripeCustomerId: string;
 
-  @Prop({ type: Verify })
+  @Prop({ type: Verify, default: new Verify() })
   verify: Verify;
 
   @Prop({ default: false })
@@ -321,14 +331,25 @@ export class User implements IEntity {
   @Prop()
   keyword: string;
 
+  calcDistance: number;
   createdAt?: Date;
   updatedAt?: Date;
 
   static getDefaultFeatureAccess(): FeatureAccessItem[] {
     const defaultValue: FeatureAccessItem[] = [];
-    const defaultType = [MerchandisingType.HIDE_ADS, MerchandisingType.SUPER_LIKE, MerchandisingType.UN_BLUR];
+    const defaultType = [MerchandisingType.HIDE_ADS, MerchandisingType.UN_BLUR, MerchandisingType.BOOSTS];
     for (const i in defaultType) {
-      defaultValue.push({ name: defaultType[i], unlimited: false, amount: 0 });
+      const featureAccess: FeatureAccessItem = {
+        name: defaultType[i],
+        unlimited: false,
+        amount: 0,
+      };
+      if (defaultType[i] === MerchandisingType.BOOSTS) {
+        featureAccess.refreshInterval = 30;
+        featureAccess.expiredDate = new Date();
+        featureAccess.refreshIntervalUnit = RefreshIntervalUnit.MINUTES;
+      }
+      defaultValue.push(featureAccess);
     }
     return defaultValue.concat([
       {
@@ -341,14 +362,24 @@ export class User implements IEntity {
         unlimited: false,
         amount: 2,
       },
+      {
+        name: MerchandisingType.SUPER_LIKE,
+        unlimited: false,
+        amount: 1,
+      },
     ]);
   }
 
-  static getBoostsSession(boostsSession: BoostsSession): BoostsSession {
+  static boostsSession(boostsSession: BoostsSession): BoostsSession {
     boostsSession.amount = boostsSession.amount - 1;
-    const { effectiveTime, effectiveUnit } = boostsSession;
-    boostsSession.expiredDate = moment()
-      .add(effectiveTime, effectiveUnit as moment.DurationInputArg2)
+    const { refreshInterval, refreshIntervalUnit } = boostsSession;
+    if (boostsSession.expiredDate < new Date()) {
+      boostsSession.expiredDate = moment()
+        .add(refreshInterval, refreshIntervalUnit.toLowerCase() as moment.DurationInputArg2)
+        .toDate();
+    }
+    boostsSession.expiredDate = moment(boostsSession.expiredDate)
+      .add(refreshInterval, refreshIntervalUnit.toLowerCase() as moment.DurationInputArg2)
       .toDate();
     return boostsSession;
   }

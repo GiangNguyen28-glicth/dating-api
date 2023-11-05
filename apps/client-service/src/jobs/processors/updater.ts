@@ -7,7 +7,7 @@ import { BillingRepo, UserRepo } from '@dating/repositories';
 import { UserService } from '@modules/users/users.service';
 
 import { IUpdateMany } from '../interfaces';
-import { DATABASE_TYPE, PROVIDER_REPO } from '@common/consts';
+import { DATABASE_TYPE, IBulkWrite, PROVIDER_REPO } from '@common/consts';
 
 @Injectable()
 export class UpdaterService {
@@ -19,10 +19,9 @@ export class UpdaterService {
     private userRepo: UserRepo,
   ) {}
 
-  async updateUserFT(updateMany: IUpdateMany<User>) {
+  async updateUserFT(bulkWrite: IBulkWrite[]) {
     try {
-      const { ids, entities } = updateMany;
-      await this.userRepo.updateMany(ids, entities);
+      await this.userRepo.bulkWrite(bulkWrite);
     } catch (error) {
       throw error;
     }

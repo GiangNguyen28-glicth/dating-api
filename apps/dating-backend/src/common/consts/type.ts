@@ -26,3 +26,10 @@ export type RelationshipModelType = Model<Relationship>;
 export type NotificationModelType = Model<Notification>;
 export type ScheduleModelType = Model<Schedule>;
 export type MongoQuery = '$eq' | '$gte' | '$lte' | '$in' | '$nin' | '$elemMatch' | '$exists' | '$ne';
+
+export enum BulkWriteKey {
+  insertOne = 'insertOne',
+  updateOne = 'updateOne',
+  updateMany = 'updateMany',
+}
+export type IBulkWrite = Partial<Record<BulkWriteKey, any>>;

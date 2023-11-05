@@ -78,16 +78,17 @@ export class ActionService {
         matchedAction.matchRq = matchRq;
         await this.matchReqService.matched(matchedAction);
       } else {
-        this.socketGateway.sendEventToClient(socketIdsClient.receiver, 'newMatchRequest', sender);
         const matchRqDto: CreateMatchRequestDto = {
           sender: sender._id,
           receiver: receiverId,
         };
         if (action == MerchandisingType.LIKE) {
+          this.socketGateway.sendEventToClient(socketIdsClient.receiver, 'newMatchRequest', sender);
           matchRqDto.status = MatchRqStatus.REQUESTED;
           await this.like(sender, matchRqDto);
           await this.matchReqService.create(matchRqDto);
         } else {
+          this.socketGateway.sendEventToClient(socketIdsClient.receiver, 'newSuperLike', sender);
           matchRqDto.status = MatchRqStatus.SUPER_LIKE;
           const superMatchRq = await this.matchReqService.create(matchRqDto);
           matchedAction.matchRq = superMatchRq;
@@ -124,9 +125,9 @@ export class ActionService {
   async like(sender: User, matchRqDto: CreateMatchRequestDto): Promise<void> {
     if (get(sender, 'boostsSession.expiredDate', null) > new Date()) {
       matchRqDto.isBoosts = true;
-      const { effectiveTime, effectiveUnit } = sender.boostsSession;
+      const { refreshInterval, refreshIntervalUnit } = sender.boostsSession;
       matchRqDto.expiredAt = moment()
-        .add(effectiveTime, effectiveUnit as DurationInputArg2)
+        .add(refreshInterval, refreshIntervalUnit.toLowerCase() as DurationInputArg2)
         .toDate();
     }
   }

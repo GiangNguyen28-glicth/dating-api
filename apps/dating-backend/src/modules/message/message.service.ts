@@ -1,7 +1,15 @@
 import { Inject, Injectable, OnModuleInit, forwardRef } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
 
-import { DATABASE_TYPE, MessageType, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
+import {
+  ConversationType,
+  DATABASE_TYPE,
+  MerchandisingType,
+  MessageType,
+  PROVIDER_REPO,
+  QUEUE_NAME,
+  RMQ_CHANNEL,
+} from '@common/consts';
 import { IResponse, IResult } from '@common/interfaces';
 import { MessageRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
@@ -51,6 +59,7 @@ export class MessageService implements OnModuleInit {
       const message = await this.messageRepo.insert(messageDto);
       const conversation = await this.conversationService.findOneAndUpdate(messageDto.conversation, {
         lastMessage: message,
+        type: ConversationType.SUPER_LIKE,
       });
       throwIfNotExists(conversation, 'Không tìm thấy cuộc hội thoại');
       await this.messageRepo.save(message);

@@ -1,6 +1,13 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 
-import { DATABASE_TYPE, EXCLUDE_FIELDS, MessageStatus, MongoQuery, PROVIDER_REPO } from '@common/consts';
+import {
+  ConversationType,
+  DATABASE_TYPE,
+  EXCLUDE_FIELDS,
+  MessageStatus,
+  MongoQuery,
+  PROVIDER_REPO,
+} from '@common/consts';
 import { PaginationDTO } from '@common/dto';
 import { IOptionFilterGetOne, IResult } from '@common/interfaces';
 import { ConversationRepo } from '@dating/repositories';
@@ -32,6 +39,7 @@ export class ConversationService {
       const [queryFilter, sortOption] = new FilterBuilder<Conversation>()
         .setFilterItem('members', '$elemMatch', { $eq: user._id })
         .setFilterItem('lastMessage', query, null, true)
+        .setFilterItem('createdBy', '$ne', user._id)
         .setSortItem('updatedAt', -1)
         .buildQuery();
       const pagination: PaginationDTO = {
@@ -106,6 +114,8 @@ export class ConversationService {
       const [queryFilter] = new FilterBuilder<Conversation>()
         .setFilterItem('_id', '$eq', filter?._id)
         .setFilterItem('members', '$elemMatch', { $eq: user._id })
+        .setFilterItem('isDeleted', '$eq', false, true)
+        .setFilterItem('createdBy', '$ne', user._id.toString())
         .buildQuery();
       const options: IOptionFilterGetOne<Conversation> = {
         queryFilter,
