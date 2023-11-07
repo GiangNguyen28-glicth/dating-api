@@ -59,7 +59,7 @@ export class MessageService implements OnModuleInit {
       const message = await this.messageRepo.insert(messageDto);
       const conversation = await this.conversationService.findOneAndUpdate(messageDto.conversation, {
         lastMessage: message,
-        type: ConversationType.SUPER_LIKE,
+        type: ConversationType.MATCHED,
       });
       throwIfNotExists(conversation, 'Không tìm thấy cuộc hội thoại');
       await this.messageRepo.save(message);

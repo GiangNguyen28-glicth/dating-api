@@ -16,11 +16,6 @@ import { MessageService } from './message.service';
 export class MessageController {
   constructor(private readonly messageService: MessageService) {}
 
-  @Post()
-  async create(@Body() dto: CreateMessageDto, @CurrentUser() user: User): Promise<any> {
-    return await this.messageService.create(dto, user);
-  }
-
   @Get()
   async findAll(@Query() filter: FilterGetAllMessageDTO): Promise<IResult<Message>> {
     return await this.messageService.findAll(filter);
