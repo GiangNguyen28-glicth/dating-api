@@ -167,13 +167,21 @@ export class ConversationService {
   }
 
   async findOneByMembers(members: string[]): Promise<Conversation> {
-    const query: any = {
+    const queryFilter: any = {
       $or: [{ members: members }, { members: [members[1], members[0]] }],
     };
-    return await this.conversationRepo.findOne({ queryFilter: query });
+    return await this.conversationRepo.findOne({ queryFilter });
   }
 
   async toJSON(conversation: Conversation): Promise<Conversation> {
     return await this.conversationRepo.toJSON(conversation);
+  }
+
+  async save(conversation: Conversation): Promise<Conversation> {
+    try {
+      return await this.conversationRepo.save(conversation);
+    } catch (error) {
+      throw error;
+    }
   }
 }

@@ -81,6 +81,7 @@ export enum OfferingType {
   FINDER_PREMIUM = 'Premium',
   FINDER_PLUS = 'Plus',
   FINDER_BOOSTS = 'Boosts',
+  FINDER_SUPER_LIKE = 'Super like',
 }
 
 export enum MerchandisingType {

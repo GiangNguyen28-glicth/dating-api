@@ -118,7 +118,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       await this.redisService.sadd(socketKey, socket.id);
       this.server.sockets.to(socket.id).emit('verifyFirstConnection', user);
     } catch (error) {
-      throw new WsException(error.message);
+      throw error;
     }
   }
 
@@ -136,7 +136,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       this.sendEventToClient(socketIdsSender, 'sentMessage', message);
       this.sendEventToClient(socketIdsReceiver, 'newMessage', message);
     } catch (error) {
-      throw new WsException(error.message);
+      throw error;
     }
   }
 
@@ -156,7 +156,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       this.sendEventToClient([...senderIds, ...receiverIds], 'seenMessage', data);
       return data;
     } catch (error) {
-      throw new WsException(error.message);
+      throw error;
     }
   }
 
@@ -168,7 +168,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       const socketIds = await this.socketService.getSocketIdsByUser(message.sender as string);
       this.sendEventToClient(socketIds, 'receivedMessage', newMessage);
     } catch (error) {
-      throw new WsException(error.message);
+      throw error;
     }
   }
 

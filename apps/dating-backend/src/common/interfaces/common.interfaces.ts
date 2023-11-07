@@ -55,3 +55,8 @@ export interface ISocketIdsClient {
   sender: string[];
   receiver: string[];
 }
+
+export interface IErrorResponse {
+  message?: string;
+  data?: any;
+}

@@ -3,11 +3,11 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { DATABASE_TYPE, PROVIDER_REPO } from '@common/consts';
 import { OfferingRepo } from '@dating/repositories';
 import { PaginationDTO } from '@common/dto';
-import { formatResult, throwIfNotExists } from '@dating/utils';
+import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
 import { IResponse, IResult } from '@common/interfaces';
 
 import { MerchandisingItem, Offering, Package } from './entities';
-import { CreateOfferingDto } from './dto';
+import { CreateOfferingDto, FilterGetOneOfferingDTO } from './dto';
 import { uniqBy } from 'lodash';
 
 @Injectable()
@@ -58,10 +58,15 @@ export class OfferingService {
     }
   }
 
-  async findOne(_id: string): Promise<Offering> {
+  async findOne(filter: FilterGetOneOfferingDTO): Promise<Offering> {
     try {
+      const [queryFilter] = new FilterBuilder<Offering>()
+        .setFilterItem('_id', '$eq', filter?._id)
+        .setFilterItem('type', '$eq', filter?.type)
+        .setFilterItem('isDeleted', '$eq', false, true)
+        .buildQuery();
       const offering = await this.offeringRepo.findOne({
-        queryFilter: { _id },
+        queryFilter,
       });
       throwIfNotExists(offering, 'Không tìm thấy Offering');
       return offering;

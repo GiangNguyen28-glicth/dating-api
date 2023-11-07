@@ -49,7 +49,7 @@ export class PaymentService implements OnModuleInit {
 
   async createPaymentIntentStripe(user: User, checkoutDto: CheckoutDTO): Promise<IResponse> {
     try {
-      const offering = await this.offeringService.findOne(checkoutDto.offeringId);
+      const offering = await this.offeringService.findOne({ _id: checkoutDto.offeringId });
       const _package: Package = this.offeringService.getPackage(offering, checkoutDto.packageId);
       if (!_package) {
         throw new BadRequestException('Không tìm thấy Package');

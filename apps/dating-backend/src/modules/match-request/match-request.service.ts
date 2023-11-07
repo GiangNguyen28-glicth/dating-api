@@ -17,11 +17,14 @@ import { FilterBuilder, formatResult } from '@dating/utils';
 import { ConversationService } from '@modules/conversation/conversation.service';
 import { NotificationService } from '@modules/notification/notification.service';
 import { SocketGateway } from '@modules/socket/socket.gateway';
+
 import { User } from '@modules/users/entities';
+import { Conversation } from '@modules/conversation/entities';
 
 import { ACTION } from '@modules/action/dto';
 import { CreateConversationDto } from '@modules/conversation/dto';
 import { CreateNotificationDto } from '@modules/notification/dto';
+
 import { CreateMatchRequestDto, FilterGelAllMqDTO, FilterGetOneMq } from './dto';
 import { MatchRequest } from './entities';
 import { IMatchedAction } from './interfaces';
@@ -77,14 +80,16 @@ export class MatchRequestService {
 
   async findOne(filter: FilterGetOneMq): Promise<MatchRequest> {
     try {
-      const [queryFilter] = new FilterBuilder<MatchRequest>()
-        .setFilterItem('status', '$eq', filter?.status)
-        .setFilterItemWithObject('$or', [
+      const queryBuilder = new FilterBuilder<MatchRequest>().setFilterItem('status', '$eq', filter?.status);
+      if (filter?.receiver && filter?.sender) {
+        queryBuilder.setFilterItemWithObject('$or', [
           { receiver: filter?.sender, sender: filter?.receiver },
           { receiver: filter?.receiver, sender: filter?.sender },
-        ])
-        .setSortItem('createdAt', 'descending')
-        .buildQuery();
+        ]);
+      } else {
+        queryBuilder.setFilterItem('receiver', '$eq', filter?.receiver);
+      }
+      const [queryFilter] = queryBuilder.buildQuery();
       const populate: PopulateOptions[] = [];
       if (filter?.populate) {
         populate.push({
@@ -116,15 +121,15 @@ export class MatchRequestService {
       receiver,
       type: NotificationType.MATCHED,
     };
-    matchRq.status = MatchRqStatus.MATCHED;
     if (action == MerchandisingType.SUPER_LIKE) {
       conversationDto.type = ConversationType.SUPER_LIKE;
-      conversationDto.createdBy = sender._id;
       notificationDto.type = NotificationType.SUPER_LIKE;
       matchRq.status = MatchRqStatus.SUPER_LIKE;
+      conversationDto.createdBy = sender._id;
     }
-    const conversation = await this.conversationService.create(conversationDto);
-    notificationDto.conversation = conversation;
+
+    const conversation = await this.getConversationByStatus(matchedAction, conversationDto);
+    matchRq.status = MatchRqStatus.MATCHED;
 
     const [notification] = await Promise.all([
       this.notiService.create(notificationDto),
@@ -135,12 +140,33 @@ export class MatchRequestService {
     newConversation.members = [sender, receiver];
     const socketIds = socketIdsClient.receiver.concat(socketIdsClient.sender);
 
-    if (action == ACTION.LIKE) {
+    if (conversation.type === ConversationType.MATCHED) {
       this.socketGateway.sendEventToClient(socketIds, 'newMatched', {
         conversation: newConversation,
         notificationId: notification._id,
       });
     }
+  }
+
+  async getConversationByStatus(
+    matchedAction: IMatchedAction,
+    conversationDto: CreateConversationDto,
+  ): Promise<Conversation> {
+    let conversation: Conversation = null;
+    const { sender, receiver, matchRq } = matchedAction;
+
+    if (matchRq.status !== MatchRqStatus.SUPER_LIKE) {
+      conversation = await this.conversationService.create(conversationDto);
+    } else {
+      conversation = await this.conversationService.findOneByMembers([sender._id, receiver._id]);
+      if (!conversation) {
+        conversation = await this.conversationService.create(conversationDto);
+      } else {
+        conversation.type = ConversationType.MATCHED;
+        await this.conversationService.save(conversation);
+      }
+    }
+    return conversation;
   }
 
   async countMatchRequest(user: User): Promise<IResponse> {

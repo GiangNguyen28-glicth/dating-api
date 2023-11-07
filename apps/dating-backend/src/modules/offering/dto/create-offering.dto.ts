@@ -4,6 +4,7 @@ import { IsNumber } from 'class-validator';
 import { Currency, LimitType, MerchandisingType, OfferingType, RefreshIntervalUnit } from '@common/consts';
 
 import { MerchandisingItem, Offering, Package } from '../entities';
+import { FilterGetOne } from '@common/dto';
 export class PackageDTO implements Package {
   price: number;
   save: number;
@@ -88,4 +89,9 @@ export class CreateOfferingDto implements Partial<Offering> {
 
   @ApiProperty({ type: [MerchandisingItemDTO] })
   merchandising?: MerchandisingItem[];
+}
+
+export class FilterGetOneOfferingDTO extends FilterGetOne implements Partial<Offering> {
+  type?: OfferingType;
+  isRetail?: boolean;
 }

@@ -24,8 +24,8 @@ export class OfferingController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<Offering> {
-    return await this.offeringService.findOne(id);
+  async findOne(@Param('id') _id: string): Promise<Offering> {
+    return await this.offeringService.findOne({ _id });
   }
 
   @Patch(':id')

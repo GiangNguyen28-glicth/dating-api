@@ -1,10 +1,10 @@
 import { BadRequestException, Inject, Injectable, forwardRef } from '@nestjs/common';
+import { get } from 'lodash';
 import * as moment from 'moment-timezone';
 import { DurationInputArg2 } from 'moment-timezone';
-import { get } from 'lodash';
 
 import { DATABASE_TYPE, MatchRqStatus, MerchandisingType, PROVIDER_REPO } from '@common/consts';
-import { IResponse } from '@common/interfaces';
+import { IErrorResponse, IResponse } from '@common/interfaces';
 import { ActionRepo } from '@dating/repositories';
 import { FilterBuilder, throwIfNotExists } from '@dating/utils';
 
@@ -12,13 +12,14 @@ import { MatchRequestService } from '@modules/match-request/match-request.servic
 import { SocketGateway } from '@modules/socket/socket.gateway';
 import { SocketService } from '@modules/socket/socket.service';
 import { UserService } from '@modules/users/users.service';
+import { OfferingService } from '@modules/offering/offering.service';
 
 import { User } from '@modules/users/entities';
 
 import { CreateMatchRequestDto } from '@modules/match-request/dto';
-import { ACTION, FilterGetOneActionDTO } from './dto';
-import { Action } from './entities';
 import { IMatchedAction } from '@modules/match-request/interfaces';
+import { FilterGetOneActionDTO } from './dto';
+import { Action } from './entities';
 
 @Injectable()
 export class ActionService {
@@ -36,6 +37,7 @@ export class ActionService {
     private userService: UserService,
 
     private matchReqService: MatchRequestService,
+    private offeringService: OfferingService,
   ) {}
 
   async findOne(filter: FilterGetOneActionDTO): Promise<Action> {
@@ -55,7 +57,19 @@ export class ActionService {
     try {
       const idx = sender.featureAccess.findIndex(item => item.name === action);
       if (!Action.isByPassAction(sender.featureAccess[idx])) {
-        throw new BadRequestException(`Đã sử dụng hết lượt ${action.toLowerCase()} ngày hôm nay`);
+        const offering = await this.offeringService.findOne({
+          type: sender.featureAccess[idx].name as any,
+          isRetail: true,
+        });
+        const objError: IErrorResponse = {
+          message: `Đã sử dụng hết lượt ${action.toLowerCase()} ngày hôm nay`,
+        };
+        if (offering) {
+          objError.data = {
+            offering,
+          };
+        }
+        throw new BadRequestException(objError);
       }
 
       const [receiver, matchRq] = await Promise.all([
