@@ -1,14 +1,11 @@
 import { FilterGetAll } from '@common/dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Report } from '../entities/report.entity';
-import { User } from '@modules/users/entities';
-export class FilterGetAllReportDTO
-  extends FilterGetAll
-  implements Partial<Report>
-{
+
+import { Report } from '../entities';
+export class FilterGetAllReportDTO extends FilterGetAll implements Partial<Report> {
   @ApiPropertyOptional()
-  reportedUser?: User;
+  reportedUser?: string;
 
   @ApiPropertyOptional()
-  reportBy?: User;
+  reportBy?: string;
 }

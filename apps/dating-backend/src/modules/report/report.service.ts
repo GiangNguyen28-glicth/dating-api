@@ -1,14 +1,18 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+
 import { ReportRepo } from '@dating/repositories';
 import { DATABASE_TYPE, PROVIDER_REPO } from '@common/consts';
 import { IResult } from '@common/interfaces';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
 import { PaginationDTO } from '@common/dto';
+
 import { User } from '@modules/users/entities';
 
 import { CreateReportDto, FilterGetAllReportDTO, UpdateReportDto } from './dto';
 import { Report } from './entities';
 import { ActionService } from '@modules/action/action.service';
+
+const LIMIT_IMAGES_REPORT = 3;
 @Injectable()
 export class ReportService {
   constructor(
@@ -19,10 +23,13 @@ export class ReportService {
   ) {}
   async create(createReportDto: CreateReportDto, user: User): Promise<Report> {
     try {
+      if (createReportDto?.images?.length > LIMIT_IMAGES_REPORT) {
+        throw new BadRequestException(`Số lượng ảnh vượt quá ${LIMIT_IMAGES_REPORT}`);
+      }
       createReportDto['reportBy'] = user._id;
       const report = await this.reportRepo.insert(createReportDto);
       await this.reportRepo.save(report);
-      await this.actionService.skip(user, createReportDto.reportedUser as any);
+      await this.actionService.skip(user, createReportDto.reportedUser);
       return report;
     } catch (error) {
       throw error;

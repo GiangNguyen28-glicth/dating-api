@@ -18,7 +18,7 @@ import { IResponse } from '@common/interfaces';
 import { User } from '@modules/users/entities';
 
 import { CreateReportDto, FilterGetAllReportDTO, UpdateReportDto } from './dto';
-import { Report } from './entities/report.entity';
+import { Report } from './entities';
 import { ReportService } from './report.service';
 
 @ApiTags(Report.name)
@@ -42,13 +42,13 @@ export class ReportController {
 
   @Get()
   async findAll(@Query() filter: FilterGetAllReportDTO) {
-    return this.reportService.findAll(filter);
+    return await this.reportService.findAll(filter);
   }
 
   @Get(':id')
   @ApiParam({ type: 'string', name: 'id' })
-  findOne(@Param('id') id: string) {
-    return this.reportService.findOne(id);
+  async findOne(@Param('id') id: string): Promise<Report> {
+    return await this.reportService.findOne(id);
   }
 
   @Patch(':id')

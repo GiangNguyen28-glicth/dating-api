@@ -1,8 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
+
 import { MongoID } from '@common/consts';
 import { IEntity } from '@common/interfaces';
-import { User } from '@modules/users/entities/user.entity';
+
+import { Image, User } from '@modules/users/entities';
 
 @Schema({ timestamps: true })
 export class Report implements IEntity {
@@ -10,16 +12,19 @@ export class Report implements IEntity {
   _id?: string;
 
   @Prop({ type: MongoID, ref: User.name })
-  reportedUser: User;
+  reportedUser: User | string;
 
   @Prop({ type: MongoID, ref: User.name })
-  reportBy: User;
+  reportBy: User | string;
 
   @Prop({ trim: true })
   reason: string;
 
   @Prop({ trim: true })
   description: string;
+
+  @Prop([{ type: Image }])
+  images: Image[];
 
   @Prop({ type: Boolean, default: false })
   isVerified: boolean;
