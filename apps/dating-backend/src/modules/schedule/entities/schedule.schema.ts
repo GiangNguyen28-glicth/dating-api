@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
 
-import { CreatedDatingType, DatingStatus, MongoID, RequestDatingStatus } from '@common/consts';
+import { CreatedDatingType, DatingStatus, MongoID, RequestDatingStatus, ReviewDatingStatus } from '@common/consts';
 import { IEntity } from '@common/interfaces';
 import { User } from '@modules/users/entities';
 
@@ -89,6 +89,9 @@ export class Schedule implements IEntity {
   @Prop({ type: MongoID, ref: User.name })
   receiver: User | string;
 
+  @Prop({ type: String, enum: Object.values(ReviewDatingStatus), default: ReviewDatingStatus.WAIT_FOR_REVIEW })
+  reviewDatingStatus: ReviewDatingStatus;
+
   @Prop({ type: MongoID, ref: User.name })
   updatedBy: User | string;
 
@@ -103,6 +106,24 @@ export class Schedule implements IEntity {
 
   @Prop({ default: false })
   isDeleted?: boolean;
+
+  static getReviewDatingStatusDating(reviews: Review[]): ReviewDatingStatus {
+    if (reviews.length < 2) {
+      return ReviewDatingStatus.WAIT_FOR_REVIEW;
+    }
+    for (const review of reviews) {
+      if (!review.isJoin) {
+        return ReviewDatingStatus.NOT_JOINING;
+      }
+      if (review.datingStatus === DatingStatus.NO) {
+        return ReviewDatingStatus.FAILED;
+      }
+      if (review.datingStatus === DatingStatus.HALFWAY) {
+        return ReviewDatingStatus.HALFWAY;
+      }
+    }
+    return ReviewDatingStatus.SUCCESS;
+  }
 
   createdAt?: Date;
   updatedAt?: Date;

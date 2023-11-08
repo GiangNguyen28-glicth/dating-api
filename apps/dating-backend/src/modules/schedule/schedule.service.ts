@@ -5,7 +5,14 @@ import axios from 'axios';
 import { GoogleAuth } from 'google-auth-library';
 import { get, isNil } from 'lodash';
 
-import { DATABASE_TYPE, NotificationType, PROVIDER_REPO, RequestDatingStatus, SortQuery } from '@common/consts';
+import {
+  DATABASE_TYPE,
+  NotificationType,
+  PROVIDER_REPO,
+  RequestDatingStatus,
+  ReviewDatingStatus,
+  SortQuery,
+} from '@common/consts';
 import { IResponse, IResult } from '@common/interfaces';
 import { ScheduleRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
@@ -535,6 +542,10 @@ export class ScheduleService {
         throw new BadRequestException('Đánh giá cho cuộc hẹn đã được submit');
       }
       schedule.reviews.push(review);
+      const { NOT_JOINING, FAILED } = ReviewDatingStatus;
+      if (![NOT_JOINING, FAILED].includes(schedule.reviewDatingStatus)) {
+        schedule.reviewDatingStatus = Schedule.getReviewDatingStatusDating(schedule.reviews);
+      }
       await this.scheduleRepo.save(schedule);
       return {
         success: true,

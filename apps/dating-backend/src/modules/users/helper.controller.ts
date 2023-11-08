@@ -1,5 +1,5 @@
 import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import axios from 'axios';
 
 import { AtGuard } from '@common/guards';
@@ -8,6 +8,7 @@ import { CurrentUser } from '@common/decorators';
 
 import { UserHelper } from './helper/user.helper';
 import { User } from './entities';
+import { UpdateImageVerifiedDTO } from './dto';
 
 @ApiTags('Helper')
 @Controller()
@@ -66,5 +67,10 @@ export class HelperController {
       headers: { 'x-auth-token': '37ac37aa-ee56-497f-8569-d5345183acfb' },
     });
     return resp.data;
+  }
+
+  @Post('/images/verified')
+  async updateImageVerified(@Body() dto: UpdateImageVerifiedDTO): Promise<void> {
+    await this.userHelper.updateImageVerified(dto);
   }
 }

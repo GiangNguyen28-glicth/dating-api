@@ -27,6 +27,9 @@ export class Image {
   blur?: string;
 
   @Prop()
+  isVerifiedSuccess?: boolean;
+
+  @Prop()
   insId?: string;
 }
 

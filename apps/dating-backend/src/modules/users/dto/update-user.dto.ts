@@ -13,7 +13,19 @@ export class ImageDTO implements Partial<Image> {
   @ApiPropertyOptional()
   blur?: string;
 
+  @ApiPropertyOptional()
+  isVerified?: boolean;
+
   insId?: string;
+}
+
+export class UpdateImageVerifiedDTO {
+  @ApiPropertyOptional()
+  @IsNotEmpty()
+  userId: string;
+
+  @ApiProperty({ type: [ImageDTO] })
+  images: ImageDTO[];
 }
 
 export class UpdateUserDiscoverySettingDTO implements DiscoverySetting {
@@ -100,7 +112,7 @@ export class UpdateUserProfileDto implements Partial<User> {
   birthDate?: Date;
 
   @ApiPropertyOptional({ type: [ImageDTO] })
-  images?: ImageDTO[];
+  images?: Image[];
 
   @ApiPropertyOptional()
   blurAvatar?: string;

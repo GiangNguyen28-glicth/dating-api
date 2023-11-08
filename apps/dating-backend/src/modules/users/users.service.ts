@@ -1,6 +1,6 @@
 import { BadRequestException, Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
-import { get } from 'lodash';
+import { get, isNil } from 'lodash';
 import { PipelineStage } from 'mongoose';
 
 import { RabbitService } from '@app/shared';
@@ -23,6 +23,7 @@ import { CreateUserDTO, FilterGetOneUserDTO, UpdateUserTagDTO, VerifyUserDTO } f
 import { User } from './entities';
 import { UserHelper } from './helper';
 import { FinalCondRecommendation } from './interfaces';
+import axios from 'axios';
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -126,6 +127,12 @@ export class UserService implements OnModuleInit {
             geoLocation: 0,
             setting: 0,
             registerType: 0,
+            featureAccess: 0,
+            isBlocked: 0,
+            isDeleted: 0,
+            stepStarted: 0,
+            createdAt: 0,
+            updatedAt: 0,
           },
         },
         {
@@ -180,16 +187,35 @@ export class UserService implements OnModuleInit {
       entities.totalFinishProfile = this.userHelper.calTotalFinishProfile(user, entities);
       const newUser = await this.userRepo.findOneAndUpdate(user._id, entities);
       throwIfNotExists(newUser, 'Cập nhật thất bại. Không thể tìm thấy User');
-      if (entities?.images?.length && (this.userHelper.validateBlurImage(entities.images) || entities.blurAvatar)) {
+      await this.processImage(user._id, entities);
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async processImage(userId: string, entities: Partial<User>): Promise<void> {
+    if (entities?.images.length) {
+      if (this.userHelper.validateBlurImage(entities.images) || entities.blurAvatar) {
         await this.rabbitService.sendToQueue(QUEUE_NAME.USER_IMAGES_BUILDER, {
-          userId: user._id,
+          userId,
           images: entities.images,
           blurAvatar: entities.blurAvatar,
         });
       }
-      return user;
-    } catch (error) {
-      throw error;
+      const imagesVerify = entities.images
+        .filter(img => isNil(img.isVerifiedSuccess) || !img.isVerifiedSuccess)
+        .map(item => item.url);
+      if (imagesVerify.length) {
+        try {
+          axios.post('https://finder.sohe.in/face/recognize', {
+            userId: userId,
+            images: imagesVerify,
+          });
+        } catch (error) {
+          console.log(error);
+        }
+      }
     }
   }
 

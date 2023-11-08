@@ -177,3 +177,11 @@ export enum DatingStatus {
   NO = 'No',
   HALFWAY = 'Halfway',
 }
+
+export enum ReviewDatingStatus {
+  SUCCESS = 'Success',
+  WAIT_FOR_REVIEW = 'Wait for review',
+  FAILED = 'Failed',
+  NOT_JOINING = 'Not joining',
+  HALFWAY = 'Halfway',
+}

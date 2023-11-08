@@ -13,7 +13,7 @@ import { FilterBuilder } from '@dating/utils';
 
 import { ActionService } from '@modules/action/action.service';
 
-import { UpdateUserProfileDto, calField } from '../dto';
+import { UpdateImageVerifiedDTO, UpdateUserProfileDto, calField } from '../dto';
 import { Image, SpotifyInfo, User, UserAddress } from '../entities';
 import { InsPayload, SpotifyPayload } from '../interfaces';
 
@@ -263,5 +263,20 @@ export class UserHelper implements OnModuleInit {
 
   validateBlurImage(image: Image[]) {
     return image.some(item => !item.blur);
+  }
+
+  async updateImageVerified(dto: UpdateImageVerifiedDTO): Promise<void> {
+    const user = await this.userRepo.findOne({ queryFilter: { _id: dto.userId } });
+    if (!user) {
+      return;
+    }
+    user.images.map(img => {
+      const imgVerified = dto.images.find(item => item.url === img.url);
+      if (imgVerified) {
+        img.isVerifiedSuccess = imgVerified.isVerified;
+      }
+      return img;
+    });
+    await this.userRepo.save(user);
   }
 }

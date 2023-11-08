@@ -99,12 +99,13 @@ export class ReviewDatingJob implements IJobProcessors, OnModuleInit {
         const senderMail: string = get(schedule, 'sender.email', null);
         if (senderMail) {
           const token = await this.getToken({ schedule: schedule._id, user: get(schedule, 'sender._id', null) });
+          const url = `${process.env.FRONT_END_URL}/vi/feedback?token=${token}`;
           await this.rabbitService.sendToQueue(
             QUEUE_NAME.SEND_MAIL,
             {
               to: senderMail,
               subject: 'Hello world',
-              html: `<p>${token}</p>`,
+              html: `<p>${url}</p>`,
             },
             RMQ_CHANNEL.MAIL_CHANNEL,
           );
