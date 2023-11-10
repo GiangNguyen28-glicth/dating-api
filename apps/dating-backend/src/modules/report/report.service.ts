@@ -12,7 +12,7 @@ import { CreateReportDto, FilterGetAllReportDTO, UpdateReportDto } from './dto';
 import { Report } from './entities';
 import { ActionService } from '@modules/action/action.service';
 
-const LIMIT_IMAGES_REPORT = 3;
+const LIMIT_IMAGES_REPORT = 5;
 @Injectable()
 export class ReportService {
   constructor(
@@ -43,8 +43,18 @@ export class ReportService {
         size: filter?.size,
         page: filter?.page,
       };
+      const selectField: Array<keyof User> = ['_id', 'name', 'images'];
+      const fields = selectField.join(' ');
       const [results, totalCount] = await Promise.all([
-        this.reportRepo.findAll({ queryFilter, pagination, sortOption }),
+        this.reportRepo.findAll({
+          queryFilter,
+          pagination,
+          sortOption,
+          populate: [
+            { path: 'reportBy', select: fields },
+            { path: 'reportedUser', select: fields },
+          ],
+        }),
         this.reportRepo.count(queryFilter),
       ]);
       return formatResult(results, totalCount, pagination);
