@@ -76,6 +76,9 @@ export class Style {
 
   @Prop()
   primaryColor: string;
+
+  @Prop()
+  chartColor: string;
 }
 
 @Schema({ timestamps: true })

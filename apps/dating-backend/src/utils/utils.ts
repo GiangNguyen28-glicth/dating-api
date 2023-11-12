@@ -126,6 +126,8 @@ export function getFormatGroupISODate(typeRange: TYPE_RANGE): FormatBilling {
       return '%Y-%U';
     case TYPE_RANGE.DAY:
       return '%Y-%m-%d';
+    case TYPE_RANGE.YEAR:
+      return '%Y';
   }
 }
 

@@ -11,7 +11,7 @@ export enum TYPE_RANGE {
   YEAR = 'Year',
 }
 
-export type FormatBilling = '%Y-%U' | '%Y-%m' | '%Y-%m-%d';
+export type FormatBilling = '%Y-%U' | '%Y-%m' | '%Y-%m-%d' | '%Y';
 
 export class FilterGetBillingStatistic {
   @ApiPropertyOptional()

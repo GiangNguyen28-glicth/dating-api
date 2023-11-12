@@ -75,6 +75,7 @@ export class AdminService {
           iconUrl: offering.iconUrl,
           type: offering.type,
           text: offering.text,
+          style: offering.style,
         },
       };
     });
@@ -93,6 +94,7 @@ export class AdminService {
           iconUrl: offering.iconUrl,
           type: offering.type,
           text: offering.text,
+          style: offering.style,
         },
       };
     });
