@@ -1,14 +1,15 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
+import { BillingStatus, DATABASE_TYPE, PROVIDER_REPO } from '@common/consts';
 import { CurrentUser } from '@common/decorators';
 import { IResponse, IResult } from '@common/interfaces';
-import { DATABASE_TYPE, PROVIDER_REPO } from '@common/consts';
 import { BillingRepo } from '@dating/repositories';
 import { FilterBuilder, throwIfNotExists } from '@dating/utils';
 import { User } from '@modules/users/entities';
 
-import { Billing } from './entities';
+import { FilterGetBillingStatistic } from '@modules/admin/dto';
 import { CreateBillingDto, FilterGetAllBillingDTO, FilterGetOneBillingDTO, UpdateBillingDto } from './dto';
+import { Billing } from './entities';
 
 @Injectable()
 export class BillingService {
@@ -27,13 +28,14 @@ export class BillingService {
 
   async findAll(filter: FilterGetAllBillingDTO, @CurrentUser() user?: User): Promise<IResult<Billing>> {
     try {
-      const [queryFilter] = new FilterBuilder<Billing>()
+      const queryBuilder = new FilterBuilder<Billing>()
         .setFilterItem('createdBy', '$eq', user?._id)
-        .setFilterItem('isDeleted', '$eq', false, true)
         .setFilterItem('expiredDate', '$lte', filter?.expiredDate)
-        .setFilterItem('status', '$eq', filter?.status)
-        .setSortItem('createdAt', 'desc')
-        .buildQuery();
+        .setFilterItem('status', '$eq', filter?.status);
+      if (filter?.fromDate && filter?.toDate) {
+        queryBuilder.setFilterItemWithObject('createdAt', { $gte: filter?.fromDate, $lte: filter?.toDate });
+      }
+      const [queryFilter] = queryBuilder.setSortItem('createdAt', 'desc').buildQuery();
       const [totalCount, results] = await Promise.all([
         this.billingRepo.count(queryFilter),
         this.billingRepo.findAll({ queryFilter }),
@@ -77,5 +79,23 @@ export class BillingService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async statisticRevenue(filter: FilterGetBillingStatistic): Promise<any[]> {
+    const queryBuilder = new FilterBuilder<Billing>().setFilterItem('status', '$eq', BillingStatus.SUCCESS);
+    if (filter?.fromDate && filter?.toDate) {
+      queryBuilder.setFilterItemWithObject('createdAt', { $gte: filter?.fromDate, $lte: filter?.toDate });
+    }
+    const [queryFilter] = queryBuilder.buildQuery();
+    return await this.billingRepo.statisticRevenue(queryFilter, filter.format);
+  }
+
+  async topUsersByRevenue(filter: FilterGetBillingStatistic): Promise<any[]> {
+    const queryBuilder = new FilterBuilder<Billing>().setFilterItem('status', '$eq', BillingStatus.SUCCESS);
+    if (filter?.fromDate && filter?.toDate) {
+      queryBuilder.setFilterItemWithObject('createdAt', { $gte: filter?.fromDate, $lte: filter?.toDate });
+    }
+    const [queryFilter] = queryBuilder.buildQuery();
+    return await this.billingRepo.topUsersByRevenue(queryFilter, filter.format);
   }
 }

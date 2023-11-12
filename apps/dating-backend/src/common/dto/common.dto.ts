@@ -23,6 +23,9 @@ export class FilterGetAll extends PaginationDTO {
 
   @ApiProperty({ type: [String], required: false })
   sort?: string[];
+
+  @ApiProperty()
+  isDeleted?: boolean;
 }
 
 export class TokenDTO {

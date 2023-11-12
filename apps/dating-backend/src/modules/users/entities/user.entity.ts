@@ -274,9 +274,6 @@ export class User implements IEntity {
   @Prop([{ type: FeatureAccessItem }, { default: User.getDefaultFeatureAccess() }])
   featureAccess: FeatureAccessItem[];
 
-  @Prop({ type: String, enum: Object.values(Role) })
-  role: Role;
-
   @Prop([{ type: Image, default: [] }])
   images: Image[];
 
@@ -322,6 +319,12 @@ export class User implements IEntity {
   @Prop({ default: false })
   isBlocked: boolean;
 
+  @Prop()
+  blockedAt: Date;
+
+  @Prop()
+  unBlockedAt: Date;
+
   @Prop({ default: false })
   isDeleted: boolean;
 
@@ -335,6 +338,7 @@ export class User implements IEntity {
   keyword: string;
 
   calcDistance: number;
+  role?: string;
   createdAt?: Date;
   updatedAt?: Date;
 

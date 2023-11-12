@@ -24,6 +24,7 @@ import {
   TagModule,
   UsersModule,
   ScheduleModule,
+  AdminModule,
 } from './modules';
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import {
     RelationshipModule,
     NotificationModule,
     ScheduleModule,
+    AdminModule,
   ],
   providers: [
     {

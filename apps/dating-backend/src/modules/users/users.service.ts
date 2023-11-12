@@ -2,6 +2,7 @@ import { BadRequestException, Inject, Injectable, OnModuleInit } from '@nestjs/c
 import { ConfirmChannel } from 'amqplib';
 import { get, isNil } from 'lodash';
 import { PipelineStage } from 'mongoose';
+import axios from 'axios';
 
 import { RabbitService } from '@app/shared';
 import {
@@ -19,11 +20,10 @@ import { UserRepo } from '@dating/repositories';
 import { FilterBuilder, downloadImage, formatResult, mappingData, throwIfNotExists } from '@dating/utils';
 import { TagService } from '@modules/tag/tag.service';
 
-import { CreateUserDTO, FilterGetOneUserDTO, UpdateUserTagDTO, VerifyUserDTO } from './dto';
+import { CreateUserDTO, FilterGetAllUserDTO, FilterGetOneUserDTO, UpdateUserTagDTO, VerifyUserDTO } from './dto';
 import { User } from './entities';
 import { UserHelper } from './helper';
 import { FinalCondRecommendation } from './interfaces';
-import axios from 'axios';
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -169,8 +169,30 @@ export class UserService implements OnModuleInit {
     }
   }
 
-  async findAll(option?: IOptionFilterGetAll<User>): Promise<User[]> {
-    return await this.userRepo.findAll(option);
+  async findAll(filter: FilterGetAllUserDTO): Promise<IResult<User>> {
+    const queryBuilder = new FilterBuilder<User>()
+      .setFilterItem('email', '$eq', filter?.email)
+      .setFilterItem('gender', '$eq', filter?.gender)
+      .setSortItem('blockedAt', 'desc');
+    if (!isNil(filter?.isBlocked)) {
+      queryBuilder.setFilterItem('isBlocked', '$eq', filter?.isBlocked, true);
+    }
+    const [queryFilter] = queryBuilder.buildQuery();
+    const selectFields: Array<keyof User> = [
+      '_id',
+      'images',
+      'email',
+      'blockedAt',
+      'unBlockedAt',
+      'isBlocked',
+      'name',
+      'createdAt',
+    ];
+    const [results, totalCount] = await Promise.all([
+      this.userRepo.findAll({ queryFilter, fields: selectFields }),
+      this.userRepo.count(queryFilter),
+    ]);
+    return formatResult(results, totalCount);
   }
 
   async findOneAndUpdate(_id: string, entities: Partial<User>): Promise<void> {

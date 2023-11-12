@@ -1,6 +1,7 @@
-import { FilterGetAll, FilterGetOne, RegisterType } from '@dating/common';
+import { FilterGetAll, FilterGetOne, Gender, RegisterType } from '@dating/common';
 import { IsEmail, IsPhoneNumber } from 'class-validator';
 import { User } from '../entities/user.entity';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateUserDTO implements Partial<User> {
   @IsEmail()
@@ -17,12 +18,27 @@ export class FilterGetOneUserDTO extends FilterGetOne implements Partial<User> {
   phoneNumber?: string;
 }
 
-export class FilterGetAllUserDTO extends FilterGetAll implements Partial<User> {
+export class FilterGetAllUserDTO implements Partial<User> {
   _id?: string;
   email?: string;
   registerType?: RegisterType;
   phoneNumber?: string;
   lastActiveDate?: Date;
+
+  @ApiPropertyOptional()
+  isBlocked?: boolean;
+
+  @ApiPropertyOptional({ type: 'enum', enum: Gender })
+  gender?: Gender;
+
+  @ApiProperty({ type: [String], required: false })
+  ids?: string[];
+
+  @ApiProperty({ type: [String], required: false })
+  sort?: string[];
+
+  @ApiProperty()
+  isDeleted?: boolean;
 }
 
 export class RecommendationDTO {

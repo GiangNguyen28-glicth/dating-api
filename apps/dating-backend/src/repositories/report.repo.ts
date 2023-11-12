@@ -1,21 +1,22 @@
 import { InjectModel } from '@nestjs/mongoose';
 
-import {
-  CrudRepo,
-  DATABASE_TYPE,
-  PROVIDER_REPO,
-  ReportModelType,
-} from '@dating/common';
+import { CrudRepo, DATABASE_TYPE, PROVIDER_REPO, ReportModelType } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
+
 import { Report } from '@modules/report/entities';
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface ReportRepo extends CrudRepo<Report> {}
+export interface ReportRepo extends CrudRepo<Report> {
+  updateManyByFilter(filter: Partial<Report>, update: Partial<Report>): Promise<void>;
+}
 export class ReportMongoRepo extends MongoRepo<Report> {
   constructor(
     @InjectModel(Report.name)
     protected reportModel: ReportModelType,
   ) {
     super(reportModel);
+  }
+
+  async updateManyByFilter(filter: Partial<Notification>, update: Partial<Report>): Promise<void> {
+    await this.reportModel.updateMany(filter, update);
   }
 }
 

@@ -5,6 +5,7 @@ import { MongoID } from '@common/consts';
 import { IEntity } from '@common/interfaces';
 
 import { Image, User } from '@modules/users/entities';
+import { Admin } from '@modules/admin/entities';
 
 @Schema({ timestamps: true })
 export class Report implements IEntity {
@@ -25,6 +26,18 @@ export class Report implements IEntity {
 
   @Prop([{ type: Image }])
   images: Image[];
+
+  @Prop({ type: MongoID, ref: Admin.name })
+  confirmBy: Admin | string;
+
+  @Prop({ type: MongoID, ref: Admin.name })
+  blockedBy: Admin | string;
+
+  @Prop({ type: MongoID, ref: Admin.name })
+  unBlockedBy: Admin | string;
+
+  @Prop()
+  blockAt: Date;
 
   @Prop({ type: Boolean, default: false })
   isVerified: boolean;

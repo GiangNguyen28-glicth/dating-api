@@ -1,9 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
-import { BillingProcess, BillingStatus, MongoID } from '@common/consts';
+import { BillingProcess, BillingStatus, MongoID, OfferingType } from '@common/consts';
 import { IEntity } from '@common/interfaces';
+
 import { MerchandisingItem, Offering, Package } from '@modules/offering/entities';
 import { User } from '@modules/users/entities';
+import { FormatBilling, TYPE_RANGE } from '@modules/admin/dto';
 
 @Schema({ timestamps: true })
 export class Billing implements IEntity {
@@ -12,6 +14,12 @@ export class Billing implements IEntity {
 
   @Prop({ type: MongoID, ref: Offering.name })
   offering: Offering | string;
+
+  @Prop({
+    type: String,
+    enum: Object.values(OfferingType),
+  })
+  offeringType: OfferingType;
 
   @Prop({ type: MongoID, ref: User.name })
   createdBy: User | string;

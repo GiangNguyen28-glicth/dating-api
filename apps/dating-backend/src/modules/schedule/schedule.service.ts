@@ -113,18 +113,20 @@ export class ScheduleService {
     }
   }
 
-  async findAll(filter: FilterGetAllScheduleDTO): Promise<IResult<Schedule>> {
+  async findAll(filter: FilterGetAllScheduleDTO, user: User): Promise<IResult<Schedule>> {
     try {
       const userField: string = ['_id', 'images', 'email', 'name'].join(' ');
-      const [queryFilter, sortOption] = new FilterBuilder<Schedule>()
+      const queryBuilder = new FilterBuilder<Schedule>()
         .setFilterItem('status', '$eq', filter?.status)
         .setFilterItem('sender', '$eq', filter?.sender)
         .setFilterItem('receiver', '$eq', filter?.receiver)
         .setFilterItem('appointmentDate', '$gte', filter?.fromDate)
         .setFilterItem('appointmentDate', '$lte', filter?.toDate)
-        .setFilterItemWithObject('$or', [{ receiver: filter?.userId }, { sender: filter?.userId }])
-        .setSortItem('updatedAt', 'descending')
-        .buildQuery();
+        .setSortItem('updatedAt', 'descending');
+      if (!user.role) {
+        queryBuilder.setFilterItemWithObject('$or', [{ receiver: filter?.userId }, { sender: filter?.userId }]);
+      }
+      const [queryFilter, sortOption] = queryBuilder.buildQuery();
       const [results, totalCount] = await Promise.all([
         this.scheduleRepo.findAll({
           queryFilter,

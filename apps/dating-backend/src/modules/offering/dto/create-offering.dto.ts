@@ -1,23 +1,16 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNumber } from 'class-validator';
 
 import { Currency, LimitType, MerchandisingType, OfferingType, RefreshIntervalUnit } from '@common/consts';
 
-import { MerchandisingItem, Offering, Package } from '../entities';
-import { FilterGetOne } from '@common/dto';
+import { MerchandisingItem, Offering, Package, Style } from '../entities';
+import { FilterGetAll, FilterGetOne } from '@common/dto';
 export class PackageDTO implements Package {
   price: number;
   save: number;
 
-  @ApiProperty()
-  effectiveTime?: number;
-
-  @ApiProperty({
-    type: 'enum',
-    enum: RefreshIntervalUnit,
-    default: RefreshIntervalUnit.MINUTES,
-  })
-  effectiveUnit?: RefreshIntervalUnit;
+  @IsNumber()
+  amount?: number;
 
   @ApiProperty({ default: 300000 })
   @IsNumber()
@@ -71,15 +64,27 @@ export class MerchandisingItemDTO implements MerchandisingItem {
   @IsNumber()
   refreshIntervalUnit: RefreshIntervalUnit;
 }
+
+export class StyleDTO implements Partial<Style> {
+  @ApiPropertyOptional()
+  background?: string;
+
+  @ApiPropertyOptional()
+  buttonBackground?: string;
+
+  @ApiPropertyOptional()
+  buttonColor?: string;
+
+  @ApiPropertyOptional()
+  primaryColor?: string;
+}
+
 export class CreateOfferingDto implements Partial<Offering> {
   @ApiProperty()
   iconUrl?: string;
 
   @ApiProperty()
   text?: string;
-
-  @ApiProperty()
-  background?: string;
 
   @ApiProperty({ type: 'enum', enum: OfferingType })
   type?: OfferingType;
@@ -89,9 +94,23 @@ export class CreateOfferingDto implements Partial<Offering> {
 
   @ApiProperty({ type: [MerchandisingItemDTO] })
   merchandising?: MerchandisingItem[];
+
+  @ApiPropertyOptional({ type: StyleDTO })
+  style?: Style;
+
+  @ApiPropertyOptional()
+  isRetail?: boolean;
 }
 
 export class FilterGetOneOfferingDTO extends FilterGetOne implements Partial<Offering> {
   type?: OfferingType;
+  isRetail?: boolean;
+}
+
+export class FilterGetAllOffering extends FilterGetAll implements Partial<Offering> {
+  @ApiPropertyOptional({ type: 'enum', enum: OfferingType })
+  type?: OfferingType;
+
+  @ApiPropertyOptional()
   isRetail?: boolean;
 }

@@ -5,9 +5,10 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { IJwtPayload } from '@modules/auth';
 import { User } from '@modules/users/entities';
 import { UserService } from '@modules/users/users.service';
+import { AdminService } from '@modules/admin/admin.service';
 @Injectable()
 export class AtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  constructor(private userService: UserService) {
+  constructor(private userService: UserService, private adminService: AdminService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -16,7 +17,12 @@ export class AtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
   async validate(payload: IJwtPayload): Promise<User> {
     try {
-      const user = await this.userService.findOne({ _id: payload._id });
+      let user: User = null;
+      if (!payload.role) {
+        user = await this.userService.findOne({ _id: payload._id });
+      } else {
+        user = (await this.adminService.findOne({ _id: payload._id })) as any;
+      }
       if (!user) {
         throw new UnauthorizedException('jwt not accepted');
       }

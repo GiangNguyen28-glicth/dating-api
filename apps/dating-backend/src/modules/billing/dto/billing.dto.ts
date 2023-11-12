@@ -3,14 +3,9 @@ import { Billing } from '../entities';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { BillingProcess, BillingStatus } from '@common/consts';
 
-export class FilterGetOneBillingDTO
-  extends FilterGetOne
-  implements Partial<Billing> {}
+export class FilterGetOneBillingDTO extends FilterGetOne implements Partial<Billing> {}
 
-export class FilterGetAllBillingDTO
-  extends FilterGetAll
-  implements Partial<Billing>
-{
+export class FilterGetAllBillingDTO extends FilterGetAll implements Partial<Billing> {
   @ApiPropertyOptional()
   expiredDate?: Date;
 
@@ -19,4 +14,7 @@ export class FilterGetAllBillingDTO
 
   @ApiPropertyOptional()
   process?: BillingProcess;
+
+  fromDate?: string;
+  toDate?: string;
 }

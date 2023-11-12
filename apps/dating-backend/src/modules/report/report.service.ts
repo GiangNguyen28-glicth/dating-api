@@ -2,15 +2,18 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 
 import { ReportRepo } from '@dating/repositories';
 import { DATABASE_TYPE, PROVIDER_REPO } from '@common/consts';
-import { IResult } from '@common/interfaces';
+import { IResponse, IResult } from '@common/interfaces';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
 import { PaginationDTO } from '@common/dto';
+
+import { ActionService } from '@modules/action/action.service';
+import { UserService } from '@modules/users/users.service';
 
 import { User } from '@modules/users/entities';
 
 import { CreateReportDto, FilterGetAllReportDTO, UpdateReportDto } from './dto';
 import { Report } from './entities';
-import { ActionService } from '@modules/action/action.service';
+import { Admin } from '@modules/admin/entities';
 
 const LIMIT_IMAGES_REPORT = 5;
 @Injectable()
@@ -20,6 +23,8 @@ export class ReportService {
     private reportRepo: ReportRepo,
 
     private actionService: ActionService,
+
+    private userService: UserService,
   ) {}
   async create(createReportDto: CreateReportDto, user: User): Promise<Report> {
     try {
@@ -38,7 +43,10 @@ export class ReportService {
 
   async findAll(filter: FilterGetAllReportDTO): Promise<IResult<Report>> {
     try {
-      const [queryFilter, sortOption] = new FilterBuilder<Report>().buildQuery();
+      const [queryFilter, sortOption] = new FilterBuilder<Report>()
+        .setFilterItem('isDeleted', '$eq', false, true)
+        .setSortItem('createdAt', 'desc')
+        .buildQuery();
       const pagination: PaginationDTO = {
         size: filter?.size,
         page: filter?.page,
@@ -81,6 +89,36 @@ export class ReportService {
       });
       throwIfNotExists(report, 'Không tìm thấy report');
       return report;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async blockUser(userId: string, admin: Admin): Promise<IResponse> {
+    try {
+      const user = await this.userService.findOne({ _id: userId });
+      throwIfNotExists(user, 'User không tồn tại');
+      await this.reportRepo.updateManyByFilter(
+        { reportedUser: userId, isVerified: false },
+        { isVerified: true, blockAt: new Date(), confirmBy: admin },
+      );
+      await this.userService.findOneAndUpdate(userId, { isBlocked: true, blockedAt: new Date() });
+      return {
+        success: true,
+        message: 'Ok',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async unBlock(userId: string, admin: Admin): Promise<IResponse> {
+    try {
+      await this.userService.findOneAndUpdate(userId, { isBlocked: false, unBlockedAt: new Date() });
+      return {
+        success: true,
+        message: 'Ok',
+      };
     } catch (error) {
       throw error;
     }

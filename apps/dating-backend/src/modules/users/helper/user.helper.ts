@@ -99,7 +99,8 @@ export class UserHelper implements OnModuleInit {
       .setFilterItem('isBlocked', '$eq', false, true)
       .setFilterItem('_id', '$nin', ignoreIds)
       .setFilterItem('isDeleted', '$eq', false, true)
-      .setFilterItem('showMeInTinder', '$eq', true);
+      .setFilterItem('showMeInTinder', '$eq', true)
+      .setFilterItem('stepStarted', '$eq', 4);
     // .setFilterItem('lastActiveDate', '$gte', sevenDaysAgo);
     if (isApplyAge) {
       queryFilter.setFilterItemWithObject('age', {

@@ -8,6 +8,7 @@ import axios from 'axios';
 import * as bcrypt from 'bcrypt';
 import { GeoLocation, User } from '@modules/users/entities/user.entity';
 import { data_tt } from './data';
+import { FormatBilling, TYPE_RANGE } from '@modules/admin/dto';
 
 export function toSlug(text: string, locale?: string): string {
   if (!text) return '';
@@ -71,15 +72,18 @@ export async function compareHashValue(value: string, hashValue: string): Promis
   return correct ? true : false;
 }
 
-export function formatResult<T>(data: T[], totalCount: number, pagination: PaginationDTO): IResult<T> {
+export function formatResult<T>(data: T[], totalCount: number, pagination?: PaginationDTO): IResult<T> {
   const results: IResult<T> = {
     results: data,
     pagination: {
-      currentPage: pagination.page,
-      currentSize: pagination.size,
+      currentPage: pagination?.page,
+      currentSize: pagination?.size,
       totalCount: totalCount,
     },
   };
+  if (!pagination) {
+    return results;
+  }
   const totalPage = totalCount / pagination.size;
   results.pagination.totalPage = Math.floor(totalPage) + 1;
   if (totalPage % 1 === 0) {
@@ -111,6 +115,17 @@ export async function downloadImage(url: string, image_name: string) {
   } catch (error) {
     console.error('Lỗi khi tải xuống hình ảnh:', error);
     process.exit();
+  }
+}
+
+export function getFormatGroupISODate(typeRange: TYPE_RANGE): FormatBilling {
+  switch (typeRange) {
+    case TYPE_RANGE.MONTH:
+      return '%Y-%m';
+    case TYPE_RANGE.WEEK:
+      return '%Y-%U';
+    case TYPE_RANGE.DAY:
+      return '%Y-%m-%d';
   }
 }
 

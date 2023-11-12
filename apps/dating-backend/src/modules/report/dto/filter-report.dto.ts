@@ -10,6 +10,9 @@ export class FilterGetAllReportDTO implements Partial<Report> {
   reportBy?: string;
 
   @ApiPropertyOptional()
+  isVerified?: boolean;
+
+  @ApiPropertyOptional()
   page?: number;
 
   @ApiPropertyOptional()

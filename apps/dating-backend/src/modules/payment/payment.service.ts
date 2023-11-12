@@ -61,6 +61,7 @@ export class PaymentService implements OnModuleInit {
         latestPackage: _package,
         offering: offering._id.toString(),
         createdBy: user,
+        offeringType: offering.type,
         lastMerchandising: offering.merchandising,
         status: BillingStatus.INPROGRESS,
         expiredDate: this.getExpiredDate(_package.refreshIntervalUnit, _package.refreshInterval),

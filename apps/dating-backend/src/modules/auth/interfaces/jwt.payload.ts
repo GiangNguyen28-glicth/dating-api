@@ -10,5 +10,6 @@ export interface IRefreshPayload {
 
 export interface IJwtPayload {
   _id: string;
-  email: string;
+  email?: string;
+  role?: string;
 }

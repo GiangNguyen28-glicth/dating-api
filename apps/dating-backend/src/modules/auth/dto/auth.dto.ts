@@ -1,5 +1,6 @@
+import { Admin } from '@modules/admin/entities';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, Matches } from 'class-validator';
+import { IsEmail, IsNotEmpty } from 'class-validator';
 
 export class SmsDTO {
   @ApiProperty()
@@ -8,6 +9,16 @@ export class SmsDTO {
   //   message: 'Cung cấp đúng format số điện thoại với format +84',
   // })
   phoneNumber: string;
+}
+
+export class AdminAuthDTO implements Partial<Admin> {
+  @ApiProperty()
+  @IsEmail()
+  email: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  password: string;
 }
 
 export class VerifyOTPDTO {

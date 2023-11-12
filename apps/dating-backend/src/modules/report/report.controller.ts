@@ -1,25 +1,16 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 
-import { CurrentUser } from '@common/decorators';
-import { AtGuard } from '@common/guards';
+import { CurrentUser, hasRoles } from '@common/decorators';
+import { AtGuard, RolesGuard } from '@common/guards';
 import { IResponse } from '@common/interfaces';
+import { Admin } from '@modules/admin/entities';
 import { User } from '@modules/users/entities';
 
-import { CreateReportDto, FilterGetAllReportDTO, UpdateReportDto } from './dto';
+import { CreateReportDto, FilterGetAllReportDTO } from './dto';
 import { Report } from './entities';
 import { ReportService } from './report.service';
+import { Role } from '@common/consts';
 
 @ApiTags(Report.name)
 @Controller('report')
@@ -51,9 +42,18 @@ export class ReportController {
     return await this.reportService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateReportDto: UpdateReportDto) {
-    return this.reportService.update(+id, updateReportDto);
+  @Post('/block/:id')
+  @UseGuards(AtGuard, RolesGuard)
+  @hasRoles(Role.MASTER)
+  async blockUser(@Param('id') id: string, @CurrentUser() admin: Admin) {
+    return await this.reportService.blockUser(id, admin);
+  }
+
+  @Post('/unBlock/:id')
+  @UseGuards(AtGuard, RolesGuard)
+  @hasRoles(Role.MASTER)
+  async unBlockUser(@Param('id') id: string, @CurrentUser() admin: Admin) {
+    return await this.reportService.unBlock(id, admin);
   }
 
   @Delete(':id')

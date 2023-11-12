@@ -1,9 +1,11 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { CrudRepo, DATABASE_TYPE, NotificationModelType, NotificationStatus, PROVIDER_REPO } from '@dating/common';
+
+import { CrudRepo, DATABASE_TYPE, NotificationModelType, PROVIDER_REPO } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
+
+import { UpdateNotificationDto } from '@modules/notification/dto';
 import { Notification } from '@modules/notification/entities';
 import { User } from '@modules/users/entities';
-import { UpdateNotificationDto } from '@modules/notification/dto';
 
 export interface NotificationRepo extends CrudRepo<Notification> {
   updateManyByIds(ids: string[], entities: Partial<Notification>, user: User): Promise<void>;

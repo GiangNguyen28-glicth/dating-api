@@ -99,8 +99,7 @@ export enum LimitType {
 }
 
 export enum Role {
-  USER = 'USER',
-  ADMIN = 'ADMIN',
+  MASTER = 'Master',
 }
 
 export enum RelationshipModeType {

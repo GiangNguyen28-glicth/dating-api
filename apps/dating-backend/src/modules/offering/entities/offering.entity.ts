@@ -30,7 +30,9 @@ export class Package {
   @Prop({ type: Number })
   discount: number;
 
-  @Prop({ type: Number })
+  @Prop({ default: false })
+  isMilestones?: boolean;
+
   save: number;
 }
 
@@ -109,6 +111,20 @@ export class Offering implements IEntity {
   isDeleted: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+
+  static setSave(offering: Offering): void {
+    const milestones = offering.packages.find(_package => _package.isMilestones);
+    if (!milestones) {
+      return;
+    }
+    offering.packages.map(_package => {
+      if (!_package.isMilestones && _package.refreshIntervalUnit === RefreshIntervalUnit.MONTH) {
+        const priceByWeek = milestones.price * (4 * _package.refreshInterval);
+        const ratio = Number((_package.price / priceByWeek).toFixed(2)) * 100;
+        _package.save = 100 - ratio;
+      }
+    });
+  }
 }
 
 export const OfferingSchema = SchemaFactory.createForClass(Offering);

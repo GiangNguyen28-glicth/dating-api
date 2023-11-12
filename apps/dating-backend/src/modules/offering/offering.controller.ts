@@ -1,12 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { IResponse, IResult } from '@common/interfaces';
-import { PaginationDTO } from '@common/dto';
 
-import { OfferingService } from './offering.service';
+import { CreateOfferingDto, FilterGetAllOffering, UpdateOfferingDto } from './dto';
 import { Offering } from './entities';
-import { CreateOfferingDto, UpdateOfferingDto } from './dto';
+import { OfferingService } from './offering.service';
 
 @ApiTags(Offering.name)
 @Controller('offering')
@@ -19,8 +18,8 @@ export class OfferingController {
   }
 
   @Get()
-  async findAll(@Query() pagination: PaginationDTO): Promise<IResult<Offering>> {
-    return await this.offeringService.findAll(pagination);
+  async findAll(@Query() filter: FilterGetAllOffering): Promise<IResult<Offering>> {
+    return await this.offeringService.findAll(filter);
   }
 
   @Get(':id')
@@ -29,8 +28,8 @@ export class OfferingController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOfferingDto: UpdateOfferingDto) {
-    return null;
+  async update(@Param('id') id: string, @Body() updateOfferingDto: UpdateOfferingDto): Promise<IResponse> {
+    return await this.offeringService.update(id, updateOfferingDto);
   }
 
   @Delete(':id')

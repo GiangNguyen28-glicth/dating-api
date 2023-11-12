@@ -1,6 +1,6 @@
-import { MerchandisingItemDTO, PackageDTO } from '@modules/offering/dto/create-offering.dto';
+import { MerchandisingItemDTO, PackageDTO } from '@modules/offering/dto';
 import { Billing } from '../entities/billing.entity';
-import { BillingStatus } from '@common/consts';
+import { BillingStatus, OfferingType } from '@common/consts';
 import { User } from '@modules/users/entities';
 
 export class CreateBillingDto implements Partial<Billing> {
@@ -10,4 +10,5 @@ export class CreateBillingDto implements Partial<Billing> {
   lastMerchandising?: MerchandisingItemDTO[];
   expiredDate?: Date;
   status?: BillingStatus;
+  offeringType?: OfferingType;
 }

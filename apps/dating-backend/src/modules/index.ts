@@ -14,3 +14,4 @@ export * from './users';
 export * from './relationship';
 export * from './notification/notification.module';
 export * from './schedule';
+export * from './admin';

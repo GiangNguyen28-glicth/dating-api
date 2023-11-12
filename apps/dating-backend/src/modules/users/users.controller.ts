@@ -1,4 +1,4 @@
-import { AtGuard, CurrentUser, IResponse, IResult, PaginationDTO } from '@dating/common';
+import { AtGuard, CurrentUser, IResponse, IResult, PaginationDTO, Role, RolesGuard, hasRoles } from '@dating/common';
 import { Body, Controller, Delete, Get, Patch, Post, Query, UseGuards, UseInterceptors, Param } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiTags, ApiParam } from '@nestjs/swagger';
 import { throwIfNotExists } from '@dating/utils';
@@ -12,6 +12,7 @@ import {
 import { User } from './entities';
 import { UserService } from './users.service';
 import { UpdateUserProfileInterceptor } from './interceptors';
+import { FilterGetAllUserDTO } from './dto';
 
 @ApiTags(User.name)
 @Controller('users')
@@ -23,6 +24,14 @@ export class UsersController {
   @UseGuards(AtGuard)
   async getCurrentUser(@CurrentUser() user: User): Promise<User> {
     return await this.userService.populateTag(user);
+  }
+
+  @Get()
+  @ApiBearerAuth()
+  @UseGuards(AtGuard, RolesGuard)
+  @hasRoles(Role.MASTER)
+  async findAll(@Query() filter: FilterGetAllUserDTO): Promise<IResult<User>> {
+    return await this.userService.findAll(filter);
   }
 
   @Get('recommendation')

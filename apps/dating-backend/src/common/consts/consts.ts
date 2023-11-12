@@ -66,3 +66,6 @@ export const DEFAULT_LIKES_REMAINING = 100;
 export const EXCLUDE_FIELDS = {
   USER: '-slug -keyword -registerType -setting -isBlocked -isFistLogin -geoLocation -featureAccess',
 };
+
+export const ADMIN = 'ADMIN';
+export const TIME_ZONE = 'Asia/Ho_Chi_Minh';

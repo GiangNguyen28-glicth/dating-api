@@ -5,7 +5,7 @@ import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 
 import { RedisService } from '@app/shared';
-import { IResponse, REFRESH_TOKEN_TTL, RegisterType, SMS, TOKEN } from '@dating/common';
+import { ADMIN, IResponse, REFRESH_TOKEN_TTL, RegisterType, SMS, TOKEN } from '@dating/common';
 import {
   calSecondBetweenTwoDate,
   compareHashValue,
@@ -14,9 +14,12 @@ import {
   throwIfNotExists,
 } from '@dating/utils';
 import { User } from '@modules/users/entities';
+
 import { UserService } from '@modules/users/users.service';
-import { SmsDTO, VerifyOTPDTO } from './dto';
-import { IToken } from './interfaces';
+import { AdminService } from '@modules/admin/admin.service';
+
+import { AdminAuthDTO, SmsDTO, VerifyOTPDTO } from './dto';
+import { IJwtPayload, IToken } from './interfaces';
 
 @Injectable()
 export class AuthService {
@@ -26,28 +29,23 @@ export class AuthService {
     private userService: UserService,
     private configService: ConfigService,
     private redisService: RedisService,
+    private adminService: AdminService,
   ) {
     this.client = twilio(configService.get('SMS_KEY'), configService.get('SMS_SECRET'));
   }
 
-  async generateTokens(_id: string): Promise<IToken> {
+  async generateTokens(payload: IJwtPayload): Promise<IToken> {
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(
-        { _id },
-        {
-          secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
-          expiresIn: parseInt(this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')),
-        },
-      ),
-      this.jwtService.signAsync(
-        { _id },
-        {
-          secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
-          expiresIn: parseInt(this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME')),
-        },
-      ),
+      this.jwtService.signAsync(payload, {
+        secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
+        expiresIn: parseInt(this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')),
+      }),
+      this.jwtService.signAsync(payload, {
+        secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
+        expiresIn: parseInt(this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME')),
+      }),
     ]);
-    await this.redisService.setex({ key: TOKEN + _id, data: refreshToken, ttl: REFRESH_TOKEN_TTL });
+    await this.redisService.setex({ key: TOKEN + payload._id, data: refreshToken, ttl: REFRESH_TOKEN_TTL });
     return { accessToken, refreshToken };
   }
 
@@ -62,7 +60,7 @@ export class AuthService {
         const newUser = await this.userService.create(user);
         userId = newUser._id;
       }
-      return await this.generateTokens(userId.toString());
+      return await this.generateTokens({ _id: userId });
     } catch (error) {
       throw error;
     }
@@ -122,7 +120,7 @@ export class AuthService {
       });
       throwIfNotExists(user, 'Số điện thoại không tồn tại');
       if (verifyOtpDto.otp === '682436') {
-        return await this.generateTokens(user._id.toString());
+        return await this.generateTokens({ _id: user._id });
       }
       const key = SMS + user._id.toString();
       const data: any = JSON.parse(await this.redisService.get(key));
@@ -136,7 +134,16 @@ export class AuthService {
         throw new UnauthorizedException('OTP không tồn tại hoặc đã hết hạn');
       }
       await this.redisService.del(key);
-      return await this.generateTokens(user._id.toString());
+      return await this.generateTokens({ _id: user._id });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async adminLogin(auth: AdminAuthDTO): Promise<IToken> {
+    try {
+      const admin = await this.adminService.login(auth);
+      return await this.generateTokens({ _id: admin._id, role: ADMIN });
     } catch (error) {
       throw error;
     }
