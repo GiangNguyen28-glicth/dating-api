@@ -5,6 +5,7 @@ import * as moment from 'moment-timezone';
 import {
   Gender,
   IEntity,
+  LimitType,
   LookingFor,
   MerchandisingType,
   MongoID,
@@ -17,6 +18,7 @@ import {
 
 import { Relationship } from '@modules/relationship/entities';
 import { Tag } from '@modules/tag/entities';
+import { MerchandisingItem } from '@modules/offering/entities';
 
 @Schema({ _id: false })
 export class Image {
@@ -271,8 +273,8 @@ export class User implements IEntity {
   @Prop({ type: UserSetting, default: new UserSetting() })
   setting: UserSetting;
 
-  @Prop([{ type: FeatureAccessItem }, { default: User.getDefaultFeatureAccess() }])
-  featureAccess: FeatureAccessItem[];
+  @Prop([{ type: MerchandisingItem }, { default: User.getDefaultFeatureAccess() }])
+  featureAccess: MerchandisingItem[];
 
   @Prop([{ type: Image, default: [] }])
   images: Image[];
@@ -342,13 +344,13 @@ export class User implements IEntity {
   createdAt?: Date;
   updatedAt?: Date;
 
-  static getDefaultFeatureAccess(): FeatureAccessItem[] {
-    const defaultValue: FeatureAccessItem[] = [];
+  static getDefaultFeatureAccess(): MerchandisingItem[] {
+    const defaultValue: MerchandisingItem[] = [];
     const defaultType = [MerchandisingType.HIDE_ADS, MerchandisingType.UN_BLUR, MerchandisingType.BOOSTS];
     for (const i in defaultType) {
-      const featureAccess: FeatureAccessItem = {
+      const featureAccess: MerchandisingItem = {
         name: defaultType[i],
-        unlimited: false,
+        type: LimitType.RENEWABLE,
         amount: 0,
       };
       if (defaultType[i] === MerchandisingType.BOOSTS) {
@@ -361,18 +363,24 @@ export class User implements IEntity {
     return defaultValue.concat([
       {
         name: MerchandisingType.LIKE,
-        unlimited: false,
+        type: LimitType.RENEWABLE,
         amount: 20,
+        refreshInterval: 1,
+        refreshIntervalUnit: RefreshIntervalUnit.DAY,
       },
       {
         name: MerchandisingType.REWIND,
-        unlimited: false,
+        type: LimitType.RENEWABLE,
         amount: 2,
+        refreshInterval: 1,
+        refreshIntervalUnit: RefreshIntervalUnit.DAY,
       },
       {
         name: MerchandisingType.SUPER_LIKE,
-        unlimited: false,
+        type: LimitType.RENEWABLE,
         amount: 1,
+        refreshInterval: 1,
+        refreshIntervalUnit: RefreshIntervalUnit.DAY,
       },
     ]);
   }
