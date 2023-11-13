@@ -1,7 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { IResponse, IResult } from '@common/interfaces';
+import { AtGuard, RolesGuard } from '@common/guards';
+import { CurrentUser, hasRoles } from '@common/decorators';
+import { Role } from '@common/consts';
+
+import { Admin } from '@modules/admin/entities';
 
 import { CreateOfferingDto, FilterGetAllOffering, UpdateOfferingDto } from './dto';
 import { Offering } from './entities';
@@ -13,7 +18,10 @@ export class OfferingController {
   constructor(private readonly offeringService: OfferingService) {}
 
   @Post()
-  async create(@Body() offeringDto: CreateOfferingDto): Promise<IResponse> {
+  @UseGuards(AtGuard, RolesGuard)
+  @hasRoles(Role.MASTER)
+  async create(@Body() offeringDto: CreateOfferingDto, @CurrentUser() admin: Admin): Promise<IResponse> {
+    offeringDto.createdBy = admin._id;
     return await this.offeringService.create(offeringDto);
   }
 
@@ -28,7 +36,14 @@ export class OfferingController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateOfferingDto: UpdateOfferingDto): Promise<IResponse> {
+  @UseGuards(AtGuard, RolesGuard)
+  @hasRoles(Role.MASTER)
+  async update(
+    @Param('id') id: string,
+    @Body() updateOfferingDto: UpdateOfferingDto,
+    @CurrentUser() admin: Admin,
+  ): Promise<IResponse> {
+    updateOfferingDto.updatedBy = admin._id;
     return await this.offeringService.update(id, updateOfferingDto);
   }
 

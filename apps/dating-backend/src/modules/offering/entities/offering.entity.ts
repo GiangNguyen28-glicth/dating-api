@@ -1,8 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
 
-import { Currency, LimitType, MerchandisingType, OfferingType, RefreshIntervalUnit } from '@common/consts';
+import { Currency, LimitType, MerchandisingType, MongoID, RefreshIntervalUnit } from '@common/consts';
 import { IEntity } from '@common/interfaces';
+import { Admin } from '@modules/admin/entities';
 
 @Schema()
 export class Package {
@@ -97,15 +98,21 @@ export class Offering implements IEntity {
 
   @Prop({
     type: String,
-    enum: Object.values(OfferingType),
+    unique: true,
   })
-  type: OfferingType;
+  type: string;
 
   @Prop([{ type: Package }, { default: [] }])
   packages: Package[];
 
   @Prop([{ type: MerchandisingItem }, { default: [] }])
   merchandising: MerchandisingItem[];
+
+  @Prop({ type: MongoID, ref: Admin.name })
+  createdBy: Admin | string;
+
+  @Prop({ type: MongoID, ref: Admin.name })
+  updatedBy: Admin | string;
 
   @Prop({ default: false })
   isRetail: boolean;

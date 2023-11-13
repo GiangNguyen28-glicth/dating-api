@@ -108,7 +108,7 @@ export class AdminService {
       let totalAmount = 0;
       let totalOtherAmount = 0;
       let totalOtherCount = 0;
-      for (const type of item.types) {
+      for (const [index, type] of item.types.entries()) {
         if (
           ![
             OfferingType.FINDER_PREMIUM,
@@ -121,6 +121,7 @@ export class AdminService {
           totalOtherCount += type.count;
         }
         totalAmount += type.totalAmount;
+        item.types[index].isMonitoring = true;
       }
       item.totalAmount = totalAmount;
       item.totalOtherAmount = totalOtherAmount;

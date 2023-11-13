@@ -5,6 +5,7 @@ import { Currency, LimitType, MerchandisingType, OfferingType, RefreshIntervalUn
 
 import { MerchandisingItem, Offering, Package, Style } from '../entities';
 import { FilterGetAll, FilterGetOne } from '@common/dto';
+import { Admin } from '@modules/admin/entities';
 export class PackageDTO implements Package {
   price: number;
   save: number;
@@ -100,6 +101,9 @@ export class CreateOfferingDto implements Partial<Offering> {
 
   @ApiPropertyOptional()
   isRetail?: boolean;
+
+  createdBy?: string;
+  updatedBy?: string;
 }
 
 export class FilterGetOneOfferingDTO extends FilterGetOne implements Partial<Offering> {
