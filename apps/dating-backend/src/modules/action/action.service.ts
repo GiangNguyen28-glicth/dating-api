@@ -3,7 +3,7 @@ import { get } from 'lodash';
 import * as moment from 'moment-timezone';
 import { DurationInputArg2 } from 'moment-timezone';
 
-import { DATABASE_TYPE, MatchRqStatus, MerchandisingType, PROVIDER_REPO } from '@common/consts';
+import { DATABASE_TYPE, LimitType, MatchRqStatus, MerchandisingType, PROVIDER_REPO } from '@common/consts';
 import { IErrorResponse, IResponse } from '@common/interfaces';
 import { ActionRepo } from '@dating/repositories';
 import { FilterBuilder, throwIfNotExists } from '@dating/utils';
@@ -116,7 +116,7 @@ export class ActionService {
         message: 'Ok',
       };
 
-      if (!sender.featureAccess[idx].unlimited) {
+      if (sender.featureAccess[idx].type !== LimitType.UNLIMITED) {
         sender.featureAccess[idx].amount = sender.featureAccess[idx].amount - 1;
         await this.userService.findOneAndUpdate(sender._id, {
           featureAccess: sender.featureAccess,
