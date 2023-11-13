@@ -96,6 +96,6 @@ export class BillingService {
       queryBuilder.setFilterItemWithObject('createdAt', { $gte: filter?.fromDate, $lte: filter?.toDate });
     }
     const [queryFilter] = queryBuilder.buildQuery();
-    return await this.billingRepo.topUsersByRevenue(queryFilter, filter.format);
+    return await this.billingRepo.topUsersByRevenue(queryFilter);
   }
 }

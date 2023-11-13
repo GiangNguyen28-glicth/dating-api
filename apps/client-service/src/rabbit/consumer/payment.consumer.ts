@@ -5,7 +5,6 @@ import { RabbitService } from '@app/shared';
 import { BillingRepo, UserRepo } from '@dating/repositories';
 import { BillingStatus, DATABASE_TYPE, OfferingType, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
 import { IPaymentMessage } from '@common/message';
-import { User } from '@modules/users/entities';
 
 @Injectable()
 export class PaymentConsumer implements OnModuleInit, OnModuleDestroy {

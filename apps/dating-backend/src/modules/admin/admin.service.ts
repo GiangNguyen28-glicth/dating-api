@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { get, groupBy, mapValues, sum, sumBy, values } from 'lodash';
+import { get, groupBy, mapValues, orderBy, sum, sumBy, values } from 'lodash';
 
 import { IResponse } from '@common/interfaces';
 import { compareHashValue, getFormatGroupISODate, hash, throwIfNotExists } from '@dating/utils';
@@ -12,6 +12,7 @@ import { AdminAuthDTO } from '@modules/auth/dto';
 
 import { CreateAdminDTO, FilterGetBillingStatistic, FilterGetOneAdminDTO } from './dto';
 import { Admin, AdminModelType } from './entities';
+import { OfferingType } from '@common/consts';
 
 @Injectable()
 export class AdminService {
@@ -102,7 +103,29 @@ export class AdminService {
   }
 
   async topUsersByRevenue(filter: FilterGetBillingStatistic): Promise<any> {
-    filter.format = getFormatGroupISODate(filter.typeRange);
-    return await this.billingService.topUsersByRevenue(filter);
+    const data = await this.billingService.topUsersByRevenue(filter);
+    data.map(item => {
+      let totalAmount = 0;
+      let totalOtherAmount = 0;
+      let totalOtherCount = 0;
+      for (const type of item.types) {
+        if (
+          ![
+            OfferingType.FINDER_PREMIUM,
+            OfferingType.FINDER_PLUS,
+            OfferingType.FINDER_BOOSTS,
+            OfferingType.FINDER_SUPER_LIKE,
+          ].includes(type.type)
+        ) {
+          totalOtherAmount += type.totalAmount;
+          totalOtherCount += type.count;
+        }
+        totalAmount += type.totalAmount;
+      }
+      item.totalAmount = totalAmount;
+      item.totalOtherAmount = totalOtherAmount;
+      item.totalOtherCount = totalOtherCount;
+    });
+    return orderBy(data, ['totalAmount'], ['desc']);
   }
 }
