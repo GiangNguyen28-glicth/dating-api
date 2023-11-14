@@ -1,9 +1,16 @@
-import { BadRequestException, Inject, Injectable, forwardRef } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { get } from 'lodash';
 import * as moment from 'moment-timezone';
 import { DurationInputArg2 } from 'moment-timezone';
 
-import { DATABASE_TYPE, LimitType, MatchRqStatus, MerchandisingType, PROVIDER_REPO } from '@common/consts';
+import {
+  ConversationType,
+  DATABASE_TYPE,
+  LimitType,
+  MatchRqStatus,
+  MerchandisingType,
+  PROVIDER_REPO,
+} from '@common/consts';
 import { IErrorResponse, IResponse } from '@common/interfaces';
 import { ActionRepo } from '@dating/repositories';
 import { FilterBuilder, throwIfNotExists } from '@dating/utils';
@@ -13,6 +20,7 @@ import { SocketGateway } from '@modules/socket/socket.gateway';
 import { SocketService } from '@modules/socket/socket.service';
 import { UserService } from '@modules/users/users.service';
 import { OfferingService } from '@modules/offering/offering.service';
+import { ConversationService } from '@modules/conversation/conversation.service';
 
 import { User } from '@modules/users/entities';
 
@@ -38,6 +46,7 @@ export class ActionService {
 
     private matchReqService: MatchRequestService,
     private offeringService: OfferingService,
+    private conversationService: ConversationService,
   ) {}
 
   async findOne(filter: FilterGetOneActionDTO): Promise<Action> {
@@ -183,6 +192,23 @@ export class ActionService {
       return {
         success: true,
         message: 'Skip thành công',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async unMatched(sender: User, userId: string): Promise<IResponse> {
+    try {
+      const conversation = await this.conversationService.findOneByMembers([sender._id, userId]);
+      if (!conversation || conversation.isDeleted || conversation.type === ConversationType.SUPER_LIKE) {
+        throw new ForbiddenException('ForbiddenException');
+      }
+      conversation.isDeleted = true;
+      await this.conversationService.save(conversation);
+      return {
+        success: true,
+        message: 'Ok',
       };
     } catch (error) {
       throw error;

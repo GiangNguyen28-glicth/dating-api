@@ -8,12 +8,14 @@ import { OfferingModule } from '@modules/offering';
 import { ActionController } from './action.controller';
 import { ActionService } from './action.service';
 import { Action, ActionSchema } from './entities';
+import { ConversationModule } from '@modules/conversation';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Action.name, schema: ActionSchema }]),
     MatchRequestModule,
     OfferingModule,
+    ConversationModule,
   ],
   controllers: [ActionController],
   providers: [ActionService, ActionMongoRepoProvider],

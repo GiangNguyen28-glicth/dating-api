@@ -29,4 +29,9 @@ export class ActionController {
   async superLike(@CurrentUser() sender: User, @Param('id') id: string) {
     return await this.actionService.action(sender, id, MerchandisingType.SUPER_LIKE);
   }
+
+  @Post('un-matched/:id')
+  async unMatched(@CurrentUser() sender: User, @Param('id') id: string) {
+    return await this.actionService.unMatched(sender, id);
+  }
 }

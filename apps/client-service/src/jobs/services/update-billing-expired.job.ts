@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CronJob } from 'cron';
 
-import { JobStatus } from '@common/consts';
+import { JobStatus, TIME_ZONE } from '@common/consts';
 
 import { Billing } from '@modules/billing/entities';
 
@@ -30,7 +30,7 @@ export class UpdateBillingExpiredJob implements IJobProcessors {
       },
       null,
       true,
-      'Asia/Ho_Chi_Minh',
+      TIME_ZONE,
     );
     this.start();
   }
@@ -42,23 +42,12 @@ export class UpdateBillingExpiredJob implements IJobProcessors {
     };
     const jobDoc = await this.jobService.createJob(job);
     try {
-      const billings = await this.pullerService.getAllBillingToUpdateFT();
-      const userIds = this.getAllUserIdsByBilling(billings);
-      jobDoc.totalUpdate = userIds.length;
-      while (userIds.length) {
-        const batchUsers = userIds.splice(0, UPDATE_BATCH_SIZE);
+      const billings = await this.pullerService.getAllBillingExpired();
+      while (billings.length) {
         const batchBillings = billings.splice(0, UPDATE_BATCH_SIZE);
 
-        const queryFilter: any = { _id: { $in: batchUsers } };
-        const users = await this.pullerService.getAllUser({ queryFilter });
-
-        const updateManyUser = this.builderService.buildUpdateManyUsersFT(users);
         const updateManyBilling = this.builderService.buildUpdateBillingExpired(batchBillings);
-        await this.updaterService.updateUserFT(updateManyUser);
         await this.updaterService.updateManyBilling(updateManyBilling);
-        if (jobDoc.status === JobStatus.TODO) {
-          jobDoc.status = JobStatus.INPROGRESS;
-        }
         jobDoc.numOfProcessRecord += batchBillings.length;
         jobDoc.lastId = batchBillings[batchBillings.length - 1]._id;
         await this.jobService.save(jobDoc);
@@ -71,10 +60,6 @@ export class UpdateBillingExpiredJob implements IJobProcessors {
       await this.jobService.save(jobDoc);
       return;
     }
-  }
-
-  getAllUserIdsByBilling(billings: Billing[]): string[] {
-    return billings.map(billing => billing.createdBy.toString());
   }
 
   async start() {

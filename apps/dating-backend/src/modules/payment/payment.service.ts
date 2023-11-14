@@ -66,6 +66,7 @@ export class PaymentService implements OnModuleInit {
         lastMerchandising: offering.merchandising,
         status: BillingStatus.INPROGRESS,
         expiredDate: this.getExpiredDate(_package.refreshInterval, _package.refreshIntervalUnit),
+        isRetail: offering.isRetail ? true : false,
       });
 
       if (offering.type === OfferingType.FINDER_BOOSTS) {

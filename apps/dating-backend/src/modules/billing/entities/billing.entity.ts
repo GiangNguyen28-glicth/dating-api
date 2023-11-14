@@ -44,6 +44,9 @@ export class Billing implements IEntity {
   @Prop({ default: false })
   isDeleted: boolean;
 
+  @Prop({ default: false })
+  isRetail: boolean;
+
   createdAt?: Date;
   updatedAt?: Date;
 }
