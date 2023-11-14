@@ -49,19 +49,22 @@ export class MerchandisingItem {
   type: LimitType;
 
   @Prop({ type: Number })
-  amount: number;
+  amount?: number;
 
   @Prop()
-  iconUrl: string;
+  iconUrl?: string;
 
   @Prop()
-  text: string;
+  text?: string;
+
+  @Prop()
+  expiredDate?: Date;
 
   @Prop({ type: Number })
-  refreshInterval: number;
+  refreshInterval?: number;
 
   @Prop({ type: String, enum: Object.values(RefreshIntervalUnit) })
-  refreshIntervalUnit: RefreshIntervalUnit;
+  refreshIntervalUnit?: RefreshIntervalUnit;
 }
 
 @Schema({ _id: false })
