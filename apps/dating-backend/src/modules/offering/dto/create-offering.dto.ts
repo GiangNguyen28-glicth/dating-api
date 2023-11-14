@@ -3,14 +3,14 @@ import { IsNumber } from 'class-validator';
 
 import { Currency, LimitType, MerchandisingType, OfferingType, RefreshIntervalUnit } from '@common/consts';
 
-import { MerchandisingItem, Offering, Package, Style } from '../entities';
 import { FilterGetAll, FilterGetOne } from '@common/dto';
-import { Admin } from '@modules/admin/entities';
+import { MerchandisingItem, Offering, Package, Style } from '../entities';
 export class PackageDTO implements Package {
   price: number;
   save: number;
 
   @IsNumber()
+  @ApiPropertyOptional()
   amount?: number;
 
   @ApiProperty({ default: 300000 })

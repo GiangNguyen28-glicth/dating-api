@@ -11,9 +11,9 @@ export enum TYPE_RANGE {
   YEAR = 'Year',
 }
 
-export type FormatBilling = '%Y-%U' | '%Y-%m' | '%Y-%m-%d' | '%Y';
+export type GroupDate = '%Y-%U' | '%Y-%m' | '%Y-%m-%d' | '%Y';
 
-export class FilterGetBillingStatistic {
+export class FilterGetStatistic {
   @ApiPropertyOptional()
   @Transform(data => {
     return moment(get(data, 'value')).tz(TIME_ZONE).startOf('day').toDate();
@@ -29,5 +29,5 @@ export class FilterGetBillingStatistic {
   @ApiProperty({ enum: TYPE_RANGE, type: 'enum' })
   typeRange: TYPE_RANGE;
 
-  format?: FormatBilling;
+  format?: GroupDate;
 }

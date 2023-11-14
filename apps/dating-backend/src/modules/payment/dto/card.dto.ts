@@ -30,8 +30,5 @@ export class CheckoutDTO {
   @ApiProperty({ required: true })
   packageId: string;
 
-  @ApiPropertyOptional()
-  amount: number;
-
   price: number;
 }

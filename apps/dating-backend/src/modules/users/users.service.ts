@@ -24,6 +24,7 @@ import { CreateUserDTO, FilterGetAllUserDTO, FilterGetOneUserDTO, UpdateUserTagD
 import { User } from './entities';
 import { UserHelper } from './helper';
 import { FinalCondRecommendation } from './interfaces';
+import { FilterGetStatistic, GroupDate } from '@modules/admin/dto';
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -324,6 +325,16 @@ export class UserService implements OnModuleInit {
     } catch (error) {
       throw error;
     }
+  }
+
+  //======================================Admin======================================
+  async chartStatisticByRangeDate(filter: FilterGetStatistic, format: GroupDate): Promise<any> {
+    const queryBuilder = new FilterBuilder<User>();
+    if (filter?.fromDate && filter?.toDate) {
+      queryBuilder.setFilterItemWithObject('createdAt', { $gte: filter?.fromDate, $lte: filter?.toDate });
+    }
+    const [queryFilter] = queryBuilder.buildQuery();
+    return await this.userRepo.chartStatisticByRangeDate(queryFilter, format);
   }
 
   async insertManyUser(): Promise<boolean> {
