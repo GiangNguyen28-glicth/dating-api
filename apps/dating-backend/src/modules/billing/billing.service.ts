@@ -7,7 +7,7 @@ import { BillingRepo } from '@dating/repositories';
 import { FilterBuilder, throwIfNotExists } from '@dating/utils';
 import { User } from '@modules/users/entities';
 
-import { FilterGetBillingStatistic } from '@modules/admin/dto';
+import { FilterGetStatistic } from '@modules/admin/dto';
 import { CreateBillingDto, FilterGetAllBillingDTO, FilterGetOneBillingDTO, UpdateBillingDto } from './dto';
 import { Billing } from './entities';
 
@@ -81,7 +81,7 @@ export class BillingService {
     }
   }
 
-  async statisticRevenue(filter: FilterGetBillingStatistic): Promise<any[]> {
+  async statisticRevenue(filter: FilterGetStatistic): Promise<any[]> {
     const queryBuilder = new FilterBuilder<Billing>().setFilterItem('status', '$eq', BillingStatus.SUCCESS);
     if (filter?.fromDate && filter?.toDate) {
       queryBuilder.setFilterItemWithObject('createdAt', { $gte: filter?.fromDate, $lte: filter?.toDate });
@@ -90,7 +90,7 @@ export class BillingService {
     return await this.billingRepo.statisticRevenue(queryFilter, filter.format);
   }
 
-  async topUsersByRevenue(filter: FilterGetBillingStatistic): Promise<any[]> {
+  async topUsersByRevenue(filter: FilterGetStatistic): Promise<any[]> {
     const queryBuilder = new FilterBuilder<Billing>().setFilterItem('status', '$eq', BillingStatus.SUCCESS);
     if (filter?.fromDate && filter?.toDate) {
       queryBuilder.setFilterItemWithObject('createdAt', { $gte: filter?.fromDate, $lte: filter?.toDate });

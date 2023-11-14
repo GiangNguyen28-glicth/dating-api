@@ -59,7 +59,7 @@ export class PaymentService implements OnModuleInit {
 
       const billing: Billing = await this.billingService.create({
         latestPackage: _package,
-        offering: offering._id.toString(),
+        offering: offering._id,
         createdBy: user,
         offeringType: offering.type,
         lastMerchandising: offering.merchandising,
@@ -68,10 +68,10 @@ export class PaymentService implements OnModuleInit {
       });
 
       if (offering.type === OfferingType.FINDER_BOOSTS) {
-        if (!checkoutDto.amount) {
+        if (!_package.amount) {
           throw new BadRequestException('Amount is not accept');
         }
-        checkoutDto.price = _package.price * checkoutDto.amount;
+        checkoutDto.price = _package.price;
       }
 
       const paymentIntent = await this.stripe.createPayment(user, checkoutDto);
@@ -90,7 +90,7 @@ export class PaymentService implements OnModuleInit {
         message.featureAccess = this.buildMessage(offering, _package, user.featureAccess);
       } else if (offering.type === OfferingType.FINDER_BOOSTS) {
         message.boostsSession = {
-          amount: checkoutDto.amount,
+          amount: _package.amount,
           refreshInterval: _package.refreshInterval,
           refreshIntervalUnit: _package.refreshIntervalUnit,
         };

@@ -4,11 +4,13 @@ import { PipelineStage, PopulateOptions } from 'mongoose';
 import { CrudRepo, DATABASE_TYPE, IBulkWrite, PROVIDER_REPO, UserModelType } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
 import { User } from '@modules/users/entities';
+import { GroupDate } from '@modules/admin/dto';
 export interface UserRepo extends CrudRepo<User> {
   recommendation(filter: PipelineStage[]): User[];
   countRecommendation(filter: PipelineStage[]): number;
   populate(document: Document, populate: PopulateOptions[]): Promise<User>;
   bulkWrite(bulkWrite: IBulkWrite[]): Promise<void>;
+  chartStatisticByRangeDate(filter, format: GroupDate): Promise<any>;
   deleteManyUser();
   migrateData(): Promise<User[]>;
 }
@@ -32,6 +34,40 @@ export class UserMongoRepo extends MongoRepo<User> {
 
   async bulkWrite(bulkWrite: IBulkWrite[]): Promise<void> {
     await this.userModel.bulkWrite(bulkWrite as any);
+  }
+
+  async chartStatisticByRangeDate(filter, format: GroupDate): Promise<any> {
+    return await this.userModel.aggregate([
+      { $match: filter },
+      {
+        $addFields: {
+          formattedDate: {
+            $dateToString: { format: format, date: '$createdAt' },
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            date: '$formattedDate',
+          },
+          count: {
+            $sum: 1,
+          },
+        },
+      },
+      {
+        $project: {
+          date: '$_id.date',
+          count: '$count',
+        },
+      },
+      {
+        $sort: {
+          _id: 1,
+        },
+      },
+    ]);
   }
 
   async migrateData(): Promise<User[]> {

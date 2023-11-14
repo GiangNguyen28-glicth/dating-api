@@ -6,9 +6,10 @@ import slugify from 'slugify';
 import * as fs from 'fs';
 import axios from 'axios';
 import * as bcrypt from 'bcrypt';
-import { GeoLocation, User } from '@modules/users/entities/user.entity';
+
+import { GroupDate, TYPE_RANGE } from '@modules/admin/dto';
+import { GeoLocation, User } from '@modules/users/entities';
 import { data_tt } from './data';
-import { FormatBilling, TYPE_RANGE } from '@modules/admin/dto';
 
 export function toSlug(text: string, locale?: string): string {
   if (!text) return '';
@@ -118,7 +119,7 @@ export async function downloadImage(url: string, image_name: string) {
   }
 }
 
-export function getFormatGroupISODate(typeRange: TYPE_RANGE): FormatBilling {
+export function getFormatGroupISODate(typeRange: TYPE_RANGE): GroupDate {
   switch (typeRange) {
     case TYPE_RANGE.MONTH:
       return '%Y-%m';

@@ -3,10 +3,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { BillingModelType, CrudRepo, DATABASE_TYPE, PROVIDER_REPO } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
 
-import { FormatBilling } from '@modules/admin/dto';
+import { GroupDate } from '@modules/admin/dto';
 import { Billing } from '@modules/billing/entities';
 export interface BillingRepo extends CrudRepo<Billing> {
-  statisticRevenue(filter, format: FormatBilling): Promise<any[]>;
+  statisticRevenue(filter, format: GroupDate): Promise<any[]>;
   topUsersByRevenue(filter): Promise<any[]>;
 }
 export class BillingMongoRepo extends MongoRepo<Billing> {
@@ -17,7 +17,7 @@ export class BillingMongoRepo extends MongoRepo<Billing> {
     super(billingModel);
   }
 
-  async statisticRevenue(filter, format: FormatBilling): Promise<any[]> {
+  async statisticRevenue(filter, format: GroupDate): Promise<any[]> {
     return await this.billingModel.aggregate([
       { $match: filter },
       {

@@ -4,15 +4,16 @@ import { get, groupBy, mapValues, orderBy, sum, sumBy, values } from 'lodash';
 
 import { IResponse } from '@common/interfaces';
 import { compareHashValue, getFormatGroupISODate, hash, throwIfNotExists } from '@dating/utils';
+import { OfferingType } from '@common/consts';
 
 import { BillingService } from '@modules/billing/billing.service';
 import { OfferingService } from '@modules/offering/offering.service';
+import { UserService } from '@modules/users/users.service';
 
 import { AdminAuthDTO } from '@modules/auth/dto';
 
-import { CreateAdminDTO, FilterGetBillingStatistic, FilterGetOneAdminDTO } from './dto';
+import { CreateAdminDTO, FilterGetStatistic, FilterGetOneAdminDTO } from './dto';
 import { Admin, AdminModelType } from './entities';
-import { OfferingType } from '@common/consts';
 
 @Injectable()
 export class AdminService {
@@ -20,6 +21,7 @@ export class AdminService {
     @InjectModel(Admin.name) private adminModel: AdminModelType,
     private billingService: BillingService,
     private offeringService: OfferingService,
+    private userService: UserService,
   ) {}
 
   async create(admin: Admin, dto: CreateAdminDTO): Promise<IResponse> {
@@ -56,7 +58,7 @@ export class AdminService {
     return admin;
   }
 
-  async getBusinessStatisticByBilling(filter: FilterGetBillingStatistic): Promise<any> {
+  async getBusinessStatisticByBilling(filter: FilterGetStatistic): Promise<any> {
     filter.format = getFormatGroupISODate(filter?.typeRange);
     const statisticRevenue = await this.billingService.statisticRevenue(filter);
     const groupedData = groupBy(statisticRevenue, item => get(item, '_id.offering'));
@@ -102,7 +104,7 @@ export class AdminService {
     return { trendLine: trendLineData, breakDown: breakdownData };
   }
 
-  async topUsersByRevenue(filter: FilterGetBillingStatistic): Promise<any> {
+  async topUsersByRevenue(filter: FilterGetStatistic): Promise<any> {
     const data = await this.billingService.topUsersByRevenue(filter);
     data.map(item => {
       let totalAmount = 0;
@@ -128,5 +130,10 @@ export class AdminService {
       item.totalOtherCount = totalOtherCount;
     });
     return orderBy(data, ['totalAmount'], ['desc']);
+  }
+
+  async getUserStatistic(filter: FilterGetStatistic): Promise<any> {
+    filter.format = getFormatGroupISODate(filter?.typeRange);
+    return await this.userService.chartStatisticByRangeDate(filter, filter.format);
   }
 }

@@ -7,7 +7,7 @@ import { IResponse } from '@common/interfaces';
 import { Role } from '@common/consts';
 
 import { AdminService } from './admin.service';
-import { CreateAdminDTO, FilterGetBillingStatistic } from './dto';
+import { CreateAdminDTO, FilterGetStatistic } from './dto';
 import { Admin } from './entities';
 
 @Controller('admin')
@@ -29,13 +29,20 @@ export class AdminController {
 
   @Get('billing/statistic-revenue')
   @UseGuards(AtGuard, RolesGuard)
-  async getBusinessStatisticByBilling(@Query() filter: FilterGetBillingStatistic) {
+  async getBusinessStatisticByBilling(@Query() filter: FilterGetStatistic) {
     return await this.adminService.getBusinessStatisticByBilling(filter);
   }
 
   @Get('billing/top-user')
   @UseGuards(AtGuard, RolesGuard)
-  async topUsersByRevenue(@Query() filter: FilterGetBillingStatistic) {
+  async topUsersByRevenue(@Query() filter: FilterGetStatistic) {
     return await this.adminService.topUsersByRevenue(filter);
+  }
+
+  @Get('users/statistic-user')
+  @UseGuards(AtGuard, RolesGuard)
+  @hasRoles(Role.MASTER)
+  async getUserStatistic(@Query() filter: FilterGetStatistic) {
+    return await this.adminService.getUserStatistic(filter);
   }
 }
