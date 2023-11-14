@@ -98,4 +98,12 @@ export class BillingService {
     const [queryFilter] = queryBuilder.buildQuery();
     return await this.billingRepo.topUsersByRevenue(queryFilter);
   }
+
+  async save(billing: Billing): Promise<void> {
+    try {
+      await this.billingRepo.save(billing);
+    } catch (error) {
+      throw error;
+    }
+  }
 }

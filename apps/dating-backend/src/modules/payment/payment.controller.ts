@@ -18,15 +18,6 @@ export class PaymentController {
   @Post('stripe/checkout')
   @ApiBody({ type: CheckoutDTO })
   async createPaymentIntentStripe(@Body() checkoutDto: CheckoutDTO, @CurrentUser() user: User): Promise<IResponse> {
-    try {
-      await this.paymentService.createPaymentIntentStripe(user, checkoutDto);
-      return {
-        success: true,
-        message: 'Thanh toán thành công. Tài khoản của bạn sẽ được update trong ít phút',
-      };
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
+    return await this.paymentService.createPaymentIntentStripe(user, checkoutDto);
   }
 }

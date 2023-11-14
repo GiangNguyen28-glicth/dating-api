@@ -36,31 +36,6 @@ export class Image {
 }
 
 @Schema({ _id: false })
-export class FeatureAccessItem {
-  @Prop({ type: String, enum: MerchandisingType })
-  name: MerchandisingType;
-
-  @Prop({ type: Boolean, default: false })
-  unlimited?: boolean;
-
-  @Prop({ type: Number })
-  amount?: number;
-
-  @Prop({ default: new Date() })
-  expiredDate?: Date;
-
-  @Prop({ type: Number })
-  refreshInterval?: number;
-
-  @Prop({ type: String, enum: Object.values(RefreshIntervalUnit) })
-  refreshIntervalUnit?: RefreshIntervalUnit;
-
-  constructor(amount: number) {
-    this.amount = amount;
-  }
-}
-
-@Schema({ _id: false })
 export class ControlWhoYouSee {
   @Prop({ default: false })
   recentlyActive: boolean;
