@@ -1,9 +1,9 @@
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { DATABASE_TYPE, PROVIDER_REPO, RelationshipType } from '@common/consts';
 import { PaginationDTO } from '@common/dto';
 import { IResponse, IResult } from '@common/interfaces';
 import { RelationshipRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Relationship } from './entities';
 import { CreateRelationshipDTO, UpdateRelationshipDto } from './dto';
 
