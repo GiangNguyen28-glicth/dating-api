@@ -373,15 +373,15 @@ export class UserService implements OnModuleInit {
 
   async migrate() {
     const users = await this.userRepo.migrateData();
-    for (const user of users) {
-      if (user.images.length) {
-        await this.rabbitService.sendToQueue(QUEUE_NAME.USER_IMAGES_BUILDER, {
-          userId: user._id,
-          images: user.images,
-          blurAvatar: user.images[0],
-        });
-      }
-    }
+    // for (const user of users) {
+    //   if (user.images.length) {
+    //     await this.rabbitService.sendToQueue(QUEUE_NAME.USER_IMAGES_BUILDER, {
+    //       userId: user._id,
+    //       images: user.images,
+    //       blurAvatar: user.images[0],
+    //     });
+    //   }
+    // }
     return true;
   }
 }

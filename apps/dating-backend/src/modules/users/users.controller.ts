@@ -8,7 +8,7 @@ import {
   UpdateUserSettingDTO,
   UpdateUserTagDTO,
   VerifyUserDTO,
-} from './dto/update-user.dto';
+} from './dto';
 import { User } from './entities';
 import { UserService } from './users.service';
 import { UpdateUserProfileInterceptor } from './interceptors';

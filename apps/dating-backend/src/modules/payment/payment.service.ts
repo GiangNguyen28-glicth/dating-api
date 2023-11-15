@@ -2,21 +2,31 @@ import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ConfirmChannel } from 'amqplib';
 import * as moment from 'moment-timezone';
+import { isNil } from 'lodash';
 
-import { BillingStatus, OfferingType, QUEUE_NAME, RMQ_CHANNEL, RefreshIntervalUnit } from '@common/consts';
-import { IResponse } from '@common/interfaces';
-import { docToObject } from '@dating/utils';
 import { RabbitService } from '@app/shared';
+import {
+  BillingStatus,
+  LimitType,
+  OfferingType,
+  QUEUE_NAME,
+  RMQ_CHANNEL,
+  RefreshIntervalUnit,
+  TIME_ZONE,
+} from '@common/consts';
+import { IResponse } from '@common/interfaces';
 import { IPaymentMessage } from '@common/message';
+import { docToObject } from '@dating/utils';
 
 import { BillingService } from '@modules/billing/billing.service';
 import { Billing } from '@modules/billing/entities';
-import { MerchandisingItem, Offering, Package } from '@modules/offering/entities';
+import { Offering, Package } from '@modules/offering/entities';
 import { OfferingService } from '@modules/offering/offering.service';
-import { User } from '@modules/users/entities';
+import { FeatureAccessItem, User } from '@modules/users/entities';
 
 import { CheckoutDTO } from './dto';
 import { StripePaymentStrategy } from './strategies/stripe.strategy';
+import { CreateBillingDto } from '@modules/billing/dto';
 
 @Injectable()
 export class PaymentService implements OnModuleInit {
@@ -58,7 +68,7 @@ export class PaymentService implements OnModuleInit {
 
       checkoutDto.price = _package.price;
 
-      const billing: Billing = await this.billingService.create({
+      const billingDto: CreateBillingDto = {
         latestPackage: _package,
         offering: offering._id,
         createdBy: user,
@@ -67,7 +77,18 @@ export class PaymentService implements OnModuleInit {
         status: BillingStatus.INPROGRESS,
         expiredDate: this.getExpiredDate(_package.refreshInterval, _package.refreshIntervalUnit),
         isRetail: offering.isRetail ? true : false,
+      };
+      if (billingDto.isRetail) {
+        billingDto.expiredDate = new Date();
+      }
+      billingDto.lastMerchandising = offering.merchandising.map(merItem => {
+        if (merItem.type != LimitType.UNLIMITED) {
+          merItem.refreshDate = moment().tz(TIME_ZONE).endOf('date').toDate();
+        }
+        return merItem;
       });
+
+      const billing: Billing = await this.billingService.create(billingDto);
 
       if (offering.type === OfferingType.FINDER_BOOSTS) {
         if (!_package.amount) {
@@ -107,19 +128,30 @@ export class PaymentService implements OnModuleInit {
   }
 
   getExpiredDate(amount: number, refreshIntervalUnit: RefreshIntervalUnit): Date {
-    const now = moment.tz('Asia/Ho_Chi_Minh');
+    const now = moment.tz(TIME_ZONE);
     return now.add(amount, refreshIntervalUnit.toLowerCase() as any).toDate();
   }
 
-  buildMessage(offering: Offering, _package: Package, featureAccess: MerchandisingItem[]): MerchandisingItem[] {
+  buildMessage(offering: Offering, _package: Package, featureAccess: FeatureAccessItem[]): FeatureAccessItem[] {
     const { merchandising } = docToObject(offering);
 
     for (const merchandisingItem of merchandising) {
       const index = featureAccess.findIndex(item => item.name === merchandisingItem.name);
-      featureAccess[index].type = merchandisingItem.type;
-      featureAccess[index].amount = merchandisingItem.amount;
-      featureAccess[index].refreshIntervalUnit = merchandisingItem.refreshIntervalUnit;
-      featureAccess[index].refreshInterval = merchandisingItem.refreshInterval;
+      if (isNil(index)) {
+        const featureAccessItem: FeatureAccessItem = {
+          unlimited: merchandisingItem.type === LimitType.UNLIMITED ? true : false,
+          amount: merchandisingItem.amount,
+          name: merchandisingItem.name,
+        };
+        featureAccess.push(featureAccessItem);
+        continue;
+      }
+      if (merchandisingItem.type == LimitType.UNLIMITED) {
+        featureAccess[index].unlimited = true;
+      } else {
+        featureAccess[index].unlimited = false;
+        featureAccess[index].amount = merchandisingItem.amount;
+      }
     }
     return featureAccess;
   }

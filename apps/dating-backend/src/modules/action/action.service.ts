@@ -125,7 +125,7 @@ export class ActionService {
         message: 'Ok',
       };
 
-      if (sender.featureAccess[idx].type !== LimitType.UNLIMITED) {
+      if (!sender.featureAccess[idx].unlimited) {
         sender.featureAccess[idx].amount = sender.featureAccess[idx].amount - 1;
         await this.userService.findOneAndUpdate(sender._id, {
           featureAccess: sender.featureAccess,

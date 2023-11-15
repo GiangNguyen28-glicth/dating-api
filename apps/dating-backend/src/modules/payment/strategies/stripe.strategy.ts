@@ -1,8 +1,10 @@
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
+
+import { User } from '@modules/users/entities';
+
 import { IPaymentStrategy } from '../interfaces/payment.interfaces';
-import { CheckoutDTO } from '../dto/card.dto';
-import { User } from '@modules/users/entities/user.entity';
+import { CheckoutDTO } from '../dto';
 
 export class StripePaymentStrategy implements IPaymentStrategy {
   private stripeConfig: Stripe.StripeConfig = {

@@ -3,12 +3,10 @@ import { CronJob } from 'cron';
 
 import { JobStatus, TIME_ZONE } from '@common/consts';
 
-import { Billing } from '@modules/billing/entities';
-
-import { BuilderService, PullerService, UpdaterService } from '../processors';
-import { JobsService } from '../jobs.service';
-import { IJobProcessors } from '../interfaces';
 import { Job } from '../entities';
+import { IJobProcessors } from '../interfaces';
+import { JobsService } from '../jobs.service';
+import { BuilderService, PullerService, UpdaterService } from '../processors';
 const UPDATE_BILLING = 'UPDATE_BILLING_EXPIRED';
 const UPDATE_BATCH_SIZE = 500;
 

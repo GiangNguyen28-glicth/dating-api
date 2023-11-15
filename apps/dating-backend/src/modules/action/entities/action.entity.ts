@@ -5,7 +5,7 @@ import { get } from 'lodash';
 import { LimitType, MongoID } from '@common/consts';
 
 import { MatchRequest } from '@modules/match-request/entities';
-import { User } from '@modules/users/entities';
+import { FeatureAccessItem, User } from '@modules/users/entities';
 import { MerchandisingItem } from '@modules/offering/entities';
 
 @Schema({ timestamps: true })
@@ -32,8 +32,8 @@ export class Action {
 
   updatedAt?: Date;
 
-  static isByPassAction(featureAccess: MerchandisingItem): boolean {
-    if (featureAccess.type != LimitType.UNLIMITED && featureAccess.amount < 1) {
+  static isByPassAction(featureAccess: FeatureAccessItem): boolean {
+    if (!featureAccess.unlimited && featureAccess.amount < 1) {
       return false;
     }
     return true;

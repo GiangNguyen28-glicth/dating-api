@@ -12,13 +12,12 @@ import {
   RefreshIntervalUnit,
   RegisterType,
   RelationshipModeType,
-  Role,
   VerifyUserStatus,
 } from '@dating/common';
 
+import { MerchandisingItem } from '@modules/offering/entities';
 import { Relationship } from '@modules/relationship/entities';
 import { Tag } from '@modules/tag/entities';
-import { MerchandisingItem } from '@modules/offering/entities';
 
 @Schema({ _id: false })
 export class Image {
@@ -45,15 +44,6 @@ export class FeatureAccessItem {
 
   @Prop({ type: Number })
   amount?: number;
-
-  @Prop({ default: new Date() })
-  expiredDate?: Date;
-
-  @Prop({ type: Number })
-  refreshInterval?: number;
-
-  @Prop({ type: String, enum: Object.values(RefreshIntervalUnit) })
-  refreshIntervalUnit?: RefreshIntervalUnit;
 
   constructor(amount: number) {
     this.amount = amount;
@@ -265,8 +255,8 @@ export class User implements IEntity {
   @Prop({ type: UserSetting, default: new UserSetting() })
   setting: UserSetting;
 
-  @Prop([{ type: MerchandisingItem }, { default: User.getDefaultFeatureAccess() }])
-  featureAccess: MerchandisingItem[];
+  @Prop([{ type: FeatureAccessItem }, { default: User.getDefaultFeatureAccess() }])
+  featureAccess: FeatureAccessItem[];
 
   @Prop([{ type: Image, default: [] }])
   images: Image[];
@@ -330,43 +320,32 @@ export class User implements IEntity {
   createdAt?: Date;
   updatedAt?: Date;
 
-  static getDefaultFeatureAccess(): MerchandisingItem[] {
-    const defaultValue: MerchandisingItem[] = [];
-    const defaultType = [MerchandisingType.HIDE_ADS, MerchandisingType.UN_BLUR, MerchandisingType.BOOSTS];
+  static getDefaultFeatureAccess(): FeatureAccessItem[] {
+    const defaultValue: FeatureAccessItem[] = [];
+    const defaultType = [MerchandisingType.HIDE_ADS, MerchandisingType.UN_BLUR];
     for (const i in defaultType) {
-      const featureAccess: MerchandisingItem = {
+      const featureAccess: FeatureAccessItem = {
         name: defaultType[i],
-        type: LimitType.RENEWABLE,
+        unlimited: false,
         amount: 0,
       };
-      if (defaultType[i] === MerchandisingType.BOOSTS) {
-        featureAccess.refreshInterval = 30;
-        featureAccess.expiredDate = new Date();
-        featureAccess.refreshIntervalUnit = RefreshIntervalUnit.MINUTES;
-      }
       defaultValue.push(featureAccess);
     }
     return defaultValue.concat([
       {
         name: MerchandisingType.LIKE,
-        type: LimitType.RENEWABLE,
         amount: 20,
-        refreshInterval: 1,
-        refreshIntervalUnit: RefreshIntervalUnit.DAY,
+        unlimited: false,
       },
       {
         name: MerchandisingType.REWIND,
-        type: LimitType.RENEWABLE,
         amount: 2,
-        refreshInterval: 1,
-        refreshIntervalUnit: RefreshIntervalUnit.DAY,
+        unlimited: false,
       },
       {
         name: MerchandisingType.SUPER_LIKE,
-        type: LimitType.RENEWABLE,
         amount: 1,
-        refreshInterval: 1,
-        refreshIntervalUnit: RefreshIntervalUnit.DAY,
+        unlimited: false,
       },
     ]);
   }

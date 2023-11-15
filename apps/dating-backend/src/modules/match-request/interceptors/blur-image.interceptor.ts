@@ -1,4 +1,4 @@
-import { LimitType, MerchandisingType } from '@common/consts';
+import { MerchandisingType } from '@common/consts';
 import { IResult } from '@common/interfaces';
 import { User } from '@modules/users/entities';
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
@@ -14,9 +14,7 @@ export class BlurImageInterceptor implements NestInterceptor {
     const user: User = request.user;
     return next.handle().pipe(
       map((data: IResult<MatchRequest>) => {
-        const unBlur = user.featureAccess.find(
-          item => item.name === MerchandisingType.UN_BLUR && item.type === LimitType.UNLIMITED,
-        );
+        const unBlur = user.featureAccess.find(item => item.name === MerchandisingType.UN_BLUR && item.unlimited);
         const boostsMatchRequest: MatchRequest[] = [];
         for (const [index, matchRq] of data.results.entries()) {
           if (!isNil(unBlur)) {

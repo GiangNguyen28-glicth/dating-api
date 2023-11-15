@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { BillingProcess, IBulkWrite, MerchandisingType } from '@common/consts';
 
 import { Billing } from '@modules/billing/entities';
-import { User } from '@modules/users/entities';
+import { FeatureAccessItem, User } from '@modules/users/entities';
 import { MerchandisingItem } from '@modules/offering/entities';
 
 import { IUpdateMany } from '../interfaces';
@@ -11,7 +11,7 @@ import { IUpdateMany } from '../interfaces';
 @Injectable()
 export class BuilderService {
   buildUpdateManyUsersFT(users: User[]): IBulkWrite[] {
-    const isDefaultUpdate = (listing: MerchandisingItem[]): boolean => {
+    const isDefaultUpdate = (listing: FeatureAccessItem[]): boolean => {
       for (const item of listing) {
         if (item.name === MerchandisingType.SUPER_LIKE && item.amount > 1) {
           return false;
@@ -23,7 +23,7 @@ export class BuilderService {
       return true;
     };
 
-    const mapping = (defaultAccess: MerchandisingItem[], listing: MerchandisingItem[]): MerchandisingItem[] => {
+    const mapping = (defaultAccess: FeatureAccessItem[], listing: FeatureAccessItem[]): FeatureAccessItem[] => {
       const indexSuperLike = defaultAccess.findIndex(item => item.name === MerchandisingType.SUPER_LIKE);
       const indexBoosts = defaultAccess.findIndex(item => item.name === MerchandisingType.BOOSTS);
       for (const item of listing) {

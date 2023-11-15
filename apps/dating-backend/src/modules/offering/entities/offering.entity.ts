@@ -57,14 +57,14 @@ export class MerchandisingItem {
   @Prop()
   text?: string;
 
-  @Prop()
-  expiredDate?: Date;
-
   @Prop({ type: Number })
   refreshInterval?: number;
 
   @Prop({ type: String, enum: Object.values(RefreshIntervalUnit) })
   refreshIntervalUnit?: RefreshIntervalUnit;
+
+  @Prop({ type: Date })
+  refreshDate?: Date;
 }
 
 @Schema({ _id: false })
