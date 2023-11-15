@@ -1,9 +1,4 @@
-import {
-  IEntity,
-  ParentTagType,
-  TagRelationshipModeType,
-  TagType,
-} from '@dating/common';
+import { IEntity, ParentTagType, TagRelationshipModeType, TagType } from '@dating/common';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
 

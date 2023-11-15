@@ -95,9 +95,6 @@ export class Schedule implements IEntity {
   @Prop({ type: MongoID, ref: User.name })
   updatedBy: User | string;
 
-  @Prop({ type: [String], default: [] })
-  excludedUsers: string[];
-
   @Prop([{ type: Review, default: [] }])
   reviews: Review[];
 

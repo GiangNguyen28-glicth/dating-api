@@ -45,14 +45,14 @@ export class MerchandisingItem {
   @Prop({ type: String, enum: MerchandisingType })
   name: MerchandisingType;
 
+  @Prop()
+  iconUrl?: string;
+
   @Prop({ type: String, enum: Object.values(LimitType) })
   type: LimitType;
 
   @Prop({ type: Number })
   amount?: number;
-
-  @Prop()
-  iconUrl?: string;
 
   @Prop()
   text?: string;

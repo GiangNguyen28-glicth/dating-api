@@ -218,7 +218,7 @@ export class UserService implements OnModuleInit {
   }
 
   async processImage(userId: string, entities: Partial<User>): Promise<void> {
-    if (entities?.images.length) {
+    if (entities?.images?.length) {
       if (this.userHelper.validateBlurImage(entities.images) || entities.blurAvatar) {
         await this.rabbitService.sendToQueue(QUEUE_NAME.USER_IMAGES_BUILDER, {
           userId,

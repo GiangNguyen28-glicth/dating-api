@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
-
 import { get } from 'lodash';
 
 import { MongoID } from '@common/consts';

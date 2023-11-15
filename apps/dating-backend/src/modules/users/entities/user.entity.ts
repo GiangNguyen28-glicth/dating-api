@@ -61,11 +61,6 @@ export class FeatureAccessItem {
 }
 
 @Schema({ _id: false })
-export class ControlWhoYouSee {
-  @Prop({ default: false })
-  recentlyActive: boolean;
-}
-@Schema({ _id: false })
 export class ControlWhoSeesYou {
   @Prop({ default: false })
   onlyPeopleIveLiked: boolean;
@@ -122,9 +117,6 @@ export class UserSetting {
 
   @Prop({ type: ControlWhoSeesYou })
   controlWhoSeesYou?: ControlWhoSeesYou;
-
-  @Prop({ type: ControlWhoYouSee })
-  controlWhoYouSee?: ControlWhoYouSee;
 
   @Prop({ type: HiddenProfile, default: new HiddenProfile() })
   hiddenProfile?: HiddenProfile;
@@ -253,7 +245,7 @@ export class User implements IEntity {
   gender: Gender;
 
   @Prop({ default: true })
-  showMeInTinder: boolean;
+  showMeInFinder: boolean;
 
   @Prop({ type: String, trim: true, enum: Object.values(RegisterType) })
   registerType: RegisterType;
@@ -332,12 +324,6 @@ export class User implements IEntity {
 
   @Prop({ type: Number, default: 0 })
   stepStarted: number;
-
-  @Prop()
-  slug: string;
-
-  @Prop()
-  keyword: string;
 
   calcDistance: number;
   role?: string;

@@ -27,8 +27,8 @@ export class Notification {
   @Prop({ type: MongoID, ref: Schedule.name })
   schedule: Schedule | string;
 
-  @Prop({ type: MongoID, ref: Message.name, autopopulate: { maxDepth: 1 } })
-  message: Message;
+  @Prop({ type: MongoID, ref: Message.name })
+  message: Message | string;
 
   @Prop({ type: String, enum: Object.values(NotificationType), required: true })
   type: NotificationType;

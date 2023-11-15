@@ -1,7 +1,9 @@
-import { IResponse, IResult } from '@dating/common';
-import { throwIfNotExists } from '@dating/utils';
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
+
+import { IResponse, IResult } from '@dating/common';
+import { throwIfNotExists } from '@dating/utils';
+
 import { Tag } from './entities';
 import { TagService } from './tag.service';
 import { CreateTagDTO, FilterGetAllTagDTO, UpdateTagDTO } from './dto';

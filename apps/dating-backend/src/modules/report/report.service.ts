@@ -100,7 +100,7 @@ export class ReportService {
       throwIfNotExists(user, 'User không tồn tại');
       await this.reportRepo.updateManyByFilter(
         { reportedUser: userId, isVerified: false },
-        { isVerified: true, blockAt: new Date(), confirmBy: admin },
+        { isVerified: true, confirmBy: admin },
       );
       await this.userService.findOneAndUpdate(userId, { isBlocked: true, blockedAt: new Date() });
       return {
