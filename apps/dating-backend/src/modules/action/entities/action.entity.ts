@@ -2,10 +2,11 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
 import { get } from 'lodash';
 
-import { MongoID } from '@common/consts';
+import { LimitType, MongoID } from '@common/consts';
 
 import { MatchRequest } from '@modules/match-request/entities';
-import { FeatureAccessItem, User } from '@modules/users/entities';
+import { User } from '@modules/users/entities';
+import { MerchandisingItem } from '@modules/offering/entities';
 
 @Schema({ timestamps: true })
 export class Action {
@@ -31,8 +32,8 @@ export class Action {
 
   updatedAt?: Date;
 
-  static isByPassAction(featureAccess: FeatureAccessItem): boolean {
-    if (!featureAccess.unlimited && featureAccess.amount < 1) {
+  static isByPassAction(featureAccess: MerchandisingItem): boolean {
+    if (featureAccess.type != LimitType.UNLIMITED && featureAccess.amount < 1) {
       return false;
     }
     return true;

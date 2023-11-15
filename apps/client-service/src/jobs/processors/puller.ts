@@ -10,6 +10,7 @@ import {
   MerchandisingType,
   PROVIDER_REPO,
   RequestDatingStatus,
+  TIME_ZONE,
 } from '@common/consts';
 import { IOptionFilterGetAll } from '@common/interfaces';
 import { FilterBuilder } from '@dating/utils';
@@ -41,13 +42,27 @@ export class PullerService {
     private billingRepo: BillingRepo,
   ) {}
 
-  async getAllBillingToUpdateFT(): Promise<Billing[]> {
+  async getAllBillingExpired(): Promise<Billing[]> {
+    const [queryFilter] = new FilterBuilder<Billing>()
+      .setFilterItem('expiredDate', '$lte', new Date())
+      .setFilterItem('status', '$eq', BillingStatus.SUCCESS)
+      .setFilterItem('process', '$eq', BillingProcess.INPROGRESS)
+      .buildQuery();
     const data = await this.billingRepo.findAll({
-      queryFilter: {
-        expiredDate: new Date(),
-        status: BillingStatus.SUCCESS,
-        process: BillingProcess.INPROGRESS,
-      },
+      queryFilter,
+    });
+    return data;
+  }
+
+  async getAllBillingInprogress(): Promise<Billing[]> {
+    const [queryFilter] = new FilterBuilder<Billing>()
+      .setFilterItem('expiredDate', '$gte', new Date())
+      .setFilterItem('status', '$eq', BillingStatus.SUCCESS)
+      .setFilterItem('process', '$eq', BillingProcess.INPROGRESS)
+      .setFilterItem('isRetail', '$eq', false, true)
+      .buildQuery();
+    const data = await this.billingRepo.findAll({
+      queryFilter,
     });
     return data;
   }
@@ -56,10 +71,11 @@ export class PullerService {
     return await this.userRepo.findAll(option);
   }
 
-  async getAllUserToUpdateFT(): Promise<User[]> {
+  async getAllUserToUpdateFT(ignoreIds: string[]): Promise<User[]> {
     const [queryFilter, sortOption] = new FilterBuilder<User>()
       .setFilterItem('isBlocked', '$eq', false, true)
       .setFilterItem('isDeleted', '$eq', false, true)
+      .setFilterItem('_id', '$nin', ignoreIds)
       // .setFilterItem('lastActiveDate','')
       .setSortItem('createdAt', 'asc')
       .buildQuery();
@@ -71,8 +87,8 @@ export class PullerService {
     if (job.lastId) {
       cursor = new Types.ObjectId(job.lastId);
     }
-    const startOfDate = moment.tz('Asia/Ho_Chi_Minh').startOf('day');
-    const tomorrow = moment.tz('Asia/Ho_Chi_Minh').add(1, 'day').endOf('day');
+    const startOfDate = moment.tz(TIME_ZONE).startOf('day');
+    const tomorrow = moment.tz(TIME_ZONE).add(1, 'day').endOf('day');
     const [queryFilter, sortOption] = new FilterBuilder<Schedule>()
       .setFilterItem('status', '$eq', RequestDatingStatus.ACCEPT)
       .setFilterItem('isDeleted', '$eq', false, true)
@@ -88,7 +104,7 @@ export class PullerService {
     if (job.lastId) {
       cursor = new Types.ObjectId(job.lastId);
     }
-    const yesterday = moment.tz('Asia/Ho_Chi_Minh').startOf('day').subtract(1, 'day').startOf('day');
+    const yesterday = moment.tz(TIME_ZONE).startOf('day').subtract(1, 'day').startOf('day');
     const [queryFilter, sortOption] = new FilterBuilder<Schedule>()
       .setFilterItem('status', '$eq', RequestDatingStatus.ACCEPT)
       .setFilterItem('isDeleted', '$eq', false, true)

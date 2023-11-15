@@ -1,21 +1,22 @@
 import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
-import { ConfirmChannel } from 'amqplib';
 import { ConfigService } from '@nestjs/config';
+import { ConfirmChannel } from 'amqplib';
 import * as moment from 'moment-timezone';
 
-import { BillingStatus, LimitType, OfferingType, QUEUE_NAME, RMQ_CHANNEL, RefreshIntervalUnit } from '@common/consts';
+import { BillingStatus, OfferingType, QUEUE_NAME, RMQ_CHANNEL, RefreshIntervalUnit } from '@common/consts';
 import { IResponse } from '@common/interfaces';
+import { docToObject } from '@dating/utils';
+import { RabbitService } from '@app/shared';
+import { IPaymentMessage } from '@common/message';
+
 import { BillingService } from '@modules/billing/billing.service';
 import { Billing } from '@modules/billing/entities';
 import { MerchandisingItem, Offering, Package } from '@modules/offering/entities';
 import { OfferingService } from '@modules/offering/offering.service';
-import { docToObject } from '@dating/utils';
+import { User } from '@modules/users/entities';
 
-import { CheckoutDTO } from './dto/card.dto';
+import { CheckoutDTO } from './dto';
 import { StripePaymentStrategy } from './strategies/stripe.strategy';
-import { RabbitService } from '@app/shared';
-import { IPaymentMessage } from '@common/message';
-import { BoostsSession, FeatureAccessItem, User } from '@modules/users/entities';
 
 @Injectable()
 export class PaymentService implements OnModuleInit {
@@ -64,7 +65,8 @@ export class PaymentService implements OnModuleInit {
         offeringType: offering.type,
         lastMerchandising: offering.merchandising,
         status: BillingStatus.INPROGRESS,
-        expiredDate: this.getExpiredDate(_package.refreshIntervalUnit, _package.refreshInterval),
+        expiredDate: this.getExpiredDate(_package.refreshInterval, _package.refreshIntervalUnit),
+        isRetail: offering.isRetail ? true : false,
       });
 
       if (offering.type === OfferingType.FINDER_BOOSTS) {
@@ -76,9 +78,8 @@ export class PaymentService implements OnModuleInit {
 
       const paymentIntent = await this.stripe.createPayment(user, checkoutDto);
       if (paymentIntent['status'] !== 'succeeded') {
-        await this.billingService.findOneAndUpdate(billing._id, {
-          status: BillingStatus.ERROR,
-        });
+        billing.status = BillingStatus.ERROR;
+        await this.billingService.save(billing);
         throw new BadRequestException('Thanh toán thất bại');
       }
       const message: IPaymentMessage = {
@@ -96,47 +97,29 @@ export class PaymentService implements OnModuleInit {
         };
       }
       await this.rabbitService.sendToQueue(QUEUE_NAME.UPDATE_FEATURE_ACCESS, message);
-      return null;
+      return {
+        success: true,
+        message: 'Thanh toán thành công. Tài khoản của bạn sẽ được update trong ít phút',
+      };
     } catch (error) {
       throw error;
     }
   }
 
-  getExpiredDate(refreshIntervalUnit: RefreshIntervalUnit, amount: number): Date {
+  getExpiredDate(amount: number, refreshIntervalUnit: RefreshIntervalUnit): Date {
     const now = moment.tz('Asia/Ho_Chi_Minh');
-    switch (refreshIntervalUnit) {
-      case RefreshIntervalUnit.MINUTES:
-        now.add(amount, 'minutes');
-        break;
-      case RefreshIntervalUnit.MONTH:
-        now.add(amount, 'months').endOf('date');
-        break;
-      case RefreshIntervalUnit.WEEK:
-        now.add(amount, 'weeks').endOf('date');
-        break;
-      case RefreshIntervalUnit.YEAR:
-        now.add(amount, 'years').endOf('date');
-        break;
-      case RefreshIntervalUnit.DAY:
-        now.add(amount, 'days').endOf('date');
-        break;
-      default:
-        throw new BadRequestException('Missing refreshIntervalUnit');
-    }
-    return new Date(now.toISOString());
+    return now.add(amount, refreshIntervalUnit.toLowerCase() as any).toDate();
   }
 
-  buildMessage(offering: Offering, _package: Package, featureAccess: FeatureAccessItem[]): FeatureAccessItem[] {
+  buildMessage(offering: Offering, _package: Package, featureAccess: MerchandisingItem[]): MerchandisingItem[] {
     const { merchandising } = docToObject(offering);
 
     for (const merchandisingItem of merchandising) {
       const index = featureAccess.findIndex(item => item.name === merchandisingItem.name);
-      if (merchandisingItem.type == LimitType.UNLIMITED) {
-        featureAccess[index].unlimited = true;
-      } else {
-        featureAccess[index].unlimited = false;
-        featureAccess[index].amount = _package.refreshInterval;
-      }
+      featureAccess[index].type = merchandisingItem.type;
+      featureAccess[index].amount = merchandisingItem.amount;
+      featureAccess[index].refreshIntervalUnit = merchandisingItem.refreshIntervalUnit;
+      featureAccess[index].refreshInterval = merchandisingItem.refreshInterval;
     }
     return featureAccess;
   }

@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { CronJob } from 'cron';
+import { uniq } from 'lodash';
 
 import { JobStatus } from '@common/consts';
-import { Job } from '../entities';
+
 import { JobsService } from '../jobs.service';
 import { BuilderService, PullerService, UpdaterService } from '../processors';
+import { Job } from '../entities';
 
 const UPDATE_USER_FEATURE_ACCESS = 'UPDATE_USER_FEATURE_ACCESS';
 const UPDATE_BATCH_SIZE = 500;
@@ -41,15 +43,13 @@ export class UpdateFeatureAccessJob {
     };
     const jobDoc = await this.jobService.createJob(job);
     try {
-      const users = await this.pullerService.getAllUserToUpdateFT();
+      const billings = (await this.pullerService.getAllBillingInprogress()).map(b => b.createdBy.toString());
+      const users = await this.pullerService.getAllUserToUpdateFT(uniq(billings));
       jobDoc.totalUpdate = users.length;
       while (users.length) {
         const batchUsers = users.splice(0, UPDATE_BATCH_SIZE);
         const updateMany = this.builderService.buildUpdateManyUsersFT(batchUsers);
         await this.updaterService.updateUserFT(updateMany);
-        if (jobDoc.status === JobStatus.TODO) {
-          jobDoc.status = JobStatus.INPROGRESS;
-        }
         jobDoc.numOfProcessRecord += batchUsers.length;
         jobDoc.lastId = batchUsers[batchUsers.length - 1]._id;
         await this.jobService.save(jobDoc);

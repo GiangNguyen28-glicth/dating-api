@@ -1,11 +1,12 @@
-import { ImageDTO } from '@modules/users/dto';
-import { BoostsSession, FeatureAccessItem, SpotifyInfo } from '@modules/users/entities';
 import { Notification } from '@modules/notification/entities';
+import { MerchandisingItem } from '@modules/offering/entities';
+import { ImageDTO } from '@modules/users/dto';
+import { BoostsSession, SpotifyInfo } from '@modules/users/entities';
 //============= PAYMENT MESSAGE //=============
 export interface IPaymentMessage {
   userId?: string;
   billingId?: string;
-  featureAccess?: FeatureAccessItem[];
+  featureAccess?: MerchandisingItem[];
   boostsSession?: BoostsSession;
   offeringType?: string;
 }

@@ -13,4 +13,5 @@ export class CreateBillingDto implements Partial<Billing> {
   expiredDate?: Date;
   status?: BillingStatus;
   offeringType?: string;
+  isRetail?: boolean;
 }
