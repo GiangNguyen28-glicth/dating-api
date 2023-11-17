@@ -1,5 +1,6 @@
+import { Body, Controller, Get, Param, Post, Query, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import axios from 'axios';
 
 import { AtGuard } from '@common/guards';
@@ -72,5 +73,18 @@ export class HelperController {
   @Post('/images/verified')
   async updateImageVerified(@Body() dto: UpdateImageVerifiedDTO): Promise<void> {
     await this.userHelper.updateImageVerified(dto);
+  }
+
+  @Post('/images/upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async imageUpload(@UploadedFile() file): Promise<IResponse> {
+    const url = await this.userHelper.uploadImage(file);
+    return {
+      success: true,
+      message: 'Ok',
+      data: {
+        url,
+      },
+    };
   }
 }

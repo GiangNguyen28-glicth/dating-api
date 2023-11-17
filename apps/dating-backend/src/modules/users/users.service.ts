@@ -352,10 +352,10 @@ export class UserService implements OnModuleInit {
         user.phoneNumber = `+84${count}`;
         for (let i = 0; i < user.images.length; i++) {
           await downloadImage(user.images[i].url, `${user.email}_${image}`);
-          const url = await this.userHelper.uploadImage(
-            `E:/Nestjs/dating-api/apps/dating-backend/images/${user.email}_${image}.jpg`,
-          );
-          user.images[i].url = url;
+          // const url = await this.userHelper.uploadImage(
+          //   `E:/Nestjs/dating-api/apps/dating-backend/images/${user.email}_${image}.jpg`,
+          // );
+          // user.images[i].url = url;
           image++;
         }
         const newUser = await this.userRepo.insert(user);

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { v2 } from 'cloudinary';
 import * as _ from 'lodash';
 import { Types } from 'mongoose';
+import toStream = require('buffer-to-stream');
 
 import { RabbitService } from '@app/shared';
 import { DATABASE_TYPE, LookingFor, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
@@ -144,17 +145,21 @@ export class UserHelper implements OnModuleInit {
     return userIdsLiked.concat(userIdsUnLiked);
   }
 
-  async uploadImage(path): Promise<any> {
+  async uploadImage(file): Promise<any> {
     try {
-      const options = {
-        use_filename: false,
-        unique_filename: false,
-        overwrite: true,
-      };
-      const result = await v2.uploader.upload(path, options);
-      return result.url;
+      return new Promise((resolve, reject) => {
+        const streamLoad = v2.uploader.upload_stream(function (error, result) {
+          if (result) {
+            const resultUrl = result.secure_url;
+            resolve(resultUrl);
+          } else {
+            reject(error);
+          }
+        });
+        toStream(file.buffer).pipe(streamLoad);
+      });
     } catch (err) {
-      console.log(err);
+      throw err;
     }
   }
 
@@ -267,7 +272,6 @@ export class UserHelper implements OnModuleInit {
   }
 
   async updateImageVerified(dto: UpdateImageVerifiedDTO): Promise<void> {
-    console.log('zODADAD', dto);
     const user = await this.userRepo.findOne({ queryFilter: { _id: dto.userId } });
     if (!user) {
       return;
