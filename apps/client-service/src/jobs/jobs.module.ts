@@ -4,14 +4,15 @@ import { JwtService } from '@nestjs/jwt';
 
 import { BillingMongoRepoProvider, ScheduleMongoRepoProvider, UserMongoRepoProvider } from '@dating/repositories';
 
-import { Job, JobSchema } from './entities';
-import { BuilderService, PullerService, UpdaterService } from './processors';
-import { JobsService } from './jobs.service';
-import { ReviewDatingJob, ScheduleDatingJob, UpdateBillingExpiredJob, UpdateFeatureAccessJob } from './services';
 import { Schedule, ScheduleSchema } from '@modules/schedule/entities';
 import { User, UserSchema } from '@modules/users/entities';
 import { Billing, BillingSchema } from '@modules/billing/entities';
 import { Message, MessageSchema } from '@modules/message/entities';
+
+import { Job, JobSchema } from './entities';
+import { BuilderService, PullerService, UpdaterService } from './processors';
+import { JobsService } from './jobs.service';
+import { RefreshFeatureAccessJob, ReviewDatingJob, ScheduleDatingJob, UpdateFeatureAccessJob } from './services';
 
 @Global()
 @Module({
@@ -35,8 +36,8 @@ import { Message, MessageSchema } from '@modules/message/entities';
 
     UpdateFeatureAccessJob,
     ScheduleDatingJob,
-    UpdateBillingExpiredJob,
     ReviewDatingJob,
+    RefreshFeatureAccessJob,
   ],
   exports: [],
 })

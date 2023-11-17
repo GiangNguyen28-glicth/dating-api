@@ -1,4 +1,4 @@
-import { BillingProcess, BillingStatus, MongoID } from '@common/consts';
+import { BillingStatus, MongoID } from '@common/consts';
 import { IEntity } from '@common/interfaces';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
@@ -30,13 +30,6 @@ export class Billing implements IEntity {
 
   @Prop({ type: String, enum: Object.values(BillingStatus) })
   status: BillingStatus;
-
-  @Prop({
-    type: String,
-    enum: Object.values(BillingProcess),
-    default: BillingProcess.INPROGRESS,
-  })
-  process: BillingProcess;
 
   @Prop()
   expiredDate: Date;

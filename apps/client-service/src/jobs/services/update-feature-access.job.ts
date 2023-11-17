@@ -43,13 +43,13 @@ export class UpdateFeatureAccessJob {
     };
     const jobDoc = await this.jobService.createJob(job);
     try {
-      const billings = (await this.pullerService.getAllBillingInprogress()).map(b => b.createdBy.toString());
+      const billings = await this.pullerService.getAllCreatedByBilling();
       const users = await this.pullerService.getAllUserToUpdateFT(uniq(billings));
       jobDoc.totalUpdate = users.length;
       while (users.length) {
         const batchUsers = users.splice(0, UPDATE_BATCH_SIZE);
-        const updateMany = this.builderService.buildUpdateManyUsersFT(batchUsers);
-        await this.updaterService.updateUserFT(updateMany);
+        const updateMany = this.builderService.buildUpdateUserDefaultFeatureAccess(batchUsers);
+        await this.updaterService.userBulkWriteUpdate(updateMany);
         jobDoc.numOfProcessRecord += batchUsers.length;
         jobDoc.lastId = batchUsers[batchUsers.length - 1]._id;
         await this.jobService.save(jobDoc);

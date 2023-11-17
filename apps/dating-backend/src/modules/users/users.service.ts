@@ -230,6 +230,7 @@ export class UserService implements OnModuleInit {
         .filter(img => isNil(img.isVerifiedSuccess) || !img.isVerifiedSuccess)
         .map(item => item.url);
       if (imagesVerify.length) {
+        console.log('zo day');
         try {
           axios.post('https://finder.sohe.in/face/recognize', {
             userId: userId,
@@ -273,7 +274,7 @@ export class UserService implements OnModuleInit {
     try {
       const { tagId, tagType } = updateTagDto;
       const tag = await this.tagService.findOne({ _id: tagId, type: tagType });
-      user = await this.populateTag(user);
+      user = await this.populate(user);
       user.tags = user.tags.filter(tag => {
         if (tag.type != updateTagDto.tagType) {
           return tag;
@@ -307,8 +308,12 @@ export class UserService implements OnModuleInit {
     }
   }
 
-  async populateTag(user: User): Promise<User> {
-    return this.userRepo.populate(user as unknown as Document, [{ path: 'tags' }]);
+  async populate(user: User): Promise<User> {
+    return this.userRepo.populate(user as unknown as Document, [
+      { path: 'tags' },
+      { path: 'relationships' },
+      { path: 'relationshipStatus' },
+    ]);
   }
 
   async boosts(user: User): Promise<IResponse> {

@@ -1,5 +1,5 @@
 import { CrudRepo, IOptionFilterGetAll } from '@dating/common';
-import { Document, FilterQuery, Model, PopulateOption, PopulateOptions, Types } from 'mongoose';
+import { Document, FilterQuery, Model, PopulateOptions, Types } from 'mongoose';
 
 export abstract class MongoRepo<T> implements CrudRepo<T> {
   constructor(protected readonly model: Model<T>) {}
@@ -57,11 +57,11 @@ export abstract class MongoRepo<T> implements CrudRepo<T> {
     })) as T;
   }
 
-  async distinct(field: string, { queryFilter }: IOptionFilterGetAll<T>) {
+  async distinct(field: keyof T, { queryFilter }: IOptionFilterGetAll<T>) {
     if (!field) {
       throw new Error('Missing field in select distinct');
     }
-    return await this.model.find(queryFilter).distinct(field);
+    return await this.model.find(queryFilter).distinct(field.toString());
   }
 
   async delete(id: string): Promise<T> {

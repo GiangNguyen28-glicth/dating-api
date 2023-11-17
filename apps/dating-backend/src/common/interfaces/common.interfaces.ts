@@ -27,7 +27,7 @@ export interface CrudRepo<T> {
   updateMany(ids: string[], entities: Partial<T>): Promise<void>;
   upsert(filterQuery: T, entities: T): Promise<T>;
   save(document): Promise<any>;
-  distinct(field: string, { queryFilter }?: IOptionFilterGetAll<T>): Promise<any[]>;
+  distinct(field: keyof T, { queryFilter }?: IOptionFilterGetAll<T>): Promise<any[]>;
   toJSON(document): T;
 }
 

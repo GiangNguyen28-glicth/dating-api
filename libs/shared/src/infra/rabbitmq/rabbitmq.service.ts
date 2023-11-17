@@ -4,6 +4,7 @@ import { ConfirmChannel, Connection, ConsumeMessage } from 'amqplib';
 
 import { RabbitAssertExchange, RabbitAssertQueue } from './rabbitmq.assert';
 import { IExchangeRb, IQueue, IQueueBinding } from './rabbitmq.interfaces';
+import { delay } from '@app/shared/utils';
 
 const DEFAULT_CHANNEL_ID = 'default_channel';
 @Injectable()
@@ -55,8 +56,18 @@ export class RabbitService implements OnModuleInit, OnModuleDestroy {
           await this.createChannel(this.channelName);
         }).bind(this),
       );
+      this.connection.on(
+        'close',
+        (async (error: Error) => {
+          console.log('Connect closed will be retry after 3s');
+          this.connection = null;
+          await delay(3000);
+          await this.connectRmq();
+        }).bind(this),
+      );
     } catch (error) {
       console.log('Connect to Rmq error. Try to reconnect');
+      await delay(3000);
       await this.connectRmq();
     }
   }
@@ -81,6 +92,13 @@ export class RabbitService implements OnModuleInit, OnModuleDestroy {
       console.debug('Received a Heartbeat signal');
     });
 
+    this.channels[channelId]?.connection.on('close', async () => {
+      console.debug('Received a close channel signal. Will be retry after 3s !');
+      this.connection = null;
+      await delay(3000);
+      await this.createChannel(channelId);
+    });
+
     return this.channels[channelId];
   }
 
@@ -88,6 +106,8 @@ export class RabbitService implements OnModuleInit, OnModuleDestroy {
     try {
       await this.channels[channelId].sendToQueue(queue, Buffer.from(JSON.stringify(msg)), { persistent: true });
     } catch (error) {
+      console.log('sendToQueue with error:', error);
+      await delay(3000);
       await this.sendToQueue(queue, msg, channelId);
     }
   }

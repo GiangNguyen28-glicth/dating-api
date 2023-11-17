@@ -1,13 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import { User } from '@modules/users/entities';
-import { Billing } from '@modules/billing/entities';
 import { BillingRepo, UserRepo } from '@dating/repositories';
+import { DATABASE_TYPE, IBulkWrite, PROVIDER_REPO } from '@common/consts';
 
-import { UserService } from '@modules/users/users.service';
+import { Billing } from '@modules/billing/entities';
 
 import { IUpdateMany } from '../interfaces';
-import { DATABASE_TYPE, IBulkWrite, PROVIDER_REPO } from '@common/consts';
 
 @Injectable()
 export class UpdaterService {
@@ -19,9 +17,23 @@ export class UpdaterService {
     private userRepo: UserRepo,
   ) {}
 
-  async updateUserFT(bulkWrite: IBulkWrite[]) {
+  async userBulkWriteUpdate(bulkWrite: IBulkWrite[]) {
     try {
+      if (!bulkWrite.length) {
+        console.log('IBulkWrite dont have data. Skip user update');
+      }
       await this.userRepo.bulkWrite(bulkWrite);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async billingBulkWriteUpdate(bulkWrite: IBulkWrite[]) {
+    try {
+      if (!bulkWrite.length) {
+        console.log('IBulkWrite dont have data. Skip billing update');
+      }
+      await this.billingRepo.bulkWrite(bulkWrite);
     } catch (error) {
       throw error;
     }

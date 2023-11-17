@@ -3,27 +3,31 @@ import { CronJob } from 'cron';
 
 import { JobStatus, TIME_ZONE } from '@common/consts';
 
-import { Job } from '../entities';
-import { IJobProcessors } from '../interfaces';
-import { JobsService } from '../jobs.service';
 import { BuilderService, PullerService, UpdaterService } from '../processors';
-const UPDATE_BILLING = 'UPDATE_BILLING_EXPIRED';
+import { JobsService } from '../jobs.service';
+import { IJobProcessors } from '../interfaces';
+import { Job } from '../entities';
+
+const REFRESH_FEATURE_ACCESS = 'REFRESH_FEATURE_ACCESS';
 const UPDATE_BATCH_SIZE = 500;
 
 @Injectable()
-export class UpdateBillingExpiredJob implements IJobProcessors {
+export class RefreshFeatureAccessJob implements IJobProcessors {
   private cronJob: CronJob;
+
   constructor(
     private pullerService: PullerService,
     private builderService: BuilderService,
     private updaterService: UpdaterService,
     private jobService: JobsService,
   ) {
+    setTimeout(async () => {
+      await this.process();
+    });
     this.cronJob = new CronJob(
-      '14 20 * * *',
+      '45 12 * * *',
       async () => {
-        console.log('Hello world');
-        await this.process();
+        console.log('Refresh feature access !');
         // your code to run every 12PM
       },
       null,
@@ -35,28 +39,31 @@ export class UpdateBillingExpiredJob implements IJobProcessors {
 
   async process(): Promise<void> {
     const job: Job = {
-      name: UPDATE_BILLING,
+      name: REFRESH_FEATURE_ACCESS,
       status: JobStatus.TODO,
     };
     const jobDoc = await this.jobService.createJob(job);
     try {
-      const billings = await this.pullerService.getAllBillingExpired();
+      const billings = await this.pullerService.getAllBillingInprogress();
       while (billings.length) {
         const batchBillings = billings.splice(0, UPDATE_BATCH_SIZE);
-
-        const updateManyBilling = this.builderService.buildUpdateBillingExpired(batchBillings);
-        await this.updaterService.updateManyBilling(updateManyBilling);
+        const { bulkBilling, bulkUser } = this.builderService.buildRefreshFeatureAccess(batchBillings);
+        await this.updaterService.userBulkWriteUpdate(bulkUser);
+        await this.updaterService.billingBulkWriteUpdate(bulkBilling);
         jobDoc.numOfProcessRecord += batchBillings.length;
         jobDoc.lastId = batchBillings[batchBillings.length - 1]._id;
+        jobDoc.status = JobStatus.INPROGRESS;
         await this.jobService.save(jobDoc);
       }
+
+      //   jobDoc.numOfProcessRecord += batchUsers.length;
       jobDoc.status = JobStatus.DONE;
       jobDoc.doneAt = new Date();
       await this.jobService.save(jobDoc);
     } catch (error) {
       jobDoc.status = JobStatus.ERROR;
+      jobDoc.errorMessage = error.message;
       await this.jobService.save(jobDoc);
-      return;
     }
   }
 

@@ -23,7 +23,7 @@ export class UsersController {
   @ApiBearerAuth()
   @UseGuards(AtGuard)
   async getCurrentUser(@CurrentUser() user: User): Promise<User> {
-    return await this.userService.populateTag(user);
+    return await this.userService.populate(user);
   }
 
   @Get()

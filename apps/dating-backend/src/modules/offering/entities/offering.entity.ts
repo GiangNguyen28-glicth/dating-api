@@ -1,7 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
+import { isNil } from 'lodash';
+import * as moment from 'moment-timezone';
 
-import { Currency, LimitType, MerchandisingType, MongoID, RefreshIntervalUnit } from '@common/consts';
+import { Currency, LimitType, MerchandisingType, MongoID, RefreshIntervalUnit, TIME_ZONE } from '@common/consts';
 import { IEntity } from '@common/interfaces';
 import { Admin } from '@modules/admin/entities';
 
@@ -65,6 +67,20 @@ export class MerchandisingItem {
 
   @Prop({ type: Date })
   refreshDate?: Date;
+
+  static isRefreshDate(merchandising: MerchandisingItem): boolean {
+    if (!merchandising) return false;
+    const { refreshDate, refreshInterval, refreshIntervalUnit } = merchandising;
+    const newRefreshDate = moment(refreshDate)
+      .tz(TIME_ZONE)
+      .add(refreshInterval, refreshIntervalUnit as any)
+      .toDate();
+    const now = new Date();
+    if (newRefreshDate <= now) {
+      return true;
+    }
+    return false;
+  }
 }
 
 @Schema({ _id: false })

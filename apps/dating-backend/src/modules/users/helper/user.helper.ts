@@ -267,6 +267,7 @@ export class UserHelper implements OnModuleInit {
   }
 
   async updateImageVerified(dto: UpdateImageVerifiedDTO): Promise<void> {
+    console.log('zODADAD', dto);
     const user = await this.userRepo.findOne({ queryFilter: { _id: dto.userId } });
     if (!user) {
       return;

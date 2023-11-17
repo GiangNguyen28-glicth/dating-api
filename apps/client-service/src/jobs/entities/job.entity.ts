@@ -1,8 +1,9 @@
-import { JobStatus } from '@common/consts';
-import { IEntity } from '@common/interfaces';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
 import { Model } from 'mongoose';
+
+import { JobStatus } from '@common/consts';
+import { IEntity } from '@common/interfaces';
 
 export type JobModelType = Model<Job>;
 @Schema({ timestamps: true })
@@ -28,6 +29,9 @@ export class Job implements IEntity {
 
   @Prop({ default: 0 })
   numOfProcessRecord?: number;
+
+  @Prop({ trim: true })
+  errorMessage?: string;
 
   @Prop()
   doneAt?: Date;

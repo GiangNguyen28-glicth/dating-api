@@ -74,7 +74,6 @@ export class PaymentService implements OnModuleInit {
         createdBy: user,
         offeringType: offering.type,
         lastMerchandising: offering.merchandising,
-        status: BillingStatus.INPROGRESS,
         expiredDate: this.getExpiredDate(_package.refreshInterval, _package.refreshIntervalUnit),
         isRetail: offering.isRetail ? true : false,
       };
@@ -128,7 +127,7 @@ export class PaymentService implements OnModuleInit {
   }
 
   getExpiredDate(amount: number, refreshIntervalUnit: RefreshIntervalUnit): Date {
-    const now = moment.tz(TIME_ZONE);
+    const now = moment().tz(TIME_ZONE).endOf('date');
     return now.add(amount, refreshIntervalUnit.toLowerCase() as any).toDate();
   }
 

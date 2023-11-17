@@ -163,7 +163,7 @@ export class ActionService {
     }
   }
 
-  async getAllIgnoreIdsUser(userId: string, key: string): Promise<string[]> {
+  async getAllIgnoreIdsUser(userId: string, key): Promise<string[]> {
     try {
       const [queryFilter] = new FilterBuilder<Action>().setFilterItem('userId', '$eq', userId).buildQuery();
       const userIds: string[] = await this.actionRepo.distinct(key, {

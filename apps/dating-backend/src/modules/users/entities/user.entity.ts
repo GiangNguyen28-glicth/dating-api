@@ -5,7 +5,6 @@ import * as moment from 'moment-timezone';
 import {
   Gender,
   IEntity,
-  LimitType,
   LookingFor,
   MerchandisingType,
   MongoID,
@@ -15,9 +14,17 @@ import {
   VerifyUserStatus,
 } from '@dating/common';
 
-import { MerchandisingItem } from '@modules/offering/entities';
 import { Relationship } from '@modules/relationship/entities';
 import { Tag } from '@modules/tag/entities';
+
+@Schema({ _id: false })
+export class ImageClassification {
+  @Prop()
+  neutral: number;
+
+  @Prop()
+  drawing: number;
+}
 
 @Schema({ _id: false })
 export class Image {

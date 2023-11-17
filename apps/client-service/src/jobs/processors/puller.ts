@@ -2,30 +2,17 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as moment from 'moment-timezone';
 
-import {
-  BillingProcess,
-  BillingStatus,
-  DATABASE_TYPE,
-  DEFAULT_LIKES_REMAINING,
-  MerchandisingType,
-  PROVIDER_REPO,
-  RequestDatingStatus,
-  TIME_ZONE,
-} from '@common/consts';
+import { BillingStatus, DATABASE_TYPE, PROVIDER_REPO, RequestDatingStatus, TIME_ZONE } from '@common/consts';
 import { IOptionFilterGetAll } from '@common/interfaces';
 import { FilterBuilder } from '@dating/utils';
 
-import { BillingService } from '@modules/billing/billing.service';
-import { UserService } from '@modules/users/users.service';
-import { ScheduleService } from '@modules/schedule/schedule.service';
-
 import { Billing } from '@modules/billing/entities';
-import { User } from '@modules/users/entities';
 import { Schedule } from '@modules/schedule/entities';
+import { User } from '@modules/users/entities';
 
-import { Job, JobModelType } from '../entities';
-import { Types } from 'mongoose';
 import { BillingRepo, ScheduleRepo, UserRepo } from '@dating/repositories';
+import { Types } from 'mongoose';
+import { Job, JobModelType } from '../entities';
 
 @Injectable()
 export class PullerService {
@@ -38,7 +25,7 @@ export class PullerService {
     @Inject(PROVIDER_REPO.USER + DATABASE_TYPE.MONGO)
     private userRepo: UserRepo,
 
-    @Inject(PROVIDER_REPO.USER + DATABASE_TYPE.MONGO)
+    @Inject(PROVIDER_REPO.BILLING + DATABASE_TYPE.MONGO)
     private billingRepo: BillingRepo,
   ) {}
 
@@ -46,7 +33,6 @@ export class PullerService {
     const [queryFilter] = new FilterBuilder<Billing>()
       .setFilterItem('expiredDate', '$lte', new Date())
       .setFilterItem('status', '$eq', BillingStatus.SUCCESS)
-      .setFilterItem('process', '$eq', BillingProcess.INPROGRESS)
       .buildQuery();
     const data = await this.billingRepo.findAll({
       queryFilter,
@@ -56,29 +42,42 @@ export class PullerService {
 
   async getAllBillingInprogress(): Promise<Billing[]> {
     const [queryFilter] = new FilterBuilder<Billing>()
+      .setFilterItem('createdBy', '$eq', '6543ab06a9d84184e1987f6a')
       .setFilterItem('expiredDate', '$gte', new Date())
       .setFilterItem('status', '$eq', BillingStatus.SUCCESS)
-      .setFilterItem('process', '$eq', BillingProcess.INPROGRESS)
       .setFilterItem('isRetail', '$eq', false, true)
       .buildQuery();
-    const data = await this.billingRepo.findAll({
+    return await this.billingRepo.findAll({
       queryFilter,
     });
-    return data;
+  }
+
+  async getAllCreatedByBilling(): Promise<string[]> {
+    const [queryFilter] = new FilterBuilder<Billing>()
+      .setFilterItem('expiredDate', '$gte', new Date())
+      .setFilterItem('status', '$eq', BillingStatus.SUCCESS)
+      .setFilterItem('isRetail', '$eq', false, true)
+      .buildQuery();
+    return await this.billingRepo.distinct('createdBy', {
+      queryFilter,
+    });
   }
 
   async getAllUser(option?: IOptionFilterGetAll<User>): Promise<User[]> {
     return await this.userRepo.findAll(option);
   }
 
-  async getAllUserToUpdateFT(ignoreIds: string[]): Promise<User[]> {
-    const [queryFilter, sortOption] = new FilterBuilder<User>()
+  async getAllUserToUpdateFT(ignoreIds: string[] = [], inIds: string[] = []): Promise<User[]> {
+    const queryBuilder = new FilterBuilder<User>()
       .setFilterItem('isBlocked', '$eq', false, true)
-      .setFilterItem('isDeleted', '$eq', false, true)
-      .setFilterItem('_id', '$nin', ignoreIds)
-      // .setFilterItem('lastActiveDate','')
-      .setSortItem('createdAt', 'asc')
-      .buildQuery();
+      .setFilterItem('isDeleted', '$eq', false, true);
+    if (ignoreIds.length) {
+      queryBuilder.setFilterItem('_id', '$nin', ignoreIds);
+    }
+    if (inIds.length) {
+      queryBuilder.setFilterItem('_id', '$in', ignoreIds);
+    }
+    const [queryFilter, sortOption] = queryBuilder.setSortItem('createdAt', 'asc').buildQuery();
     return await this.userRepo.findAll({ queryFilter, sortOption });
   }
 

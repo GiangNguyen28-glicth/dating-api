@@ -1,6 +1,6 @@
 import { InjectModel } from '@nestjs/mongoose';
 
-import { BillingModelType, CrudRepo, DATABASE_TYPE, PROVIDER_REPO } from '@dating/common';
+import { BillingModelType, CrudRepo, DATABASE_TYPE, IBulkWrite, PROVIDER_REPO } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
 
 import { GroupDate } from '@modules/admin/dto';
@@ -8,6 +8,7 @@ import { Billing } from '@modules/billing/entities';
 export interface BillingRepo extends CrudRepo<Billing> {
   statisticRevenue(filter, format: GroupDate): Promise<any[]>;
   topUsersByRevenue(filter): Promise<any[]>;
+  bulkWrite(bulkWrite: IBulkWrite[]): Promise<void>;
 }
 export class BillingMongoRepo extends MongoRepo<Billing> {
   constructor(
@@ -15,6 +16,10 @@ export class BillingMongoRepo extends MongoRepo<Billing> {
     protected billingModel: BillingModelType,
   ) {
     super(billingModel);
+  }
+
+  async bulkWrite(bulkWrite: IBulkWrite[]): Promise<void> {
+    await this.billingModel.bulkWrite(bulkWrite as any);
   }
 
   async statisticRevenue(filter, format: GroupDate): Promise<any[]> {
