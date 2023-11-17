@@ -2,19 +2,32 @@ import { Body, Controller, Get, Param, Post, Query, UploadedFile, UseGuards, Use
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import axios from 'axios';
+import * as tf from '@tensorflow/tfjs-node';
+import * as nsfw from 'nsfwjs';
+const sharp = require('sharp');
 
+import { CurrentUser } from '@common/decorators';
 import { AtGuard } from '@common/guards';
 import { IResponse } from '@common/interfaces';
-import { CurrentUser } from '@common/decorators';
 
-import { UserHelper } from './helper/user.helper';
-import { User } from './entities';
 import { UpdateImageVerifiedDTO } from './dto';
+import { User } from './entities';
+import { UserHelper } from './helper/user.helper';
 
 @ApiTags('Helper')
 @Controller()
 export class HelperController {
-  constructor(private userHelper: UserHelper) {}
+  private model: nsfw.NSFWJS;
+  constructor(private userHelper: UserHelper) {
+    this.loadModel();
+  }
+
+  private async loadModel() {
+    this.model = await nsfw.load('https://res.cloudinary.com/finder-next/raw/upload/v1700214306/models/model/', {
+      size: 299,
+    });
+  }
+
   @Get('/location/province')
   async getProvince() {
     return (await axios.get('https://provinces.open-api.vn/api/')).data;
@@ -78,12 +91,36 @@ export class HelperController {
   @Post('/images/upload')
   @UseInterceptors(FileInterceptor('file'))
   async imageUpload(@UploadedFile() file): Promise<IResponse> {
-    const url = await this.userHelper.uploadImage(file);
+    if (!file) return { success: false, message: 'File not found' };
+
+    if (file.mimetype !== 'image/png' && file.mimetype !== 'image/jpeg')
+      return { success: false, message: 'File type not support' };
+
+    const promises = [this.userHelper.uploadImage(file)];
+
+    let buffer = file.buffer;
+
+    if (file.mimetype === 'image/png') {
+      buffer = await sharp(file.buffer).jpeg().toBuffer();
+    }
+
+    const tfImage = tf.node.decodeImage(buffer);
+
+    promises.push(this.model.classify(tfImage as tf.Tensor3D));
+
+    const [url, results] = await Promise.all(promises);
+
+    const predictions = results.reduce((acc, cur) => {
+      acc[cur.className] = cur.probability;
+      return acc;
+    }, {});
+
     return {
       success: true,
       message: 'Ok',
       data: {
         url,
+        predictions,
       },
     };
   }
