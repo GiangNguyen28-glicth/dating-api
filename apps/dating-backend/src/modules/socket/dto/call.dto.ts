@@ -23,6 +23,15 @@ export type OfferMessageResponse = {
   };
 };
 
+export type RejectMessage = {
+  status: boolean;
+  roomId: string;
+};
+
+export type RejectMessageResponse = {
+  status: boolean;
+};
+
 export type AnswerMessage = {
   roomId: string;
   offer: any;

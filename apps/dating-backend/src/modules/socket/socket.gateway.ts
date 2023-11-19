@@ -27,6 +27,8 @@ import {
   CheckRoomMessageResponse,
   OfferMessage,
   OfferMessageResponse,
+  RejectMessage,
+  RejectMessageResponse,
 } from './dto/call.dto';
 import { SocketService } from './socket.service';
 
@@ -94,7 +96,8 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       await this.redisService.srem(socketKey, socket.id);
 
       if (this.roomMapping.has(socket.id)) {
-        this.hangup(socket.id);
+        const roomId = this.roomMapping.get(socket.id);
+        this.hangup(roomId);
       }
 
       const socketIds: string[] = await this.redisService.smembers(userId);
@@ -230,6 +233,14 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     const receiverIds = memberIds.filter(id => id !== user._id.toString());
     const socketIds = (await Promise.all(receiverIds.map(id => this.socketService.getSocketIdsByUser(id)))).flat();
 
+    const withWithoutSocketCurrentId = (socketId: string[]) => {
+      if (socketId.includes(client.id)) {
+        return socketId;
+      }
+      return [...socketId, client.id];
+    };
+    const socketCurrentIds = withWithoutSocketCurrentId(await this.socketService.getSocketIdsByUser(user._id));
+
     const room = this.rooms.get(roomId);
     room.answer = offer;
     room.startTime = new Date().toISOString();
@@ -242,16 +253,31 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     const payload = {
       offer,
     } satisfies AnswerMessageResponse;
+
     this.sendEventToClient(socketIds, 'answer', payload);
+    this.sendEventToClient(socketCurrentIds, 'reject', { status: false });
+  }
+
+  @SubscribeMessage('reject')
+  async handleReject(@MessageBody() data: RejectMessage, @CurrentUserWS() user: User) {
+    const { roomId } = data;
+    const socketIds = await this.socketService.getSocketIdsByUser(user._id);
+
+    const payload = {
+      status: true,
+    } satisfies RejectMessageResponse;
+
+    this.hangup(roomId);
+    this.sendEventToClient(socketIds, 'reject', payload);
   }
 
   @SubscribeMessage('hangup')
   handleHangup(@ConnectedSocket() client: Socket): void {
-    this.hangup(client.id);
+    const roomId = this.roomMapping.get(client.id);
+    this.hangup(roomId);
   }
 
-  async hangup(socketId: string) {
-    const roomId = this.roomMapping.get(socketId);
+  async hangup(roomId: string) {
     const room = this.rooms.get(roomId);
 
     if (!room) return;
@@ -294,13 +320,10 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 
     if (room) {
       const socketIds = Object.keys(room?.socketsIds);
-      this.sendEventToClient(
-        socketIds.filter(id => id !== socketId),
-        'hangup',
-        null,
-      );
-
-      this.roomMapping.delete(socketId);
+      this.sendEventToClient(socketIds, 'hangup', null);
+      socketIds.forEach(socketId => {
+        this.roomMapping.delete(socketId);
+      });
       this.rooms.delete(roomId);
     }
   }
