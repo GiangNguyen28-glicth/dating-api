@@ -1,9 +1,21 @@
-import { Body, Controller, Get, Param, Post, Query, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  OnModuleInit,
+  Param,
+  Post,
+  Query,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import axios from 'axios';
 import * as tf from '@tensorflow/tfjs-node';
 import * as nsfw from 'nsfwjs';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const sharp = require('sharp');
 
 import { CurrentUser } from '@common/decorators';
@@ -16,13 +28,11 @@ import { UserHelper } from './helper/user.helper';
 
 @ApiTags('Helper')
 @Controller()
-export class HelperController {
+export class HelperController implements OnModuleInit {
   private model: nsfw.NSFWJS;
-  constructor(private userHelper: UserHelper) {
-    this.loadModel();
-  }
+  constructor(private userHelper: UserHelper) {}
 
-  private async loadModel() {
+  async onModuleInit() {
     this.model = await nsfw.load('https://res.cloudinary.com/finder-next/raw/upload/v1700214306/models/model/', {
       size: 299,
     });
