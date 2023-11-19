@@ -1,26 +1,42 @@
-import { BadRequestException, Inject, Injectable, OnModuleInit, forwardRef } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  OnModuleInit,
+  UnsupportedMediaTypeException,
+  forwardRef,
+} from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
 import axios from 'axios';
 import { v2 } from 'cloudinary';
 import * as _ from 'lodash';
 import { Types } from 'mongoose';
 import toStream = require('buffer-to-stream');
+import * as tf from '@tensorflow/tfjs-node';
+import * as nsfw from 'nsfwjs';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const sharp = require('sharp');
+import fetch from 'node-fetch';
+import { getPlaiceholder } from 'plaiceholder';
 
 import { RabbitService } from '@app/shared';
-import { DATABASE_TYPE, LookingFor, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
+import { DATABASE_TYPE, LookingFor, OK, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
 import { IResponse } from '@common/interfaces';
 import { UserRepo } from '@dating/repositories';
 import { FilterBuilder } from '@dating/utils';
 
 import { ActionService } from '@modules/action/action.service';
 
-import { UpdateImageVerifiedDTO, UpdateUserProfileDto, calField } from '../dto';
+import { ImageProcessOptionsDTO, UpdateImageVerifiedDTO, UpdateUserProfileDto, calField } from '../dto';
 import { Image, SpotifyInfo, User, UserAddress } from '../entities';
 import { InsPayload, SpotifyPayload } from '../interfaces';
 
 @Injectable()
 export class UserHelper implements OnModuleInit {
   private channel: ConfirmChannel;
+  private model: nsfw.NSFWJS;
+
   constructor(
     @Inject(PROVIDER_REPO.USER + DATABASE_TYPE.MONGO)
     private userRepo: UserRepo,
@@ -43,6 +59,9 @@ export class UserHelper implements OnModuleInit {
       },
       RMQ_CHANNEL.USER_CHANNEL,
     );
+    this.model = await nsfw.load('https://res.cloudinary.com/finder-next/raw/upload/v1700214306/models/model/', {
+      size: 299,
+    });
   }
   async getRawLocation(lat: number, long: number) {
     if (!lat || !long) {
@@ -193,7 +212,7 @@ export class UserHelper implements OnModuleInit {
       });
       return {
         success: true,
-        message: 'Ok',
+        message: OK,
       };
     } catch (error) {
       throw error;
@@ -249,7 +268,7 @@ export class UserHelper implements OnModuleInit {
       await this.userRepo.save(user);
       return {
         success: true,
-        message: 'Ok',
+        message: OK,
       };
     } catch (error) {
       throw error;
@@ -284,5 +303,61 @@ export class UserHelper implements OnModuleInit {
       return img;
     });
     await this.userRepo.save(user);
+  }
+
+  async encodeImageToBlurhash(imageUrl: string): Promise<string> {
+    const buffer = await fetch(imageUrl).then(async res => Buffer.from(await res.arrayBuffer()));
+    const { base64 } = await getPlaiceholder(buffer, { size: 4 });
+    return base64;
+  }
+
+  async imageUpload(file, data: ImageProcessOptionsDTO): Promise<IResponse> {
+    try {
+      if (!file) throw new NotFoundException('File not found');
+
+      if (file.mimetype !== 'image/png' && file.mimetype !== 'image/jpeg')
+        throw new UnsupportedMediaTypeException('File type not support');
+
+      const promises = [this.uploadImage(file)];
+
+      let buffer = file.buffer;
+
+      if (file.mimetype === 'image/png') {
+        buffer = await sharp(file.buffer).jpeg().toBuffer();
+      }
+
+      if (data?.nsfw) {
+        const tfImage = tf.node.decodeImage(buffer);
+
+        promises.push(this.model.classify(tfImage as tf.Tensor3D));
+      }
+
+      const [url, results] = await Promise.all(promises);
+
+      let classification = null;
+      if (results) {
+        classification = results.reduce((acc, cur) => {
+          acc[cur.className.toLowerCase()] = cur.probability;
+          return acc;
+        }, {});
+      }
+
+      let blur = null;
+      if (data?.blur) {
+        blur = await this.encodeImageToBlurhash(url);
+      }
+
+      return {
+        success: true,
+        message: OK,
+        data: {
+          url,
+          classification,
+          blur,
+        },
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 }

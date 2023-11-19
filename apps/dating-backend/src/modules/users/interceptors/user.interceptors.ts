@@ -1,10 +1,9 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { get, isNil, set } from 'lodash';
-import { map } from 'rxjs/operators';
-import { User } from '../entities';
-import { UpdateUserProfileDto } from '../dto';
 import { docToObject } from '@dating/utils';
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
+import { get, isNil } from 'lodash';
+import { Observable } from 'rxjs';
+import { UpdateUserProfileDto } from '../dto';
+import { User } from '../entities';
 
 @Injectable()
 export class UpdateUserProfileInterceptor implements NestInterceptor {

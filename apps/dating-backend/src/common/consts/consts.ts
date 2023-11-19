@@ -69,3 +69,4 @@ export const EXCLUDE_FIELDS = {
 
 export const ADMIN = 'ADMIN';
 export const TIME_ZONE = 'Asia/Ho_Chi_Minh';
+export const OK = 'OK';

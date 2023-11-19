@@ -2,13 +2,7 @@ import { AtGuard, CurrentUser, IResponse, IResult, PaginationDTO, Role, RolesGua
 import { Body, Controller, Delete, Get, Patch, Post, Query, UseGuards, UseInterceptors, Param } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiTags, ApiParam } from '@nestjs/swagger';
 import { throwIfNotExists } from '@dating/utils';
-import {
-  UpdateUserLocationDTO,
-  UpdateUserProfileDto,
-  UpdateUserSettingDTO,
-  UpdateUserTagDTO,
-  VerifyUserDTO,
-} from './dto';
+import { UpdateUserLocationDTO, UpdateUserProfileDto, UpdateUserSettingDTO, UpdateUserTagDTO } from './dto';
 import { User } from './entities';
 import { UserService } from './users.service';
 import { UpdateUserProfileInterceptor } from './interceptors';
@@ -101,13 +95,6 @@ export class UsersController {
   @UseGuards(AtGuard)
   async updateTag(@CurrentUser() user: User, @Body() updateUserTagDto: UpdateUserTagDTO): Promise<IResponse> {
     return await this.userService.updateTag(user, updateUserTagDto);
-  }
-
-  @Patch('/verify')
-  @ApiBearerAuth()
-  @UseGuards(AtGuard)
-  async verify(@CurrentUser() user: User, @Body() verify: VerifyUserDTO): Promise<IResponse> {
-    return await this.userService.verify(verify, user);
   }
 
   @Post('/boosts')

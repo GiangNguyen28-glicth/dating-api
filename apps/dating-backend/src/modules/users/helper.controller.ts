@@ -1,42 +1,23 @@
-import {
-  Body,
-  Controller,
-  Get,
-  OnModuleInit,
-  Param,
-  Post,
-  Query,
-  UploadedFile,
-  UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import axios from 'axios';
-import * as tf from '@tensorflow/tfjs-node';
 import * as nsfw from 'nsfwjs';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const sharp = require('sharp');
 
 import { CurrentUser } from '@common/decorators';
 import { AtGuard } from '@common/guards';
 import { IResponse } from '@common/interfaces';
 
-import { UpdateImageVerifiedDTO } from './dto';
+import { TokenDTO } from '@common/dto';
+import { ImageProcessOptionsDTO, UpdateImageVerifiedDTO } from './dto';
 import { User } from './entities';
 import { UserHelper } from './helper/user.helper';
 
 @ApiTags('Helper')
 @Controller()
-export class HelperController implements OnModuleInit {
+export class HelperController {
   private model: nsfw.NSFWJS;
   constructor(private userHelper: UserHelper) {}
-
-  async onModuleInit() {
-    this.model = await nsfw.load('https://res.cloudinary.com/finder-next/raw/upload/v1700214306/models/model/', {
-      size: 299,
-    });
-  }
 
   @Get('/location/province')
   async getProvince() {
@@ -59,7 +40,7 @@ export class HelperController implements OnModuleInit {
   @Get('spotify/info')
   @UseGuards(AtGuard)
   @ApiQuery({ name: 'token', type: 'string' })
-  async getSpotifyInfo(@Query() data, @CurrentUser() user: User): Promise<IResponse> {
+  async getSpotifyInfo(@Query() data: TokenDTO, @CurrentUser() user: User): Promise<IResponse> {
     const { token } = data;
     return await this.userHelper.socialSpotifyGetTopArtists(token, user);
   }
@@ -67,7 +48,7 @@ export class HelperController implements OnModuleInit {
   @Get('ins/info')
   @UseGuards(AtGuard)
   @ApiQuery({ name: 'token', type: 'string' })
-  async getInsInfo(@Query() data, @CurrentUser() user: User): Promise<IResponse> {
+  async getInsInfo(@Query() data: TokenDTO, @CurrentUser() user: User): Promise<IResponse> {
     const { token } = data;
     return await this.userHelper.socialInsGetInfo(token, user);
   }
@@ -100,38 +81,7 @@ export class HelperController implements OnModuleInit {
 
   @Post('/images/upload')
   @UseInterceptors(FileInterceptor('file'))
-  async imageUpload(@UploadedFile() file): Promise<IResponse> {
-    if (!file) return { success: false, message: 'File not found' };
-
-    if (file.mimetype !== 'image/png' && file.mimetype !== 'image/jpeg')
-      return { success: false, message: 'File type not support' };
-
-    const promises = [this.userHelper.uploadImage(file)];
-
-    let buffer = file.buffer;
-
-    if (file.mimetype === 'image/png') {
-      buffer = await sharp(file.buffer).jpeg().toBuffer();
-    }
-
-    const tfImage = tf.node.decodeImage(buffer);
-
-    promises.push(this.model.classify(tfImage as tf.Tensor3D));
-
-    const [url, results] = await Promise.all(promises);
-
-    const predictions = results.reduce((acc, cur) => {
-      acc[cur.className] = cur.probability;
-      return acc;
-    }, {});
-
-    return {
-      success: true,
-      message: 'Ok',
-      data: {
-        url,
-        predictions,
-      },
-    };
+  async imageUpload(@UploadedFile() file, @Body() data: ImageProcessOptionsDTO): Promise<IResponse> {
+    return await this.userHelper.imageUpload(file, data);
   }
 }

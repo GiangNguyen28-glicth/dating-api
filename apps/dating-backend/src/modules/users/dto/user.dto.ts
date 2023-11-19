@@ -46,6 +46,14 @@ export class RecommendationDTO {
   unLikedUserIds: string[];
 }
 
+export class ImageProcessOptionsDTO {
+  @ApiPropertyOptional()
+  blur?: boolean;
+
+  @ApiPropertyOptional()
+  nsfw?: boolean;
+}
+
 export const calField: Array<keyof User> = [
   'age',
   'bio',

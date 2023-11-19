@@ -1,14 +1,24 @@
-import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
+import { CACHE_MANAGER, Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import Redis from 'ioredis';
 import { Cache } from 'cache-manager';
 
 import { IRedisSet } from './redis.interfaces';
 
 @Injectable()
-export class RedisService {
+export class RedisService implements OnModuleInit {
   private redisClient: Redis;
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
     this.redisClient = (this.cacheManager as any).store.getClient() as Redis;
+  }
+
+  onModuleInit() {
+    this.redisClient.on('error', err => {
+      console.error(`Redis error: ${err}`);
+    });
+
+    this.redisClient.on('close', () => {
+      console.log('Redis connection closed');
+    });
   }
 
   getRedisClient() {

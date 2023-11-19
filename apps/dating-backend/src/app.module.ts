@@ -40,7 +40,6 @@ import {
       useClass: ThrottlerConfigService,
     }),
     RabbitModule,
-    RedisModule,
     UsersModule,
     AuthModule,
     TagModule,

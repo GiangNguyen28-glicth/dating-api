@@ -5,16 +5,7 @@ import { Gender, LookingFor, RelationshipModeType, TagType, VerifyUserStatus } f
 import { Relationship } from '@modules/relationship/entities';
 import { Tag } from '@modules/tag/entities';
 
-import {
-  DiscoverySetting,
-  HiddenProfile,
-  HomeTown,
-  Image,
-  ImageClassification,
-  User,
-  UserSetting,
-  Verify,
-} from '../entities';
+import { DiscoverySetting, HiddenProfile, HomeTown, Image, ImageClassification, User, UserSetting } from '../entities';
 
 export class ImageClassificationDTO implements Partial<ImageClassification> {
   @ApiProperty()
@@ -203,15 +194,4 @@ export class UpdateUserTagDTO {
   @ApiProperty({ type: 'enum', enum: TagType })
   @IsNotEmpty()
   tagType: TagType;
-}
-
-export class VerifyUserDTO implements Partial<Verify> {
-  @ApiPropertyOptional()
-  @IsBoolean()
-  success?: boolean;
-
-  @ApiPropertyOptional({ type: 'enum', enum: VerifyUserStatus })
-  status?: VerifyUserStatus;
-
-  receiveDate?: Date;
 }

@@ -5,11 +5,11 @@ import { isNil } from 'lodash';
 import { RabbitService } from '@app/shared';
 import { DATABASE_TYPE, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
 import { IUserImageBuilder } from '@common/message';
+import { UserRepo } from '@dating/repositories';
 
 import { ImageDTO } from '@modules/users/dto';
 import { SpotifyInfo, User } from '@modules/users/entities';
 import { ImageService } from '../../images/image.service';
-import { UserRepo } from '@dating/repositories';
 
 @Injectable()
 export class UserConsumer implements OnModuleInit, OnModuleDestroy {

@@ -8,7 +8,6 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
@@ -20,6 +19,7 @@ import { MessageService } from '@modules/message/message.service';
 import { User } from '@modules/users/entities';
 import { UserService } from '@modules/users/users.service';
 
+import { v4 as uuidv4 } from 'uuid';
 import {
   AnswerMessage,
   AnswerMessageResponse,
@@ -29,7 +29,6 @@ import {
   OfferMessageResponse,
 } from './dto/call.dto';
 import { SocketService } from './socket.service';
-import { v4 as uuidv4 } from 'uuid';
 
 @WebSocketGateway({
   transports: ['polling'],
@@ -125,12 +124,13 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   @SubscribeMessage('sendMessage')
   @UseGuards(WsGuard)
   async sendMessage(@MessageBody() data: CreateMessageDto, @CurrentUserWS() user: User): Promise<void> {
+    console.log(JSON.stringify(data));
     console.log('========================sendMessage========================');
     try {
       const message = await this.messageService.create(data, user);
       const [socketIdsSender, socketIdsReceiver] = await Promise.all([
-        this.socketService.getSocketIdsByUser(message.sender as string),
-        this.socketService.getSocketIdsByUser(message.receiver as string),
+        this.socketService.getSocketIdsByUser(message.sender.toString()),
+        this.socketService.getSocketIdsByUser(message.receiver.toString()),
       ]);
       // This event emit to all tab of user sent the message in order to those tabs update new message
       this.sendEventToClient(socketIdsSender, 'sentMessage', message);

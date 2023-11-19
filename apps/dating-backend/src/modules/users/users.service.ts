@@ -1,30 +1,28 @@
 import { BadRequestException, Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
+import axios from 'axios';
 import { get, isNil } from 'lodash';
 import { PipelineStage } from 'mongoose';
-import axios from 'axios';
 
 import { RabbitService } from '@app/shared';
 import {
   DATABASE_TYPE,
-  IOptionFilterGetAll,
   IResponse,
   IResult,
   PROVIDER_REPO,
   PaginationDTO,
   QUEUE_NAME,
   RMQ_CHANNEL,
-  VerifyUserStatus,
 } from '@dating/common';
 import { UserRepo } from '@dating/repositories';
 import { FilterBuilder, downloadImage, formatResult, mappingData, throwIfNotExists } from '@dating/utils';
 import { TagService } from '@modules/tag/tag.service';
 
-import { CreateUserDTO, FilterGetAllUserDTO, FilterGetOneUserDTO, UpdateUserTagDTO, VerifyUserDTO } from './dto';
+import { FilterGetStatistic, GroupDate } from '@modules/admin/dto';
+import { CreateUserDTO, FilterGetAllUserDTO, FilterGetOneUserDTO, UpdateUserTagDTO } from './dto';
 import { User } from './entities';
 import { UserHelper } from './helper';
 import { FinalCondRecommendation } from './interfaces';
-import { FilterGetStatistic, GroupDate } from '@modules/admin/dto';
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -285,23 +283,6 @@ export class UserService implements OnModuleInit {
       return {
         success: true,
         message: 'Thêm mới tag thành công',
-      };
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async verify(verifyDto: VerifyUserDTO, user: User): Promise<IResponse> {
-    try {
-      const { status, success } = verifyDto;
-      if (status === VerifyUserStatus.ACCEPT && success) {
-        verifyDto['isVerified'] = true;
-      }
-      verifyDto.receiveDate = new Date();
-      await this.userRepo.findOneAndUpdate(user._id, { verify: verifyDto });
-      return {
-        success: true,
-        message: 'Ok',
       };
     } catch (error) {
       throw error;

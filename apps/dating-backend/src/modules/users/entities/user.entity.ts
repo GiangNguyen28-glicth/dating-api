@@ -11,7 +11,6 @@ import {
   RefreshIntervalUnit,
   RegisterType,
   RelationshipModeType,
-  VerifyUserStatus,
 } from '@dating/common';
 
 import { Relationship } from '@modules/relationship/entities';
@@ -180,24 +179,6 @@ export class GeoLocation {
 }
 
 @Schema({ _id: false })
-export class Verify {
-  @Prop({ default: false })
-  isVerified?: boolean;
-
-  @Prop({ type: String, enum: Object.values(VerifyUserStatus) })
-  status?: VerifyUserStatus;
-
-  @Prop()
-  sendAt?: Date;
-
-  @Prop()
-  receiveDate?: Date;
-
-  @Prop()
-  success?: boolean;
-}
-
-@Schema({ _id: false })
 export class BoostsSession {
   @Prop()
   amount?: number;
@@ -310,14 +291,14 @@ export class User implements IEntity {
   @Prop({ type: Boolean, default: true })
   onlineNow: boolean;
 
+  @Prop({ type: Boolean, default: true })
+  safeMode: boolean;
+
   @Prop({ type: Date, default: new Date() })
   lastActiveDate: Date;
 
   @Prop()
   stripeCustomerId: string;
-
-  @Prop({ type: Verify, default: new Verify() })
-  verify: Verify;
 
   @Prop({ default: false })
   isBlocked: boolean;
