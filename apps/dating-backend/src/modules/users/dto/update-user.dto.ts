@@ -5,7 +5,33 @@ import { Gender, LookingFor, RelationshipModeType, TagType, VerifyUserStatus } f
 import { Relationship } from '@modules/relationship/entities';
 import { Tag } from '@modules/tag/entities';
 
-import { DiscoverySetting, HiddenProfile, HomeTown, Image, User, UserSetting, Verify } from '../entities';
+import {
+  DiscoverySetting,
+  HiddenProfile,
+  HomeTown,
+  Image,
+  ImageClassification,
+  User,
+  UserSetting,
+  Verify,
+} from '../entities';
+
+export class ImageClassificationDTO implements Partial<ImageClassification> {
+  @ApiProperty()
+  sexy?: number;
+
+  @ApiProperty()
+  porn?: number;
+
+  @ApiProperty()
+  hentai?: number;
+
+  @ApiProperty()
+  neutral?: number;
+
+  @ApiProperty()
+  drawing?: number;
+}
 export class ImageDTO implements Partial<Image> {
   @ApiProperty()
   url: string;
@@ -15,6 +41,9 @@ export class ImageDTO implements Partial<Image> {
 
   @ApiPropertyOptional()
   isVerified?: boolean;
+
+  @ApiPropertyOptional({ type: ImageClassificationDTO })
+  classification?: ImageClassification;
 
   insId?: string;
 }

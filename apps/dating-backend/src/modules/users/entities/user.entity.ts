@@ -24,6 +24,15 @@ export class ImageClassification {
 
   @Prop()
   drawing: number;
+
+  @Prop()
+  hentai: number;
+
+  @Prop()
+  porn: number;
+
+  @Prop()
+  sexy: number;
 }
 
 @Schema({ _id: false })
@@ -36,6 +45,9 @@ export class Image {
 
   @Prop()
   isVerifiedSuccess?: boolean;
+
+  @Prop({ type: ImageClassification })
+  classification?: ImageClassification;
 
   @Prop()
   insId?: string;

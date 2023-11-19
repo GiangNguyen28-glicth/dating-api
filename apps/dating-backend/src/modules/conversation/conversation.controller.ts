@@ -1,12 +1,13 @@
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+
 import { AtGuard, CurrentUser, IResult } from '@dating/common';
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
 
 import { User } from '@modules/users/entities';
 
 import { ConversationService } from './conversation.service';
+import { FilterGetAllConversationDTO } from './dto';
 import { Conversation } from './entities';
-import { CreateConversationDto, FilterGetAllConversationDTO } from './dto';
 
 @ApiTags(Conversation.name)
 @ApiBearerAuth()

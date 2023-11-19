@@ -1,6 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { isNil } from 'lodash';
 
-import { BillingStatus, DATABASE_TYPE, PROVIDER_REPO } from '@common/consts';
+import { BillingStatus, DATABASE_TYPE, MongoQuery, PROVIDER_REPO } from '@common/consts';
 import { CurrentUser } from '@common/decorators';
 import { IResponse, IResult } from '@common/interfaces';
 import { BillingRepo } from '@dating/repositories';
@@ -30,8 +31,11 @@ export class BillingService {
     try {
       const queryBuilder = new FilterBuilder<Billing>()
         .setFilterItem('createdBy', '$eq', user?._id)
-        .setFilterItem('expiredDate', '$lte', filter?.expiredDate)
         .setFilterItem('status', '$eq', filter?.status);
+      if (!isNil(filter?.expired)) {
+        const query: MongoQuery = filter?.expired != 0 ? '$gte' : '$lte';
+        queryBuilder.setFilterItem('expiredDate', query, new Date());
+      }
       if (filter?.fromDate && filter?.toDate) {
         queryBuilder.setFilterItemWithObject('createdAt', { $gte: filter?.fromDate, $lte: filter?.toDate });
       }

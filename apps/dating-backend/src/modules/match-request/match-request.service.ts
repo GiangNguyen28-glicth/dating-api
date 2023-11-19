@@ -9,19 +9,17 @@ import {
   NotificationType,
   PROVIDER_REPO,
 } from '@common/consts';
-import { PaginationDTO } from '@common/dto';
 import { IResponse, IResult } from '@common/interfaces';
 import { MatchRequestRepo } from '@dating/repositories';
-import { FilterBuilder, formatResult } from '@dating/utils';
+import { FilterBuilder, docToObject, formatResult } from '@dating/utils';
 
 import { ConversationService } from '@modules/conversation/conversation.service';
 import { NotificationService } from '@modules/notification/notification.service';
 import { SocketGateway } from '@modules/socket/socket.gateway';
 
-import { User } from '@modules/users/entities';
 import { Conversation } from '@modules/conversation/entities';
+import { User } from '@modules/users/entities';
 
-import { ACTION } from '@modules/action/dto';
 import { CreateConversationDto } from '@modules/conversation/dto';
 import { CreateNotificationDto } from '@modules/notification/dto';
 
@@ -52,27 +50,45 @@ export class MatchRequestService {
 
   async findAll(filter: FilterGelAllMqDTO, user: User, isPopulate = false): Promise<IResult<MatchRequest>> {
     try {
-      const pagination: PaginationDTO = {
-        size: filter?.size,
-        page: filter?.page,
-      };
-      const basicFieldsPopulate: Array<keyof User> = ['_id', 'name', 'images', 'tags', 'bio', 'blurAvatar'];
+      const selectFieldsPopulate: Array<keyof User> = ['_id', 'name', 'images', 'tags', 'bio', 'blurAvatar'];
       const populate: PopulateOptions[] = [];
       if (isPopulate) {
         populate.push({
           path: 'sender',
-          select: basicFieldsPopulate.join(' '),
+          select: selectFieldsPopulate.join(' '),
         });
       }
-      const [queryFilter] = new FilterBuilder<MatchRequest>()
+      const queryBuilder = new FilterBuilder<MatchRequest>()
         .setFilterItem('receiver', '$eq', user._id.toString())
-        .setFilterItem('status', '$eq', MatchRqStatus.REQUESTED)
+        .setFilterItem('status', '$eq', MatchRqStatus.REQUESTED);
+      const [nonBoostsFilter, sortNonBoostsRq] = docToObject(queryBuilder.buildQuery());
+      const [boostsFilter, sortBoostRq] = queryBuilder
+        .setFilterItem('isBoosts', '$eq', true)
+        .setFilterItem('expiredAt', '$gte', new Date())
+        .setSortItem('expiredAt', 'asc')
         .buildQuery();
-      const [results, totalCount] = await Promise.all([
-        this.matchRequestRepo.findAll({ queryFilter, populate, pagination }),
-        this.matchRequestRepo.count(queryFilter),
+      const [totalBoostsRq, totalCount] = await Promise.all([
+        this.matchRequestRepo.findAll({
+          queryFilter: boostsFilter,
+          pagination: { size: filter?.size, page: filter?.page },
+          sortOption: sortBoostRq,
+        }),
+        this.matchRequestRepo.count(nonBoostsFilter),
       ]);
-      return formatResult(results, totalCount, pagination);
+      if (totalBoostsRq.length >= filter?.size || totalBoostsRq.length >= totalCount) {
+        return formatResult(totalBoostsRq, totalCount, { size: filter?.size, page: filter?.page });
+      }
+      const totalNonBoostsRq = await this.matchRequestRepo.findAll({
+        queryFilter: nonBoostsFilter,
+        populate,
+        pagination: { size: filter?.size - totalBoostsRq.length, page: filter?.page },
+        sortOption: sortNonBoostsRq,
+      });
+
+      return formatResult(totalBoostsRq.concat(totalNonBoostsRq), totalCount, {
+        size: filter?.size,
+        page: filter?.page,
+      });
     } catch (error) {
       throw error;
     }
