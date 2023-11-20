@@ -7,18 +7,18 @@ import {
   UnsupportedMediaTypeException,
   forwardRef,
 } from '@nestjs/common';
+import * as tf from '@tensorflow/tfjs-node';
 import { ConfirmChannel } from 'amqplib';
 import axios from 'axios';
 import { v2 } from 'cloudinary';
 import * as _ from 'lodash';
 import { Types } from 'mongoose';
-import toStream = require('buffer-to-stream');
-import * as tf from '@tensorflow/tfjs-node';
+import fetch from 'node-fetch';
 import * as nsfw from 'nsfwjs';
+import { getPlaiceholder } from 'plaiceholder';
+import toStream = require('buffer-to-stream');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sharp = require('sharp');
-import fetch from 'node-fetch';
-import { getPlaiceholder } from 'plaiceholder';
 
 import { RabbitService } from '@app/shared';
 import { DATABASE_TYPE, LookingFor, OK, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
@@ -318,33 +318,32 @@ export class UserHelper implements OnModuleInit {
       if (file.mimetype !== 'image/png' && file.mimetype !== 'image/jpeg')
         throw new UnsupportedMediaTypeException('File type not support');
 
-      const promises = [this.uploadImage(file)];
-
-      let buffer = file.buffer;
-
-      if (file.mimetype === 'image/png') {
-        buffer = await sharp(file.buffer).jpeg().toBuffer();
-      }
-
-      if (data?.nsfw) {
-        const tfImage = tf.node.decodeImage(buffer);
-
-        promises.push(this.model.classify(tfImage as tf.Tensor3D));
-      }
-
-      const [url, results] = await Promise.all(promises);
+      const promises = [this.uploadImage(file), null, null];
 
       let classification = null;
+      let buffer = file.buffer;
+
+      if (data?.nsfw) {
+        if (file.mimetype === 'image/png') {
+          buffer = await sharp(file.buffer).jpeg().toBuffer();
+        }
+
+        const tfImage = tf.node.decodeImage(buffer);
+
+        promises[1] = this.model.classify(tfImage as tf.Tensor3D);
+      }
+
+      if (data?.blur) {
+        promises[2] = getPlaiceholder(buffer, { size: 4 });
+      }
+
+      const [url, results, blurResult] = await Promise.all(promises);
+
       if (results) {
         classification = results.reduce((acc, cur) => {
           acc[cur.className.toLowerCase()] = cur.probability;
           return acc;
         }, {});
-      }
-
-      let blur = null;
-      if (data?.blur) {
-        blur = await this.encodeImageToBlurhash(url);
       }
 
       return {
@@ -353,7 +352,7 @@ export class UserHelper implements OnModuleInit {
         data: {
           url,
           classification,
-          blur,
+          blur: blurResult?.base64,
         },
       };
     } catch (error) {
