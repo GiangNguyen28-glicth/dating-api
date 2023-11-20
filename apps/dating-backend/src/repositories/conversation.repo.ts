@@ -1,13 +1,22 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 
-import { ConversationModelType, CrudRepo, DATABASE_TYPE, MessageStatus, PROVIDER_REPO } from '@dating/common';
+import {
+  ConversationModelType,
+  ConversationType,
+  CrudRepo,
+  DATABASE_TYPE,
+  MessageStatus,
+  PROVIDER_REPO,
+} from '@dating/common';
 import { MongoRepo } from '@dating/infra';
 import { Conversation } from '@modules/conversation/entities';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ConversationRepo extends CrudRepo<Conversation> {
   countByMessageStatus(receiverId: string): Promise<number>;
+  enableSafeMode(userId: string, conversationId: string): Promise<void>;
+  disableSafeMode(userId: string, conversationId: string): Promise<void>;
 }
 export class ConversationMongoRepo extends MongoRepo<Conversation> {
   constructor(
@@ -48,6 +57,20 @@ export class ConversationMongoRepo extends MongoRepo<Conversation> {
       { $match: { 'messages.0': { $exists: true } } },
     ]);
     return groups.length;
+  }
+
+  async enableSafeMode(userId: string, conversationId: string): Promise<Conversation> {
+    return await this.conversationModel.findOneAndUpdate(
+      { _id: conversationId, type: ConversationType.MATCHED, members: { $elemMatch: { $eq: userId } } },
+      { $addToSet: { enableSafeMode: userId } },
+    );
+  }
+
+  async disableSafeMode(userId: string, conversationId: string): Promise<Conversation> {
+    return await this.conversationModel.findOneAndUpdate(
+      { _id: conversationId, type: ConversationType.MATCHED, members: { $elemMatch: { $eq: userId } } },
+      { $pull: { enableSafeMode: userId } },
+    );
   }
 }
 

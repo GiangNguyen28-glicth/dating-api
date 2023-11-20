@@ -1,12 +1,12 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-import { AtGuard, CurrentUser, IResult } from '@dating/common';
+import { AtGuard, CurrentUser, IResponse, IResult } from '@dating/common';
 
 import { User } from '@modules/users/entities';
 
 import { ConversationService } from './conversation.service';
-import { FilterGetAllConversationDTO } from './dto';
+import { FilterGetAllConversationDTO, SafeModeDTO } from './dto';
 import { Conversation } from './entities';
 
 @ApiTags(Conversation.name)
@@ -27,5 +27,13 @@ export class ConversationController {
   @Get(':id')
   async findOne(@Param('id') id: string, @CurrentUser() user: User): Promise<Conversation> {
     return await this.conversationService.findOne({ _id: id, toJSON: true, populate: true }, user);
+  }
+
+  @Post('safe-mode')
+  async enableSafeMode(@Body() data: SafeModeDTO, @CurrentUser() user: User): Promise<IResponse> {
+    if (data.enable) {
+      return await this.conversationService.enableSafeMode(user, data.conversation);
+    }
+    return await this.conversationService.disableSafeMode(user, data.conversation);
   }
 }

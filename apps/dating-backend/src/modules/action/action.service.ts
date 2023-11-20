@@ -9,6 +9,8 @@ import {
   LimitType,
   MatchRqStatus,
   MerchandisingType,
+  OK,
+  OfferingType,
   PROVIDER_REPO,
 } from '@common/consts';
 import { IErrorResponse, IResponse } from '@common/interfaces';
@@ -209,6 +211,34 @@ export class ActionService {
       return {
         success: true,
         message: 'Ok',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async boosts(user: User): Promise<IResponse> {
+    try {
+      if (user.boostsSession.amount <= 0) {
+        const offering = await this.offeringService.findOne({
+          type: OfferingType.FINDER_BOOSTS,
+          isRetail: true,
+        });
+        const objError: IErrorResponse = {
+          message: `Đã sử dụng hết lượt Boosts !`,
+        };
+        if (offering) {
+          objError.data = {
+            offering,
+          };
+        }
+        throw new BadRequestException(objError);
+      }
+      user.boostsSession = User.boostsSession(user.boostsSession);
+      await this.userService.findOneAndUpdate(user._id, { boostsSession: user.boostsSession });
+      return {
+        success: true,
+        message: OK,
       };
     } catch (error) {
       throw error;

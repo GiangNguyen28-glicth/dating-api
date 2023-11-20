@@ -8,6 +8,7 @@ import { User } from '@modules/users/entities';
 
 import { ActionService } from './action.service';
 import { Action } from './entities';
+import { IResponse } from '@common/interfaces';
 
 @Controller('action')
 @ApiTags(Action.name)
@@ -33,5 +34,11 @@ export class ActionController {
   @Post('un-matched/:id')
   async unMatched(@CurrentUser() sender: User, @Param('id') id: string) {
     return await this.actionService.unMatched(sender, id);
+  }
+
+  @Post('/boosts')
+  @UseGuards(AtGuard)
+  async boosts(@CurrentUser() user: User): Promise<IResponse> {
+    return await this.actionService.boosts(user);
   }
 }

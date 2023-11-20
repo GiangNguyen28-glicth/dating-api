@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsNotEmpty } from 'class-validator';
 
-import { Gender, LookingFor, RelationshipModeType, TagType, VerifyUserStatus } from '@common/consts';
+import { Gender, LookingFor, RelationshipModeType, TagType } from '@common/consts';
 import { Relationship } from '@modules/relationship/entities';
 import { Tag } from '@modules/tag/entities';
 
@@ -97,6 +97,10 @@ export class UpdateUserSettingDTO implements Partial<UserSetting> {
 
   @ApiPropertyOptional()
   stepStarted?: number;
+
+  @ApiPropertyOptional()
+  @IsBoolean()
+  safeMode?: boolean;
 }
 
 export class UpdateHomeTownDTO implements Partial<HomeTown> {

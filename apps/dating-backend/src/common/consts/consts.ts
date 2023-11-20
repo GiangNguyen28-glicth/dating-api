@@ -47,7 +47,7 @@ export const DATABASE_TYPE = {
   MONGO: '_MONGO',
 };
 
-export const REFRESH_TOKEN_TTL = 365 * 24 * 60 * 60 * 1000;
+export const REFRESH_TOKEN_TTL = 365 * 24 * 60 * 60;
 export const REDIS_KEY_PREFIX = {
   NOTI_MATCHED: 'NOTI_MATCHED_',
   SOCKET: 'SOCKET_',
@@ -56,9 +56,11 @@ export const REDIS_KEY_PREFIX = {
 
 export type AIAuthor = 'user' | 'bot';
 
-export const SOCKET = 'Socket_';
-export const SMS = 'Sms_';
-export const TOKEN = 'Token_';
+export const SOCKET = 'SOCKET_';
+export const SMS_LOGIN = 'SMS_LOGIN_';
+export const SMS_DELETE_ACCOUNT = 'SMS_DELETE_ACCOUNT_';
+export const TOKEN = 'TOKEN_LOGIN_';
+export const OTP_EXPIRED_TIME = 5 * 60;
 export const MongoID = Schema.Types.ObjectId;
 export const MAX_COUNT_IN_ACTION_UPSERT = 999999;
 export const DEFAULT_CHANNEL_ID = 'default_channel';

@@ -1,7 +1,9 @@
-import { AtGuard, CurrentUser, IResponse, IResult, PaginationDTO, Role, RolesGuard, hasRoles } from '@dating/common';
 import { Body, Controller, Delete, Get, Patch, Post, Query, UseGuards, UseInterceptors, Param } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiTags, ApiParam } from '@nestjs/swagger';
+
+import { AtGuard, CurrentUser, IResponse, IResult, PaginationDTO, Role, RolesGuard, hasRoles } from '@dating/common';
 import { throwIfNotExists } from '@dating/utils';
+
 import { UpdateUserLocationDTO, UpdateUserProfileDto, UpdateUserSettingDTO, UpdateUserTagDTO } from './dto';
 import { User } from './entities';
 import { UserService } from './users.service';
@@ -95,13 +97,6 @@ export class UsersController {
   @UseGuards(AtGuard)
   async updateTag(@CurrentUser() user: User, @Body() updateUserTagDto: UpdateUserTagDTO): Promise<IResponse> {
     return await this.userService.updateTag(user, updateUserTagDto);
-  }
-
-  @Post('/boosts')
-  @ApiBearerAuth()
-  @UseGuards(AtGuard)
-  async boosts(@CurrentUser() user: User): Promise<IResponse> {
-    return await this.userService.boosts(user);
   }
 
   @Post('insertMany')

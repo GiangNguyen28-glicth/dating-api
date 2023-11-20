@@ -28,6 +28,7 @@ export class ScheduleController {
   @Get()
   @UseGuards(AtGuard)
   async findAll(@Query() filter: FilterGetAllScheduleDTO, @CurrentUser() user: User): Promise<IResult<Schedule>> {
+    filter.userId = user._id;
     return await this.scheduleService.findAll(filter, user);
   }
 

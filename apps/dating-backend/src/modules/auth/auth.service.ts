@@ -1,11 +1,21 @@
-import { JwtService } from '@nestjs/jwt';
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
-import * as twilio from 'twilio';
-import axios from 'axios';
+import { BadRequestException, Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import axios from 'axios';
+import * as twilio from 'twilio';
 
 import { RedisService } from '@app/shared';
-import { ADMIN, IResponse, REFRESH_TOKEN_TTL, RegisterType, SMS, TOKEN } from '@dating/common';
+import {
+  ADMIN,
+  IResponse,
+  OK,
+  OTP_EXPIRED_TIME,
+  REFRESH_TOKEN_TTL,
+  RegisterType,
+  SMS_DELETE_ACCOUNT,
+  SMS_LOGIN,
+  TOKEN,
+} from '@dating/common';
 import {
   calSecondBetweenTwoDate,
   compareHashValue,
@@ -15,10 +25,11 @@ import {
 } from '@dating/utils';
 import { User } from '@modules/users/entities';
 
-import { UserService } from '@modules/users/users.service';
 import { AdminService } from '@modules/admin/admin.service';
+import { UserService } from '@modules/users/users.service';
+import { MailService } from '@modules/mail/mail.service';
 
-import { AdminAuthDTO, SmsDTO, VerifyOTPDTO } from './dto';
+import { AdminAuthDTO, DeleteAccountOTPDTO, SmsDTO, VerifyOTPDTO } from './dto';
 import { IJwtPayload, IToken } from './interfaces';
 
 @Injectable()
@@ -30,6 +41,7 @@ export class AuthService {
     private configService: ConfigService,
     private redisService: RedisService,
     private adminService: AdminService,
+    private mailService: MailService,
   ) {
     this.client = twilio(configService.get('SMS_KEY'), configService.get('SMS_SECRET'));
   }
@@ -122,7 +134,7 @@ export class AuthService {
       if (verifyOtpDto.otp === '682436') {
         return await this.generateTokens({ _id: user._id });
       }
-      const key = SMS + user._id.toString();
+      const key = SMS_LOGIN + user._id.toString();
       const data: any = JSON.parse(await this.redisService.get(key));
       if (!data) {
         throw new UnauthorizedException('OTP không tồn tại hoặc đã hết hạn');
@@ -149,7 +161,7 @@ export class AuthService {
     }
   }
 
-  async sendSMS(smsDto: SmsDTO): Promise<IResponse> {
+  async sendSMSLogin(smsDto: SmsDTO): Promise<IResponse> {
     let user = await this.userService.findOne({
       phoneNumber: smsDto.phoneNumber,
     });
@@ -158,7 +170,7 @@ export class AuthService {
         phoneNumber: smsDto.phoneNumber,
       });
     }
-    const key = SMS + user._id.toString();
+    const key = SMS_LOGIN + user._id.toString();
     const data = JSON.parse(await this.redisService.get(key));
     if (data) {
       const { sendAt } = data;
@@ -178,7 +190,7 @@ export class AuthService {
     await this.redisService.setex({
       key,
       data: JSON.stringify({ otp: hashOtp, sendAt: new Date(), temp_otp: otp }),
-      ttl: 5 * 60 * 1000,
+      ttl: OTP_EXPIRED_TIME,
     });
     try {
       // await this.client.messages.create({
@@ -189,7 +201,67 @@ export class AuthService {
       // return message ? true : false;
       return {
         success: true,
-        message: 'Gửi tin nhắn thành công',
+        message: OK,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async sendOTPDeleteAccount(user: User): Promise<IResponse> {
+    try {
+      const otp = getRandomIntInclusive(100000, 999999);
+      const hashOtp = await hash(otp.toString());
+      const key = SMS_DELETE_ACCOUNT + user._id.toString();
+      await this.redisService.setex({
+        key,
+        data: JSON.stringify({ otp: hashOtp, sendAt: new Date(), temp_otp: otp }),
+        ttl: OTP_EXPIRED_TIME,
+      });
+
+      let message = null;
+
+      if (user.registerType === RegisterType.PHONE_NUMBER) {
+        // await this.client.messages.create({
+        //   to: user.phoneNumber,
+        //   from: this.configService.get('SMS_OWNER'),
+        //   body: otp.toString(),
+        // });
+        message =
+          'OTP đã được gửi đến số điện thoại của bạn. Vui lòng hãy sử dụng OTP để xác thực việc xóa tài khoản !';
+      } else {
+        await this.mailService.sendMail({ html: `<p>${otp}</p>`, subject: 'DELETE_ACCOUNT_OTP', to: user.email });
+        message = `OTP đã được gửi đến gmail ${user.email} của bạn. Vui lòng hãy sử dụng OTP để xác thực việc xóa tài khoản !`;
+      }
+      return {
+        success: true,
+        message,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async confirmDeleteAccount(user: User, verifyOtpDto: DeleteAccountOTPDTO): Promise<IResponse> {
+    try {
+      const key = SMS_DELETE_ACCOUNT + user._id.toString();
+      const data: any = JSON.parse(await this.redisService.get(key));
+      if (!data) {
+        throw new UnauthorizedException('OTP không tồn tại hoặc đã hết hạn');
+      }
+      const { otp } = data;
+      const isCorrectOtp = await compareHashValue(verifyOtpDto.otp, otp);
+      if (!isCorrectOtp) {
+        throw new NotFoundException('OTP không đúng. Vui lòng thử lại !');
+      }
+      await this.redisService.del(key);
+      const newUser = await this.userService.findOneAndUpdate(user._id, { isDeleted: true });
+      if (!newUser) {
+        throwIfNotExists(newUser, 'Cập nhật thất bại. Không tìm thấy User !');
+      }
+      return {
+        success: true,
+        message: OK,
       };
     } catch (error) {
       throw error;

@@ -128,6 +128,9 @@ export class UserSetting {
 
   @Prop({ type: HiddenProfile, default: new HiddenProfile() })
   hiddenProfile?: HiddenProfile;
+
+  @Prop({ type: Boolean, default: true })
+  safeMode?: boolean;
 }
 
 @Schema({ _id: false })
@@ -290,9 +293,6 @@ export class User implements IEntity {
 
   @Prop({ type: Boolean, default: true })
   onlineNow: boolean;
-
-  @Prop({ type: Boolean, default: true })
-  safeMode: boolean;
 
   @Prop({ type: Date, default: new Date() })
   lastActiveDate: Date;

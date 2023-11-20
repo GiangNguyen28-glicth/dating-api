@@ -2,10 +2,11 @@ import { Body, Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/comm
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
 
-import { GoogleGuard, IResponse, TokenDTO } from '@dating/common';
+import { AtGuard, CurrentUser, GoogleGuard, IResponse, TokenDTO } from '@dating/common';
+import { User } from '@modules/users/entities';
 
 import { AuthService } from './auth.service';
-import { AdminAuthDTO, SmsDTO, VerifyOTPDTO } from './dto';
+import { AdminAuthDTO, DeleteAccountOTPDTO, SmsDTO, VerifyOTPDTO } from './dto';
 import { IToken } from './interfaces';
 
 @ApiTags('Auth')
@@ -41,17 +42,29 @@ export class AuthController {
 
   @Post('verify-otp')
   @ApiBody({ type: VerifyOTPDTO })
-  verifyOTP(@Body() verifyOTP: VerifyOTPDTO): Promise<IToken> {
-    return this.authService.verifyOTP(verifyOTP);
+  async verifyOTP(@Body() verifyOTP: VerifyOTPDTO): Promise<IToken> {
+    return await this.authService.verifyOTP(verifyOTP);
   }
 
   @Post('send-sms')
   async sendSms(@Body() smsDto: SmsDTO): Promise<IResponse> {
-    return await this.authService.sendSMS(smsDto);
+    return await this.authService.sendSMSLogin(smsDto);
   }
 
   @Post('admin/login')
   async adminLogin(@Body() dto: AdminAuthDTO): Promise<IToken> {
     return await this.authService.adminLogin(dto);
+  }
+
+  @Post('/delete-account')
+  @UseGuards(AtGuard)
+  async deleteAccount(@CurrentUser() user: User): Promise<IResponse> {
+    return await this.authService.sendOTPDeleteAccount(user);
+  }
+
+  @Post('/confirm-delete-account')
+  @UseGuards(AtGuard)
+  async confirmDeleteAccount(@CurrentUser() user: User, @Body() otp: DeleteAccountOTPDTO): Promise<IResponse> {
+    return await this.authService.confirmDeleteAccount(user, otp);
   }
 }

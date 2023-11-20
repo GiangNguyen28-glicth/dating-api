@@ -17,8 +17,8 @@ export class MessageController {
   constructor(private readonly messageService: MessageService) {}
 
   @Get()
-  async findAll(@Query() filter: FilterGetAllMessageDTO): Promise<IResult<Message>> {
-    return await this.messageService.findAll(filter);
+  async findAll(@Query() filter: FilterGetAllMessageDTO, @CurrentUser() user: User): Promise<IResult<Message>> {
+    return await this.messageService.findAll(filter, user);
   }
 
   @Patch('/reviews')

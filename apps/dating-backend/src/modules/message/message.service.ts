@@ -83,14 +83,15 @@ export class MessageService implements OnModuleInit {
     }
   }
 
-  async findAll(filter: FilterGetAllMessageDTO): Promise<IResult<Message>> {
+  async findAll(filter: FilterGetAllMessageDTO, user: User): Promise<IResult<Message>> {
     try {
+      const conversation = await this.conversationService.findOne({ _id: filter?.conversation }, user);
       const [queryFilter, sortOption] = new FilterBuilder<Message>()
         .setFilterItem('conversation', '$eq', filter?.conversation)
         .setSortItem('createdAt', 'desc')
         .buildQuery();
       // eslint-disable-next-line prefer-const
-      let [results, totalCount] = await Promise.all([
+      let [totalMessage, totalCount] = await Promise.all([
         this.messageRepo.findAll({
           queryFilter,
           sortOption,
@@ -98,11 +99,13 @@ export class MessageService implements OnModuleInit {
         }),
         this.messageRepo.count(queryFilter),
       ]);
-      results = results.reverse();
-      return formatResult(results, totalCount, {
+      totalMessage = totalMessage.reverse();
+      const results = formatResult(totalMessage, totalCount, {
         page: filter?.page,
         size: filter?.size,
       });
+      results.metadata = { safeMode: conversation.enableSafeMode.includes(user._id.toString()) };
+      return results;
     } catch (error) {
       throw error;
     }

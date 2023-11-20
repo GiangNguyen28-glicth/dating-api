@@ -16,7 +16,6 @@ import { UserHelper } from './helper/user.helper';
 @ApiTags('Helper')
 @Controller()
 export class HelperController {
-  private model: nsfw.NSFWJS;
   constructor(private userHelper: UserHelper) {}
 
   @Get('/location/province')

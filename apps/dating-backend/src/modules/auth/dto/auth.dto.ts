@@ -1,5 +1,5 @@
 import { Admin } from '@modules/admin/entities';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty } from 'class-validator';
 
 export class SmsDTO {
@@ -27,6 +27,12 @@ export class VerifyOTPDTO {
   // @Matches(/([\+84|84|0]+(3|5|7|8|9|1[2|6|8|9]))+([0-9]{8})\b/)
   phoneNumber: string;
 
+  @ApiProperty()
+  @IsNotEmpty()
+  otp: string;
+}
+
+export class DeleteAccountOTPDTO {
   @ApiProperty()
   @IsNotEmpty()
   otp: string;

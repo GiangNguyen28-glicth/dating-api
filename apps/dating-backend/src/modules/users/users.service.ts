@@ -194,10 +194,9 @@ export class UserService implements OnModuleInit {
     return formatResult(results, totalCount);
   }
 
-  async findOneAndUpdate(_id: string, entities: Partial<User>): Promise<void> {
+  async findOneAndUpdate(_id: string, entities: Partial<User>): Promise<User> {
     try {
-      const user = await this.userRepo.findOneAndUpdate(_id, entities);
-      throwIfNotExists(user, 'Cập nhật thất bại. Không thể tìm thấy User');
+      return await this.userRepo.findOneAndUpdate(_id, entities);
     } catch (error) {
       throw error;
     }
@@ -295,22 +294,6 @@ export class UserService implements OnModuleInit {
       { path: 'relationships' },
       { path: 'relationshipStatus' },
     ]);
-  }
-
-  async boosts(user: User): Promise<IResponse> {
-    try {
-      if (user.boostsSession.amount <= 0) {
-        throw new BadRequestException('Số lượng boosts không đủ !');
-      }
-      user.boostsSession = User.boostsSession(user.boostsSession);
-      await this.userRepo.save(user);
-      return {
-        success: true,
-        message: 'Ok',
-      };
-    } catch (error) {
-      throw error;
-    }
   }
 
   //======================================Admin======================================

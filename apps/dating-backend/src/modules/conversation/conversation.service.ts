@@ -1,22 +1,16 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 
-import {
-  ConversationType,
-  DATABASE_TYPE,
-  EXCLUDE_FIELDS,
-  MessageStatus,
-  MongoQuery,
-  PROVIDER_REPO,
-} from '@common/consts';
+import { DATABASE_TYPE, EXCLUDE_FIELDS, MessageStatus, MongoQuery, OK, PROVIDER_REPO } from '@common/consts';
 import { PaginationDTO } from '@common/dto';
-import { IOptionFilterGetOne, IResult } from '@common/interfaces';
+import { IOptionFilterGetOne, IResponse, IResult } from '@common/interfaces';
 import { ConversationRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
-import { User } from '@modules/users/entities';
-import { MessageService } from '@modules/message/message.service';
 
-import { Conversation } from './entities';
+import { MessageService } from '@modules/message/message.service';
+import { User } from '@modules/users/entities';
+
 import { CreateConversationDto, FilterGetAllConversationDTO, FilterGetOneConversationDTO } from './dto';
+import { Conversation } from './entities';
 
 @Injectable()
 export class ConversationService {
@@ -180,6 +174,32 @@ export class ConversationService {
   async save(conversation: Conversation): Promise<Conversation> {
     try {
       return await this.conversationRepo.save(conversation);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async enableSafeMode(user: User, conversationId: string): Promise<IResponse> {
+    try {
+      const conversation = await this.conversationRepo.enableSafeMode(user._id, conversationId);
+      throwIfNotExists(conversation, 'Not found');
+      return {
+        success: true,
+        message: OK,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async disableSafeMode(user: User, conversationId: string): Promise<IResponse> {
+    try {
+      const conversation = await this.conversationRepo.disableSafeMode(user._id, conversationId);
+      throwIfNotExists(conversation, 'Not found');
+      return {
+        success: true,
+        message: OK,
+      };
     } catch (error) {
       throw error;
     }

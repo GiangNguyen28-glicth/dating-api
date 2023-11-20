@@ -26,6 +26,9 @@ export class Conversation implements IEntity {
   @Prop({ type: String })
   createdBy: string;
 
+  @Prop({ default: [] })
+  enableSafeMode: string[];
+
   @Prop({ type: Boolean, default: false })
   isDeleted: boolean;
 
