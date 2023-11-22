@@ -99,7 +99,6 @@ export class UpdateUserSettingDTO implements Partial<UserSetting> {
   stepStarted?: number;
 
   @ApiPropertyOptional()
-  @IsBoolean()
   safeMode?: boolean;
 }
 
