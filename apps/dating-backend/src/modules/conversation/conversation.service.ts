@@ -34,6 +34,7 @@ export class ConversationService {
         .setFilterItem('members', '$elemMatch', { $eq: user._id })
         .setFilterItem('lastMessage', query, null, true)
         .setFilterItem('createdBy', '$ne', user._id)
+        .setFilterItem('isDeleted', '$eq', false, true)
         .setSortItem('updatedAt', -1)
         .buildQuery();
       const pagination: PaginationDTO = {
