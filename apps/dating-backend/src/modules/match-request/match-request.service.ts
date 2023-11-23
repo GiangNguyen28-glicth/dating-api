@@ -50,7 +50,11 @@ export class MatchRequestService {
 
   async findAll(filter: FilterGelAllMqDTO, user: User, isPopulate = false): Promise<IResult<MatchRequest>> {
     try {
-      const selectFieldsPopulate: Array<keyof User> = ['_id', 'name', 'images', 'tags', 'bio', 'blurAvatar'];
+      const unBlurIdx = user.featureAccess.findIndex(ft => ft.name === MerchandisingType.UN_BLUR && ft.unlimited);
+      const selectFieldsPopulate: Array<keyof User> = ['_id', 'name', 'tags', 'bio', 'blurAvatar'];
+      if (unBlurIdx != -1) {
+        selectFieldsPopulate.push('images');
+      }
       const populate: PopulateOptions[] = [];
       if (isPopulate) {
         populate.push({
@@ -130,7 +134,7 @@ export class MatchRequestService {
   async matched(matchedAction: IMatchedAction): Promise<void> {
     const { sender, receiver, socketIdsClient, matchRq, action } = matchedAction;
     const conversationDto: CreateConversationDto = {
-      members: [sender, receiver],
+      members: [sender._id, receiver._id],
     };
     const notificationDto: CreateNotificationDto = {
       sender,

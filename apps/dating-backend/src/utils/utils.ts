@@ -9,7 +9,7 @@ import * as bcrypt from 'bcrypt';
 
 import { GroupDate, TYPE_RANGE } from '@modules/admin/dto';
 import { GeoLocation, User } from '@modules/users/entities';
-import { data_tt } from './data';
+// import { data_tt } from './data';
 
 export function toSlug(text: string, locale?: string): string {
   if (!text) return '';
@@ -133,7 +133,7 @@ export function getFormatGroupISODate(typeRange: TYPE_RANGE): GroupDate {
 }
 
 export function mappingData(): User[] {
-  const obj_2 = data_tt;
+  const obj_2 = null;
   const results = obj_2.data.results;
   const users: User[] = [];
   results.map(item => {
@@ -150,7 +150,11 @@ export function mappingData(): User[] {
       });
       user.bio = item.user.bio;
       user.name = item.user.name;
-      user.gender = Gender.FEMALE;
+      if (item.user.gender === -1) {
+        user.gender = Gender.FEMALE;
+      } else {
+        user.gender = Gender.MALE;
+      }
       const p = new GeoLocation();
       p.type = 'Point';
       p.coordinates = [106.7350921, 10.7191672];

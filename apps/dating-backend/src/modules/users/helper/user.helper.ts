@@ -59,9 +59,9 @@ export class UserHelper implements OnModuleInit {
       },
       RMQ_CHANNEL.USER_CHANNEL,
     );
-    this.model = await nsfw.load('https://res.cloudinary.com/finder-next/raw/upload/v1700214306/models/model/', {
-      size: 299,
-    });
+    // this.model = await nsfw.load('https://res.cloudinary.com/finder-next/raw/upload/v1700214306/models/model/', {
+    //   size: 299,
+    // });
   }
   async getRawLocation(lat: number, long: number) {
     if (!lat || !long) {
@@ -131,8 +131,11 @@ export class UserHelper implements OnModuleInit {
     if (user.setting.discovery.lookingFor != LookingFor.ALL) {
       queryFilter.setFilterItem('gender', '$eq', user.setting.discovery.lookingFor);
     }
-    if (user.tags.length) {
-      queryFilter.setFilterItem('tags', '$in', user.tags);
+    if (user.setting.advancedFilter.enable) {
+      const tagIds: string[] = user.setting.advancedFilter.tags.map(tag => tag.tagId);
+      if (tagIds.length) {
+        queryFilter.setFilterItem('tags', '$in', user.tags);
+      }
     }
     return queryFilter.buildQuery()[0];
   }
@@ -162,6 +165,20 @@ export class UserHelper implements OnModuleInit {
     ]);
     userIdsLiked.push(new Types.ObjectId(userId) as unknown as string);
     return userIdsLiked.concat(userIdsUnLiked);
+  }
+
+  async uploadImageV2(path): Promise<any> {
+    try {
+      const options = {
+        use_filename: false,
+        unique_filename: false,
+        overwrite: true,
+      };
+      const result = await v2.uploader.upload(path, options);
+      return result.url;
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   async uploadImage(file): Promise<any> {

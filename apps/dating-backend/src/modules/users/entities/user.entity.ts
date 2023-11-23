@@ -107,6 +107,24 @@ export class DiscoverySetting {
 }
 
 @Schema({ _id: false })
+export class AdvancedTagsFilter {
+  @Prop()
+  tagType: string;
+
+  @Prop()
+  tagId: string;
+}
+
+@Schema({ _id: false })
+export class AdvancedFilter {
+  @Prop({ default: false })
+  enable: boolean;
+
+  @Prop([{ type: AdvancedTagsFilter, default: [] }])
+  tags: AdvancedTagsFilter[];
+}
+
+@Schema({ _id: false })
 export class HiddenProfile {
   @Prop({ type: Boolean, default: false })
   inFinder?: boolean;
@@ -122,6 +140,9 @@ export class HiddenProfile {
 export class UserSetting {
   @Prop({ type: DiscoverySetting, default: new DiscoverySetting() })
   discovery?: DiscoverySetting;
+
+  @Prop({ type: AdvancedFilter })
+  advancedFilter?: AdvancedFilter;
 
   @Prop({ type: ControlWhoSeesYou })
   controlWhoSeesYou?: ControlWhoSeesYou;
@@ -183,7 +204,7 @@ export class GeoLocation {
 
 @Schema({ _id: false })
 export class BoostsSession {
-  @Prop()
+  @Prop({ default: 0 })
   amount?: number;
 
   @Prop()

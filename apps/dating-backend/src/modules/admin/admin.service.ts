@@ -29,7 +29,7 @@ export class AdminService {
       const hashPassword = await hash(dto.password);
       const newAdmin = await this.adminModel.create(dto);
       newAdmin.password = hashPassword;
-      newAdmin.createdBy = admin._id;
+      // newAdmin.createdBy = admin._id;
       await newAdmin.save();
       return {
         success: true,

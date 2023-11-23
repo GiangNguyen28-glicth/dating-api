@@ -99,14 +99,14 @@ export class UsersController {
     return await this.userService.updateTag(user, updateUserTagDto);
   }
 
+  @Delete()
+  async deleteAccount(@CurrentUser() user: User): Promise<IResponse> {
+    return await this.userService.deleteAccount(user);
+  }
+
   @Post('insertMany')
   async insertMany() {
     await this.userService.insertManyUser();
     return true;
-  }
-
-  @Delete('deleteMany')
-  async deleteMany() {
-    return this.userService.deleteMany();
   }
 }

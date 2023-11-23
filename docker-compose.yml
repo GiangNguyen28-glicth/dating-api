@@ -52,6 +52,9 @@ services:
       - '27018:27017'
     volumes:
       - mongodata:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: giangnt
+      MONGO_INITDB_ROOT_PASSWORD: giangntgiangntgiangnt123
     restart: always
     logging:
       driver: none

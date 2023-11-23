@@ -89,11 +89,10 @@ export class PaymentService implements OnModuleInit {
 
       const billing: Billing = await this.billingService.create(billingDto);
 
-      if (offering.type === OfferingType.FINDER_BOOSTS) {
+      if (offering.type === OfferingType.FINDER_BOOSTS || offering.type === OfferingType.FINDER_SUPER_LIKE) {
         if (!_package.amount) {
           throw new BadRequestException('Amount is not accept');
         }
-        checkoutDto.price = _package.price;
       }
 
       const paymentIntent = await this.stripe.createPayment(user, checkoutDto);
@@ -112,8 +111,8 @@ export class PaymentService implements OnModuleInit {
       } else if (offering.type === OfferingType.FINDER_BOOSTS) {
         message.boostsSession = {
           amount: _package.amount,
-          refreshInterval: _package.refreshInterval,
-          refreshIntervalUnit: _package.refreshIntervalUnit,
+          refreshInterval: _package.refreshInterval || 30,
+          refreshIntervalUnit: _package.refreshIntervalUnit || RefreshIntervalUnit.MINUTES,
         };
       }
       await this.rabbitService.sendToQueue(QUEUE_NAME.UPDATE_FEATURE_ACCESS, message);
@@ -127,6 +126,9 @@ export class PaymentService implements OnModuleInit {
   }
 
   getExpiredDate(amount: number, refreshIntervalUnit: RefreshIntervalUnit): Date {
+    if (!refreshIntervalUnit) {
+      return new Date();
+    }
     const now = moment().tz(TIME_ZONE).endOf('date');
     return now.add(amount, refreshIntervalUnit.toLowerCase() as any).toDate();
   }
@@ -136,7 +138,7 @@ export class PaymentService implements OnModuleInit {
 
     for (const merchandisingItem of merchandising) {
       const index = featureAccess.findIndex(item => item.name === merchandisingItem.name);
-      if (isNil(index)) {
+      if (index === -1) {
         const featureAccessItem: FeatureAccessItem = {
           unlimited: merchandisingItem.type === LimitType.UNLIMITED ? true : false,
           amount: merchandisingItem.amount,
@@ -146,10 +148,15 @@ export class PaymentService implements OnModuleInit {
         continue;
       }
       if (merchandisingItem.type == LimitType.UNLIMITED) {
+        if (!offering.isRetail) {
+          featureAccess[index].unlimited = false;
+        }
         featureAccess[index].unlimited = true;
       } else {
-        featureAccess[index].unlimited = false;
-        featureAccess[index].amount = merchandisingItem.amount;
+        if (!offering.isRetail) {
+          featureAccess[index].unlimited = false;
+        }
+        featureAccess[index].amount = featureAccess[index].amount + merchandisingItem.amount;
       }
     }
     return featureAccess;

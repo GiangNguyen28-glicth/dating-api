@@ -55,16 +55,4 @@ export class AuthController {
   async adminLogin(@Body() dto: AdminAuthDTO): Promise<IToken> {
     return await this.authService.adminLogin(dto);
   }
-
-  @Post('/delete-account')
-  @UseGuards(AtGuard)
-  async deleteAccount(@CurrentUser() user: User): Promise<IResponse> {
-    return await this.authService.sendOTPDeleteAccount(user);
-  }
-
-  @Post('/confirm-delete-account')
-  @UseGuards(AtGuard)
-  async confirmDeleteAccount(@CurrentUser() user: User, @Body() otp: DeleteAccountOTPDTO): Promise<IResponse> {
-    return await this.authService.confirmDeleteAccount(user, otp);
-  }
 }

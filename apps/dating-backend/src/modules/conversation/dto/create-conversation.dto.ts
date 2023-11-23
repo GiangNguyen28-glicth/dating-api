@@ -7,9 +7,10 @@ import { User } from '@modules/users/entities';
 import { Conversation } from '../entities';
 
 export class CreateConversationDto implements Partial<Conversation> {
-  members?: User[];
+  members?: string[];
   type?: ConversationType;
   createdBy?: string;
+  enableSafeMode?: string[];
 }
 
 export class UpdateConversationDto implements Partial<Conversation> {

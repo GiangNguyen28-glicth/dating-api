@@ -19,7 +19,7 @@ export interface CrudRepo<T> {
   findOne(filterQuery?: IOptionFilterGetOne<T>, fields?: string[]): Promise<T>;
   findAll(option?: IOptionFilterGetAll<T>): Promise<T[]>;
   count(filterQuery?: Partial<T>): Promise<number>;
-  insert(entity: Partial<T>);
+  insert(entity: Partial<T>): Promise<T>;
   findOneAndUpdate(id: string, entity: Partial<T>): Promise<T>;
   delete(id: string): Promise<T>;
   deleteMany(ids: string[]): Promise<void>;

@@ -34,12 +34,12 @@ export abstract class MongoRepo<T> implements CrudRepo<T> {
     return await this.model.countDocuments(filterQuery);
   }
 
-  async insert(document: Partial<T>): Promise<Document> {
+  async insert(document: Partial<T>): Promise<T> {
     const createdDocument: Document = new this.model({
       ...document,
       _id: new Types.ObjectId(),
     });
-    return createdDocument;
+    return createdDocument as T;
   }
 
   async save(document: Document): Promise<Document> {

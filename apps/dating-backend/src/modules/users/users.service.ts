@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
 import axios from 'axios';
 import { get, isNil } from 'lodash';
@@ -9,6 +9,7 @@ import {
   DATABASE_TYPE,
   IResponse,
   IResult,
+  OK,
   PROVIDER_REPO,
   PaginationDTO,
   QUEUE_NAME,
@@ -316,12 +317,13 @@ export class UserService implements OnModuleInit {
         user.phoneNumber = `+84${count}`;
         for (let i = 0; i < user.images.length; i++) {
           await downloadImage(user.images[i].url, `${user.email}_${image}`);
-          // const url = await this.userHelper.uploadImage(
-          //   `E:/Nestjs/dating-api/apps/dating-backend/images/${user.email}_${image}.jpg`,
-          // );
-          // user.images[i].url = url;
+          const url = await this.userHelper.uploadImageV2(
+            `E:/Nestjs/dating-api/apps/dating-backend/images/${user.email}_${image}.jpg`,
+          );
+          user.images[i].url = url;
           image++;
         }
+        user.stepStarted = 4;
         const newUser = await this.userRepo.insert(user);
         // await this.rabbitService.sendToQueue(QUEUE.IMAGES_BUILDER, {
         //   userId: newUser._id,
@@ -336,21 +338,32 @@ export class UserService implements OnModuleInit {
     }
   }
 
-  async deleteMany() {
-    return await this.userRepo.deleteManyUser();
+  async deleteAccount(user: User): Promise<IResponse> {
+    try {
+      const newUser = await this.userRepo.findOneAndUpdate(user._id, { isDeleted: true });
+      if (!newUser) {
+        throw new NotFoundException('Không tìm thấy User');
+      }
+      return {
+        success: true,
+        message: OK,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
   async migrate() {
     const users = await this.userRepo.migrateData();
-    // for (const user of users) {
-    //   if (user.images.length) {
-    //     await this.rabbitService.sendToQueue(QUEUE_NAME.USER_IMAGES_BUILDER, {
-    //       userId: user._id,
-    //       images: user.images,
-    //       blurAvatar: user.images[0],
-    //     });
-    //   }
-    // }
+    for (const user of users) {
+      if (user.images.length) {
+        await this.rabbitService.sendToQueue(QUEUE_NAME.USER_IMAGES_BUILDER, {
+          userId: user._id,
+          images: user.images,
+          blurAvatar: user.images[0],
+        });
+      }
+    }
     return true;
   }
 }

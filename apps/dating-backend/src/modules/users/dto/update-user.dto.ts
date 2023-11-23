@@ -5,7 +5,17 @@ import { Gender, LookingFor, RelationshipModeType, TagType } from '@common/const
 import { Relationship } from '@modules/relationship/entities';
 import { Tag } from '@modules/tag/entities';
 
-import { DiscoverySetting, HiddenProfile, HomeTown, Image, ImageClassification, User, UserSetting } from '../entities';
+import {
+  AdvancedFilter,
+  AdvancedTagsFilter,
+  DiscoverySetting,
+  HiddenProfile,
+  HomeTown,
+  Image,
+  ImageClassification,
+  User,
+  UserSetting,
+} from '../entities';
 
 export class ImageClassificationDTO implements Partial<ImageClassification> {
   @ApiProperty()
@@ -88,9 +98,28 @@ export class UpdateHiddenProfileDTO implements Partial<HiddenProfile> {
   inFinder?: boolean;
 }
 
+export class TagsFilterDTO implements AdvancedTagsFilter {
+  @ApiPropertyOptional()
+  tagId: string;
+
+  @ApiPropertyOptional()
+  tagType: string;
+}
+
+export class UpdateAdvancedFilterDTO implements Partial<AdvancedFilter> {
+  @ApiPropertyOptional()
+  enable?: boolean;
+
+  @ApiPropertyOptional({ type: [TagsFilterDTO] })
+  tags?: AdvancedTagsFilter[];
+}
+
 export class UpdateUserSettingDTO implements Partial<UserSetting> {
   @ApiPropertyOptional()
   discovery?: UpdateUserDiscoverySettingDTO;
+
+  @ApiPropertyOptional({ type: UpdateAdvancedFilterDTO })
+  advancedFilter?: AdvancedFilter;
 
   @ApiPropertyOptional()
   hiddenProfile?: UpdateHiddenProfileDTO;
@@ -139,6 +168,9 @@ export class UpdateUserProfileDto implements Partial<User> {
 
   @ApiPropertyOptional()
   blurAvatar?: string;
+
+  @ApiPropertyOptional()
+  showMeInFinder?: boolean;
 
   @ApiPropertyOptional()
   school?: string;
