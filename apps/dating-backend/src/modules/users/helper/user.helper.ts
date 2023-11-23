@@ -59,9 +59,9 @@ export class UserHelper implements OnModuleInit {
       },
       RMQ_CHANNEL.USER_CHANNEL,
     );
-    // this.model = await nsfw.load('https://res.cloudinary.com/finder-next/raw/upload/v1700214306/models/model/', {
-    //   size: 299,
-    // });
+    this.model = await nsfw.load('https://res.cloudinary.com/finder-next/raw/upload/v1700214306/models/model/', {
+      size: 299,
+    });
   }
   async getRawLocation(lat: number, long: number) {
     if (!lat || !long) {
