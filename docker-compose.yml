@@ -54,7 +54,7 @@ services:
       - mongodata:/data/db
     environment:
       MONGO_INITDB_ROOT_USERNAME: giangnt
-      MONGO_INITDB_ROOT_PASSWORD: giangntgiangntgiangnt123
+      MONGO_INITDB_ROOT_PASSWORD: giangntgiangntgiangnt
     restart: always
     logging:
       driver: none
