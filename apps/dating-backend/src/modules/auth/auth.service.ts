@@ -67,6 +67,7 @@ export class AuthService {
         email: user.email,
         registerType: user.registerType,
       });
+      User.validateAccount(userOAuth2);
       let userId: string = userOAuth2?._id;
       if (!userOAuth2) {
         const newUser = await this.userService.create(user);
@@ -165,6 +166,9 @@ export class AuthService {
     let user = await this.userService.findOne({
       phoneNumber: smsDto.phoneNumber,
     });
+
+    User.validateAccount(user);
+
     if (!user) {
       user = await this.userService.create({
         phoneNumber: smsDto.phoneNumber,

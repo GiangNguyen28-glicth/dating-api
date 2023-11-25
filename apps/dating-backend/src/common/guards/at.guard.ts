@@ -1,5 +1,7 @@
 import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+
+import { User } from '@modules/users/entities';
 @Injectable()
 export class AtGuard extends AuthGuard('jwt') {
   getRequest(context: ExecutionContext) {
@@ -13,9 +15,7 @@ export class AtGuard extends AuthGuard('jwt') {
       }
       throw new UnauthorizedException(err);
     }
-    if (user.isBlocked) {
-      throw new UnauthorizedException('Your account has been blocked');
-    }
+    User.validateAccount(user);
     return user;
   }
 }

@@ -15,6 +15,7 @@ import {
 
 import { Relationship } from '@modules/relationship/entities';
 import { Tag } from '@modules/tag/entities';
+import { BadRequestException } from '@nestjs/common';
 
 @Schema({ _id: false })
 export class ImageClassification {
@@ -141,7 +142,7 @@ export class UserSetting {
   @Prop({ type: DiscoverySetting, default: new DiscoverySetting() })
   discovery?: DiscoverySetting;
 
-  @Prop({ type: AdvancedFilter })
+  @Prop({ type: AdvancedFilter, default: new AdvancedFilter() })
   advancedFilter?: AdvancedFilter;
 
   @Prop({ type: ControlWhoSeesYou })
@@ -383,6 +384,15 @@ export class User implements IEntity {
       .add(refreshInterval, refreshIntervalUnit.toLowerCase() as moment.DurationInputArg2)
       .toDate();
     return boostsSession;
+  }
+
+  static validateAccount(user: User): void {
+    if (user?.isBlocked) {
+      throw new BadRequestException('Tài khoản của bạn đã bị khóa !');
+    }
+    if (user?.isDeleted) {
+      throw new BadRequestException('Tài khoản của bạn đã bị xóa !');
+    }
   }
 }
 export const UserSchema = SchemaFactory.createForClass(User);

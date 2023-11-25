@@ -84,11 +84,7 @@ export class UsersController {
   @ApiBearerAuth()
   @UseGuards(AtGuard)
   async updateSetting(@CurrentUser() user: User, @Body() setting: UpdateUserSettingDTO): Promise<IResponse> {
-    await this.userService.updateSetting(user._id.toString(), { setting });
-    return {
-      success: true,
-      message: 'Cập nhật setting thành công',
-    };
+    return await this.userService.updateSetting(user, setting);
   }
 
   @Patch('update_tag')
@@ -100,6 +96,7 @@ export class UsersController {
   }
 
   @Delete()
+  @UseGuards(AtGuard)
   async deleteAccount(@CurrentUser() user: User): Promise<IResponse> {
     return await this.userService.deleteAccount(user);
   }

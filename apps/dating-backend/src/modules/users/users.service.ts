@@ -21,7 +21,7 @@ import { TagService } from '@modules/tag/tag.service';
 
 import { FilterGetStatistic, GroupDate } from '@modules/admin/dto';
 import { CreateUserDTO, FilterGetAllUserDTO, FilterGetOneUserDTO, UpdateUserTagDTO } from './dto';
-import { User } from './entities';
+import { User, UserSetting } from './entities';
 import { UserHelper } from './helper';
 import { FinalCondRecommendation } from './interfaces';
 
@@ -241,13 +241,17 @@ export class UserService implements OnModuleInit {
     }
   }
 
-  async updateSetting(_id: string, entities: Partial<User>): Promise<User> {
+  async updateSetting(user: User, setting: UserSetting): Promise<IResponse> {
     try {
-      if (entities?.setting && entities?.setting['stepStarted']) {
-        entities['stepStarted'] = entities.setting['stepStarted'];
+      if (setting['stepStarted']) {
+        user.stepStarted = setting['stepStarted'];
       }
-      const user = await this.userRepo.findOneAndUpdate(_id, entities);
-      return user;
+      user.setting = Object.assign(user.setting, setting);
+      await this.userRepo.findOneAndUpdate(user._id, { setting: user.setting });
+      return {
+        success: true,
+        message: OK,
+      };
     } catch (error) {
       throw error;
     }
@@ -355,15 +359,15 @@ export class UserService implements OnModuleInit {
 
   async migrate() {
     const users = await this.userRepo.migrateData();
-    for (const user of users) {
-      if (user.images.length) {
-        await this.rabbitService.sendToQueue(QUEUE_NAME.USER_IMAGES_BUILDER, {
-          userId: user._id,
-          images: user.images,
-          blurAvatar: user.images[0],
-        });
-      }
-    }
+    // for (const user of users) {
+    //   if (user.images.length) {
+    //     await this.rabbitService.sendToQueue(QUEUE_NAME.USER_IMAGES_BUILDER, {
+    //       userId: user._id,
+    //       images: user.images,
+    //       blurAvatar: user.images[0],
+    //     });
+    //   }
+    // }
     return true;
   }
 }
