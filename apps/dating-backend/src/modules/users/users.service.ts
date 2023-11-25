@@ -243,11 +243,12 @@ export class UserService implements OnModuleInit {
 
   async updateSetting(user: User, setting: UserSetting): Promise<IResponse> {
     try {
+      const updated: Partial<User> = {};
       if (setting['stepStarted']) {
-        user.stepStarted = setting['stepStarted'];
+        updated.stepStarted = setting['stepStarted'];
       }
-      user.setting = Object.assign(user.setting, setting);
-      await this.userRepo.findOneAndUpdate(user._id, { setting: user.setting });
+      updated.setting = Object.assign(user.setting, setting);
+      await this.userRepo.findOneAndUpdate(user._id, updated);
       return {
         success: true,
         message: OK,
