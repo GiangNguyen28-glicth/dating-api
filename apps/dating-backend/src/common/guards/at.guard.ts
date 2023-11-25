@@ -1,7 +1,6 @@
-import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
-import { User } from '@modules/users/entities';
 @Injectable()
 export class AtGuard extends AuthGuard('jwt') {
   getRequest(context: ExecutionContext) {
@@ -15,7 +14,12 @@ export class AtGuard extends AuthGuard('jwt') {
       }
       throw new UnauthorizedException(err);
     }
-    User.validateAccount(user);
+    if (user?.isBlocked) {
+      throw new BadRequestException('Tài khoản của bạn đã bị khóa !');
+    }
+    if (user?.isDeleted) {
+      throw new BadRequestException('Tài khoản của bạn đã bị xóa !');
+    }
     return user;
   }
 }
