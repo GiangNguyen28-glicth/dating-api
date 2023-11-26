@@ -1,4 +1,5 @@
 import { Image } from '@modules/users/entities';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export type CheckRoomMessage = {
   roomId: string;
@@ -40,3 +41,8 @@ export type AnswerMessage = {
 export type AnswerMessageResponse = {
   offer: any;
 };
+
+export class AvailableUsersParams {
+  @ApiPropertyOptional()
+  roomId: string;
+}

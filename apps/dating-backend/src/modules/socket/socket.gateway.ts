@@ -31,6 +31,7 @@ import {
   RejectMessageResponse,
 } from './dto/call.dto';
 import { SocketService } from './socket.service';
+import { roomMapping, rooms, userAvailable } from './socket.service';
 
 @WebSocketGateway({
   transports: ['polling'],
@@ -45,20 +46,6 @@ import { SocketService } from './socket.service';
 @UseFilters(WebsocketExceptionsFilter)
 @UsePipes(new ValidationPipe({ transform: true }))
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnModuleInit {
-  private rooms: Map<
-    string,
-    {
-      callerId: string;
-
-      offer: any;
-      answer: any;
-      startTime: string;
-      endTime: string;
-      socketsIds: Record<string, boolean>;
-    }
-  > = new Map();
-  private roomMapping: Map<string, string> = new Map();
-
   constructor(
     @Inject(forwardRef(() => UserService))
     private userService: UserService,
@@ -95,8 +82,8 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       const socketKey = SOCKET + userId;
       await this.redisService.srem(socketKey, socket.id);
 
-      if (this.roomMapping.has(socket.id)) {
-        const roomId = this.roomMapping.get(socket.id);
+      if (roomMapping.has(socket.id)) {
+        const roomId = roomMapping.get(socket.id);
         this.hangup(roomId);
       }
 
@@ -180,7 +167,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   async checkRoom(@MessageBody() data: CheckRoomMessage, @CurrentUserWS() user: User) {
     const socketId = await this.socketService.getSocketIdsByUser(user._id);
 
-    const isRoomExist = await this.rooms.get(data.roomId);
+    const isRoomExist = await rooms.get(data.roomId);
     const payload = {
       offer: isRoomExist ? isRoomExist.offer : null,
       status: !!isRoomExist,
@@ -208,8 +195,9 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       endTime: null,
     };
 
-    this.rooms.set(roomId, roomData);
-    this.roomMapping.set(client.id, roomId);
+    rooms.set(roomId, roomData);
+    roomMapping.set(client.id, roomId);
+    userAvailable.set(user._id.toString(), true);
 
     const payload = {
       roomId,
@@ -241,14 +229,15 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     };
     const socketCurrentIds = withWithoutSocketCurrentId(await this.socketService.getSocketIdsByUser(user._id));
 
-    const room = this.rooms.get(roomId);
+    const room = rooms.get(roomId);
     room.answer = offer;
     room.startTime = new Date().toISOString();
     room.socketsIds = {
       ...room.socketsIds,
       [client.id]: true,
     };
-    this.roomMapping.set(client.id, roomId);
+    roomMapping.set(client.id, roomId);
+    userAvailable.set(user._id.toString(), true);
 
     const payload = {
       offer,
@@ -273,12 +262,12 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 
   @SubscribeMessage('hangup')
   handleHangup(@ConnectedSocket() client: Socket): void {
-    const roomId = this.roomMapping.get(client.id);
+    const roomId = roomMapping.get(client.id);
     this.hangup(roomId);
   }
 
   async hangup(roomId: string) {
-    const room = this.rooms.get(roomId);
+    const room = rooms.get(roomId);
 
     if (!room) return;
     if (!room.callerId) return;
@@ -294,6 +283,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       endTime: new Date().toISOString(),
     };
 
+    userAvailable.delete(userId);
     await Promise.all(
       receiverIds?.map(async id => {
         const message = await this.messageService.create(
@@ -308,6 +298,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
           user,
         );
 
+        userAvailable.delete(id);
         const [socketIdsSender, socketIdsReceiver] = await Promise.all([
           this.socketService.getSocketIdsByUser(message.sender as string),
           this.socketService.getSocketIdsByUser(message.receiver as string),
@@ -322,9 +313,9 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       const socketIds = Object.keys(room?.socketsIds);
       this.sendEventToClient(socketIds, 'hangup', null);
       socketIds.forEach(socketId => {
-        this.roomMapping.delete(socketId);
+        roomMapping.delete(socketId);
       });
-      this.rooms.delete(roomId);
+      rooms.delete(roomId);
     }
   }
 
