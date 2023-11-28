@@ -140,7 +140,7 @@ export class NotificationService implements OnModuleInit {
   async countSchedule(user: User): Promise<IResponse> {
     const [queryFilter] = new FilterBuilder<Notification>()
       .setFilterItem('type', '$in', [
-        NotificationType.SCHEDULE_DATING,
+        NotificationType.INVITE_SCHEDULE_DATING,
         NotificationType.ACCEPT_SCHEDULE_DATING,
         NotificationType.CANCEL_SCHEDULE_DATING,
         NotificationType.DECLINE_SCHEDULE_DATING,

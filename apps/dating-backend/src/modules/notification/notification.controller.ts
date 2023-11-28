@@ -7,7 +7,6 @@ import { IResponse, IResult } from '@common/interfaces';
 import { User } from '@modules/users/entities';
 
 import { NotificationStatus } from '@common/consts';
-import { PaginationDTO } from '@common/dto';
 import { FilterGetAllNotification, UpdateNotificationByUserDto, UpdateNotificationDto } from './dto';
 import { Notification } from './entities';
 import { NotificationService } from './notification.service';
