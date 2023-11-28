@@ -7,7 +7,9 @@ import { get, isNil } from 'lodash';
 
 import {
   DATABASE_TYPE,
+  DatingStatus,
   NotificationType,
+  OK,
   PROVIDER_REPO,
   RequestDatingStatus,
   ReviewDatingStatus,
@@ -335,7 +337,7 @@ export class ScheduleService {
       });
       return {
         success: true,
-        message: 'Ok',
+        message: OK,
       };
     } catch (error) {
       throw error;
@@ -543,6 +545,20 @@ export class ScheduleService {
       if (!isNil(isSubmitReview)) {
         throw new BadRequestException('Đánh giá cho cuộc hẹn đã được submit');
       }
+      if (review.datingStatus === DatingStatus.YES) {
+        if (!schedule.reviews.length || schedule.reviews[0].datingStatus === DatingStatus.YES) {
+          const receiver: any =
+            String(get(schedule, 'receiver._id', null)) === payload.user ? schedule.sender : schedule.receiver;
+          const notification = await this.notiService.create({
+            sender: payload.user,
+            receiver,
+            type: NotificationType.POSITIVE_REVIEW_DATING,
+            schedule,
+          });
+          const socketIds = await this.socketService.getSocketIdsByUser(receiver._id);
+          await this.socketGateway.sendEventToClient(socketIds, 'notiSchedule', notification);
+        }
+      }
       schedule.reviews.push(review);
       const { NOT_JOINING, FAILED } = ReviewDatingStatus;
       if (![NOT_JOINING, FAILED].includes(schedule.reviewDatingStatus)) {
@@ -551,7 +567,7 @@ export class ScheduleService {
       await this.scheduleRepo.save(schedule);
       return {
         success: true,
-        message: 'Ok',
+        message: OK,
       };
     } catch (error) {
       throw error;

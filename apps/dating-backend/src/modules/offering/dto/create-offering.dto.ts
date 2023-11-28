@@ -87,6 +87,9 @@ export class CreateOfferingDto implements Partial<Offering> {
   @ApiProperty()
   text?: string;
 
+  @ApiProperty()
+  level?: number;
+
   @ApiProperty({ type: 'enum', enum: OfferingType })
   type?: OfferingType;
 

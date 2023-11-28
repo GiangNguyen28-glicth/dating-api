@@ -121,6 +121,9 @@ export class Offering implements IEntity {
   })
   type: string;
 
+  @Prop({ type: Number })
+  level: number;
+
   @Prop([{ type: Package }, { default: [] }])
   packages: Package[];
 

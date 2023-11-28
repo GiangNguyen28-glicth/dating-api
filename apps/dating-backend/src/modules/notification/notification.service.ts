@@ -6,6 +6,7 @@ import {
   DATABASE_TYPE,
   NotificationStatus,
   NotificationType,
+  OK,
   PROVIDER_REPO,
   QUEUE_NAME,
   RMQ_CHANNEL,
@@ -24,8 +25,6 @@ import {
   UpdateNotificationDto,
 } from './dto';
 import { Notification } from './entities';
-import { INotificationResult } from './interfaces';
-import { PaginationDTO } from '@common/dto';
 
 @Injectable()
 export class NotificationService implements OnModuleInit {
@@ -64,56 +63,24 @@ export class NotificationService implements OnModuleInit {
     }
   }
 
-  async findAll(user: User, filter: FilterGetAllNotification): Promise<INotificationResult> {
+  async findAll(user: User, filter: FilterGetAllNotification): Promise<IResult<Notification>> {
     try {
-      const [queryFilter, sortOption] = new FilterBuilder<Notification>()
-        .setFilterItem('receiver', '$eq', user._id)
-        .setFilterItem('status', '$eq', filter?.status)
-        .setSortItem('createdAt', 'desc')
-        .buildQuery();
-      const notifications = await this.notificationRepo.findAll({
-        queryFilter,
-        sortOption,
-        pagination: { size: filter?.size, page: filter?.page },
-      });
-      if (filter?.status === NotificationStatus.NOT_RECEIVED) {
-        // await this.rabbitService.sendToQueue(
-        //   QUEUE_NAME.NOTIFICATION_UPDATER,
-        //   notifications,
-        //   RMQ_CHANNEL.NOTIFICATION_CHANNEL,
-        // );
+      if (typeof filter?.types === 'string') {
+        filter.types = [filter.types];
       }
-      const notificationResults: INotificationResult = {
-        messages: [],
-        matched: [],
-        likes: [],
-      };
-      notifications.forEach(notification => {
-        switch (notification.type) {
-          case NotificationType.MESSAGE:
-            notificationResults.messages.push(notification);
-          case NotificationType.LIKE:
-            notificationResults.likes.push(notification);
-          case NotificationType.MATCHED:
-            notificationResults.matched.push(notification);
-        }
-      });
-
-      return notificationResults;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async findAllBySchedule(user: User, pagination: PaginationDTO): Promise<IResult<Notification>> {
-    try {
+      const scheduleTypes = [
+        NotificationType.ACCEPT_SCHEDULE_DATING,
+        NotificationType.CANCEL_SCHEDULE_DATING,
+        NotificationType.INVITE_SCHEDULE_DATING,
+        NotificationType.DECLINE_SCHEDULE_DATING,
+        NotificationType.POSITIVE_REVIEW_DATING,
+      ];
+      if (filter?.types?.includes(NotificationType.SCHEDULE_DATING)) {
+        filter?.types?.push(...scheduleTypes);
+      }
+      const selectUserFields: Array<keyof User> = ['_id', 'images', 'name', 'onlineNow'];
       const [queryFilter, sortOption] = new FilterBuilder<Notification>()
-        .setFilterItem('type', '$in', [
-          NotificationType.SCHEDULE_DATING,
-          NotificationType.ACCEPT_SCHEDULE_DATING,
-          NotificationType.CANCEL_SCHEDULE_DATING,
-          NotificationType.DECLINE_SCHEDULE_DATING,
-        ])
+        .setFilterItem('type', '$in', filter.types)
         .setFilterItem('receiver', '$eq', user._id)
         .setFilterItem('isDeleted', '$eq', false, true)
         .setSortItem('createdAt', 'desc')
@@ -123,13 +90,13 @@ export class NotificationService implements OnModuleInit {
       const [results, totalNewNotification, totalCount] = await Promise.all([
         this.notificationRepo.findAll({
           queryFilter,
-          populate: [{ path: 'schedule' }, { path: 'sender' }],
+          populate: [{ path: 'schedule' }, { path: 'sender', select: selectUserFields.join(' ') }],
           sortOption,
         }),
         this.notificationRepo.count(countFilter),
         this.notificationRepo.count(queryFilter),
       ]);
-      const response = formatResult(results, totalCount, pagination);
+      const response = formatResult(results, totalCount, { size: filter?.size, page: filter?.page });
       response.metadata = {
         totalNewNotification,
       };
@@ -139,10 +106,24 @@ export class NotificationService implements OnModuleInit {
     }
   }
 
-  async countNoti(user: User): Promise<IResponse> {
+  async countNoti(user: User, filter: FilterGetAllNotification): Promise<IResponse> {
+    if (typeof filter?.types === 'string') {
+      filter.types = [filter.types];
+    }
+    const scheduleTypes = [
+      NotificationType.ACCEPT_SCHEDULE_DATING,
+      NotificationType.CANCEL_SCHEDULE_DATING,
+      NotificationType.INVITE_SCHEDULE_DATING,
+      NotificationType.DECLINE_SCHEDULE_DATING,
+      NotificationType.POSITIVE_REVIEW_DATING,
+    ];
+    if (filter?.types?.includes(NotificationType.SCHEDULE_DATING)) {
+      filter?.types?.push(...scheduleTypes);
+    }
     const [queryFilter] = new FilterBuilder<Notification>()
       .setFilterItem('receiver', '$eq', user._id)
-      .setFilterItem('status', '$eq', NotificationStatus.NOT_RECEIVED)
+      .setFilterItem('type', '$in', filter?.types)
+      .setFilterItem('status', '$eq', filter?.status)
       .buildQuery();
     const [totalMessage, totalNoti] = await Promise.all([
       this.conversationService.countByMessageStatus(user),
@@ -222,7 +203,7 @@ export class NotificationService implements OnModuleInit {
       );
       return {
         success: true,
-        message: 'Ok',
+        message: OK,
       };
     } catch (error) {
       throw error;

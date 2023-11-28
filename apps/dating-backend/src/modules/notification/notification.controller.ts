@@ -18,22 +18,14 @@ import { NotificationService } from './notification.service';
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
-  @Get()
-  async findAll(@CurrentUser() user: User, @Query() filter: FilterGetAllNotification): Promise<any> {
+  @Get('')
+  async findAll(@CurrentUser() user: User, @Query() filter: FilterGetAllNotification): Promise<IResult<Notification>> {
     return await this.notificationService.findAll(user, filter);
   }
 
-  @Get('/schedule')
-  async findAllBySchedule(
-    @CurrentUser() user: User,
-    @Query() pagination: PaginationDTO,
-  ): Promise<IResult<Notification>> {
-    return await this.notificationService.findAllBySchedule(user, pagination);
-  }
-
   @Get('count')
-  async count(@CurrentUser() user: User): Promise<IResponse> {
-    return await this.notificationService.countNoti(user);
+  async count(@CurrentUser() user: User, @Query() filter: FilterGetAllNotification): Promise<IResponse> {
+    return await this.notificationService.countNoti(user, filter);
   }
 
   @Get('count-schedule')

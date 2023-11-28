@@ -5,12 +5,14 @@ import { BillingStatus, DATABASE_TYPE, MongoQuery, PROVIDER_REPO } from '@common
 import { CurrentUser } from '@common/decorators';
 import { IResponse, IResult } from '@common/interfaces';
 import { BillingRepo } from '@dating/repositories';
+
 import { FilterBuilder, throwIfNotExists } from '@dating/utils';
 import { User } from '@modules/users/entities';
 
 import { FilterGetStatistic } from '@modules/admin/dto';
 import { CreateBillingDto, FilterGetAllBillingDTO, FilterGetOneBillingDTO, UpdateBillingDto } from './dto';
 import { Billing } from './entities';
+import { Offering } from '@modules/offering/entities';
 
 @Injectable()
 export class BillingService {
@@ -18,6 +20,7 @@ export class BillingService {
     @Inject(PROVIDER_REPO.BILLING + DATABASE_TYPE.MONGO)
     private billingRepo: BillingRepo,
   ) {}
+
   async create(billingDto: CreateBillingDto): Promise<Billing> {
     try {
       const billing = await this.billingRepo.insert(billingDto);
@@ -101,6 +104,19 @@ export class BillingService {
     }
     const [queryFilter] = queryBuilder.buildQuery();
     return await this.billingRepo.topUsersByRevenue(queryFilter);
+  }
+
+  async findOneByCurrentUser(userId: string): Promise<Billing> {
+    const [queryFilter] = new FilterBuilder<Billing>()
+      .setFilterItem('createdBy', '$eq', userId)
+      .setFilterItem('expiredDate', '$gte', new Date())
+      .setFilterItem('isRetail', '$eq', false, true)
+      .buildQuery();
+    const selectOfferingFields: Array<keyof Offering> = ['_id', 'type', 'level'];
+    return await this.billingRepo.findOne({
+      queryFilter,
+      populate: [{ path: 'offering', select: selectOfferingFields.join(' ') }],
+    });
   }
 
   async save(billing: Billing): Promise<void> {

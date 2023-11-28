@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException, OnModuleInit, forwardRef } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
 import axios from 'axios';
 import { get, isNil } from 'lodash';
@@ -17,7 +17,9 @@ import {
 } from '@dating/common';
 import { UserRepo } from '@dating/repositories';
 import { FilterBuilder, downloadImage, formatResult, mappingData, throwIfNotExists } from '@dating/utils';
+
 import { TagService } from '@modules/tag/tag.service';
+import { BillingService } from '@modules/billing/billing.service';
 
 import { FilterGetStatistic, GroupDate } from '@modules/admin/dto';
 import { CreateUserDTO, FilterGetAllUserDTO, FilterGetOneUserDTO, UpdateUserTagDTO } from './dto';
@@ -34,6 +36,7 @@ export class UserService implements OnModuleInit {
     private userHelper: UserHelper,
     private rabbitService: RabbitService,
     private tagService: TagService,
+    private billingService: BillingService,
   ) {}
 
   async onModuleInit() {
@@ -277,7 +280,7 @@ export class UserService implements OnModuleInit {
     try {
       const { tagId, tagType } = updateTagDto;
       const tag = await this.tagService.findOne({ _id: tagId, type: tagType });
-      user = await this.populate(user);
+      user = await this.getCurrentUser(user);
       user.tags = user.tags.filter(tag => {
         if (tag.type != updateTagDto.tagType) {
           return tag;
@@ -294,12 +297,19 @@ export class UserService implements OnModuleInit {
     }
   }
 
-  async populate(user: User): Promise<User> {
-    return this.userRepo.populate(user as unknown as Document, [
-      { path: 'tags' },
-      { path: 'relationships' },
-      { path: 'relationshipStatus' },
-    ]);
+  async getCurrentUser(user: User, offering = false): Promise<User> {
+    const currentUser = await this.userRepo.toJSON(
+      await this.userRepo.populate(user as unknown as Document, [
+        { path: 'tags' },
+        { path: 'relationships' },
+        { path: 'relationshipStatus' },
+      ]),
+    );
+    if (offering) {
+      const billing = await this.billingService.findOneByCurrentUser(user._id);
+      currentUser['offering'] = billing?.offering;
+    }
+    return currentUser;
   }
 
   //======================================Admin======================================

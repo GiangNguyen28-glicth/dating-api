@@ -1,9 +1,12 @@
-import { CloudinaryProvider } from '@common/provider';
 import { Global, Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { isNil } from 'lodash';
-import { ActionModule } from '@modules/action';
+
 import { UserMongoRepoProvider } from '@dating/repositories';
+import { CloudinaryProvider } from '@common/provider';
+
+import { ActionModule } from '@modules/action';
+import { BillingModule } from '@modules/billing';
 
 import { User, UserSchema } from './entities';
 import { HelperController } from './helper.controller';
@@ -40,6 +43,7 @@ import { UpdateUserProfileInterceptor } from './interceptors';
       },
     ]),
     forwardRef(() => ActionModule),
+    BillingModule,
   ],
   controllers: [UsersController, HelperController],
   providers: [UserService, UserHelper, UserMongoRepoProvider, CloudinaryProvider, UpdateUserProfileInterceptor],

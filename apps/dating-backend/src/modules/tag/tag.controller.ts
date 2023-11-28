@@ -14,8 +14,8 @@ export class TagController {
   constructor(private readonly tagService: TagService) {}
 
   @Get()
-  findAll(@Query() filter: FilterGetAllTagDTO): Promise<IResult<Tag>> {
-    return this.tagService.findAll(filter);
+  async findAll(@Query() filter: FilterGetAllTagDTO): Promise<IResult<Tag>> {
+    return await this.tagService.findAll(filter);
   }
 
   @Get(':id')

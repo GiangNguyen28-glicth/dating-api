@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import axios from 'axios';
@@ -12,7 +12,6 @@ import {
   OTP_EXPIRED_TIME,
   REFRESH_TOKEN_TTL,
   RegisterType,
-  SMS_DELETE_ACCOUNT,
   SMS_LOGIN,
   TOKEN,
 } from '@dating/common';
@@ -26,10 +25,10 @@ import {
 import { User } from '@modules/users/entities';
 
 import { AdminService } from '@modules/admin/admin.service';
-import { UserService } from '@modules/users/users.service';
 import { MailService } from '@modules/mail/mail.service';
+import { UserService } from '@modules/users/users.service';
 
-import { AdminAuthDTO, DeleteAccountOTPDTO, SmsDTO, VerifyOTPDTO } from './dto';
+import { AdminAuthDTO, SmsDTO, VerifyOTPDTO } from './dto';
 import { IJwtPayload, IToken } from './interfaces';
 
 @Injectable()

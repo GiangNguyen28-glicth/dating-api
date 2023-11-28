@@ -1,7 +1,9 @@
-import { DATABASE_TYPE, IResponse, IResult, PROVIDER_REPO, PaginationDTO } from '@dating/common';
+import { Inject, Injectable } from '@nestjs/common';
+
+import { DATABASE_TYPE, IResponse, IResult, OK, PROVIDER_REPO, PaginationDTO } from '@dating/common';
 import { TagRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
-import { Inject, Injectable } from '@nestjs/common';
+
 import { CreateTagDTO, FilterGetAllTagDTO, FilterGetOneTag, UpdateTagDTO } from './dto';
 import { Tag } from './entities';
 
@@ -56,7 +58,7 @@ export class TagService {
       await this.tagRepo.save(tag);
       return {
         success: true,
-        message: 'Tao Tag thanh cong',
+        message: OK,
       };
     } catch (error) {
       throw error;

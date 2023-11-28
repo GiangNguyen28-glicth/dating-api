@@ -14,10 +14,12 @@ export enum TagType {
   PETS = 'Pets',
   DIETARY_PREFERENCE = 'Dietary Preference',
   PERSONALITY_TYPE = 'Personality Type',
-  ZODIAC = 'Zodiac',
-  SMOKE_QUESTION = 'Smoke question',
   LOVE_QUESTION = 'Love question',
   DO_EXERCISE = 'Do exercise',
+  SMOKE_QUESTION = 'Smoke question',
+  ZODIAC = 'Zodiac',
+  Drinking = 'Drinking',
+  CHILDREN = 'Religion',
 }
 
 export enum RegisterType {
@@ -133,10 +135,12 @@ export enum NotificationType {
   LIKE = 'Like',
   SUPER_LIKE = 'Super like',
   MATCHED = 'Matched',
-  SCHEDULE_DATING = 'Invite schedule dating',
+  INVITE_SCHEDULE_DATING = 'Invite schedule dating',
   CANCEL_SCHEDULE_DATING = 'Cancel schedule dating',
   ACCEPT_SCHEDULE_DATING = 'Accept schedule dating',
   DECLINE_SCHEDULE_DATING = 'Decline schedule dating',
+  POSITIVE_REVIEW_DATING = 'Positive review',
+  SCHEDULE_DATING = 'Schedule dating',
 }
 
 export enum NotificationStatus {
