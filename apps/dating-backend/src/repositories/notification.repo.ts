@@ -8,8 +8,7 @@ import { Notification } from '@modules/notification/entities';
 import { User } from '@modules/users/entities';
 
 export interface NotificationRepo extends CrudRepo<Notification> {
-  updateManyByIds(ids: string[], entities: Partial<Notification>, user: User): Promise<void>;
-  updateManyByFilter(filter: Partial<Notification>, update: UpdateNotificationDto): Promise<void>;
+  updateManyByFilter(filter: Partial<Notification>, update: UpdateNotificationDto): Promise<Notification[]>;
   deleteManyByReceiver(ids: string[], user: User): Promise<void>;
   deleteByFilter(filter: Partial<Notification>): Promise<void>;
 }

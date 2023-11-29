@@ -2,15 +2,7 @@ import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
 
 import { RabbitService } from '@app/shared';
-import {
-  DATABASE_TYPE,
-  NotificationStatus,
-  NotificationType,
-  OK,
-  PROVIDER_REPO,
-  QUEUE_NAME,
-  RMQ_CHANNEL,
-} from '@common/consts';
+import { DATABASE_TYPE, NotificationStatus, OK, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
 import { IResponse, IResult } from '@common/interfaces';
 import { NotificationRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
@@ -19,12 +11,12 @@ import { User } from '@modules/users/entities';
 
 import {
   CreateNotificationDto,
-  DeleteManyNotification,
   FilterGetAllNotification,
   UpdateNotificationByUserDto,
   UpdateNotificationDto,
 } from './dto';
 import { Notification } from './entities';
+import { set } from 'lodash';
 
 @Injectable()
 export class NotificationService implements OnModuleInit {
@@ -65,24 +57,12 @@ export class NotificationService implements OnModuleInit {
 
   async findAll(user: User, filter: FilterGetAllNotification): Promise<IResult<Notification>> {
     try {
-      if (typeof filter?.types === 'string') {
-        filter.types = [filter.types];
-      }
-      const scheduleTypes = [
-        NotificationType.ACCEPT_SCHEDULE_DATING,
-        NotificationType.CANCEL_SCHEDULE_DATING,
-        NotificationType.INVITE_SCHEDULE_DATING,
-        NotificationType.DECLINE_SCHEDULE_DATING,
-        NotificationType.POSITIVE_REVIEW_DATING,
-      ];
-      if (filter?.types?.includes(NotificationType.SCHEDULE_DATING)) {
-        filter?.types?.push(...scheduleTypes);
-      }
+      set(filter, 'types', Notification.getFilter(filter?.types));
       const selectUserFields: Array<keyof User> = ['_id', 'images', 'name', 'onlineNow'];
       const [queryFilter, sortOption] = new FilterBuilder<Notification>()
         .setFilterItem('receiver', '$eq', user._id)
         .setFilterItem('status', '$eq', filter?.status)
-        .setFilterItem('type', '$in', filter.types)
+        .setFilterItem('type', '$in', filter?.types)
         .setSortItem('createdAt', 'desc')
         .buildQuery();
       const countFilter = JSON.parse(JSON.stringify(queryFilter));
@@ -111,19 +91,7 @@ export class NotificationService implements OnModuleInit {
   }
 
   async countNoti(user: User, filter: FilterGetAllNotification): Promise<IResponse> {
-    if (typeof filter?.types === 'string') {
-      filter.types = [filter.types];
-    }
-    const scheduleTypes = [
-      NotificationType.ACCEPT_SCHEDULE_DATING,
-      NotificationType.CANCEL_SCHEDULE_DATING,
-      NotificationType.INVITE_SCHEDULE_DATING,
-      NotificationType.DECLINE_SCHEDULE_DATING,
-      NotificationType.POSITIVE_REVIEW_DATING,
-    ];
-    if (filter?.types?.includes(NotificationType.SCHEDULE_DATING)) {
-      filter?.types?.push(...scheduleTypes);
-    }
+    set(filter, 'types', Notification.getFilter(filter?.types));
     const [queryFilter] = new FilterBuilder<Notification>()
       .setFilterItem('receiver', '$eq', user._id)
       .setFilterItem('type', '$in', filter?.types)
@@ -137,28 +105,7 @@ export class NotificationService implements OnModuleInit {
       success: true,
       data: {
         totalCount: totalMessage + totalNoti,
-      },
-    };
-  }
-
-  async countSchedule(user: User): Promise<IResponse> {
-    const [queryFilter] = new FilterBuilder<Notification>()
-      .setFilterItem('type', '$in', [
-        NotificationType.INVITE_SCHEDULE_DATING,
-        NotificationType.ACCEPT_SCHEDULE_DATING,
-        NotificationType.CANCEL_SCHEDULE_DATING,
-        NotificationType.DECLINE_SCHEDULE_DATING,
-      ])
-      .setFilterItem('receiver', '$eq', user._id)
-      .setFilterItem('isDeleted', '$eq', false, true)
-      .setFilterItem('status', '$eq', NotificationStatus.NOT_RECEIVED)
-      .setSortItem('createdAt', 'desc')
-      .buildQuery();
-    const totalCount = await this.notificationRepo.count(queryFilter);
-    return {
-      success: true,
-      data: {
-        totalCount,
+        totalNewNotification: totalNoti,
       },
     };
   }
@@ -176,35 +123,45 @@ export class NotificationService implements OnModuleInit {
     }
   }
 
-  async deleteMany(data: DeleteManyNotification, user: User): Promise<void> {
+  async deleteMany(filter: FilterGetAllNotification, user: User): Promise<void> {
     try {
+      set(filter, 'types', Notification.getFilter(filter?.types));
       console.log('@@@@@@@@@@@@@@@@=Delete notification=@@@@@@@@@@@@@@@@');
-      data.receiver = user._id;
-      await this.notificationRepo.deleteByFilter(data);
+      const [queryFilter] = new FilterBuilder<Notification>()
+        .setFilterItem('_id', '$in', filter?.ids)
+        .setFilterItem('receiver', '$eq', user?._id)
+        .setFilterItem('schedule', '$eq', filter?.schedule)
+        .setFilterItem('status', '$eq', filter?.status)
+        .setFilterItem('type', '$in', filter?.types)
+        .buildQuery();
+      await this.notificationRepo.deleteByFilter(queryFilter);
     } catch (error) {
       throw error;
     }
   }
 
-  async updateMany(notiDto: UpdateNotificationByUserDto, user: User): Promise<IResponse> {
+  async updateStatusToReceived(filter: FilterGetAllNotification, notiDto: UpdateNotificationDto): Promise<IResponse> {
     try {
-      const { ids, notification } = notiDto;
-      await this.notificationRepo.updateManyByIds(ids, notification, user);
+      set(filter, 'types', Notification.getFilter(filter?.types));
+      const [queryFilter] = new FilterBuilder<Notification>()
+        .setFilterItem('receiver', '$eq', filter?.receiver)
+        .setFilterItem('type', '$in', filter?.types)
+        .setFilterItem('status', '$eq', filter?.status)
+        .buildQuery();
+      await this.notificationRepo.updateManyByFilter(queryFilter, notiDto);
       return {
         success: true,
-        message: 'Ok',
+        message: OK,
       };
     } catch (error) {
       throw error;
     }
   }
 
-  async updateManyBySchedule(user: User, update: UpdateNotificationDto): Promise<IResponse> {
+  async findOneAndUpdate(id: string, body: UpdateNotificationDto, user: User): Promise<IResponse> {
     try {
-      await this.notificationRepo.updateManyByFilter(
-        { receiver: user._id, status: NotificationStatus.NOT_RECEIVED },
-        update,
-      );
+      console.log(body);
+      await this.notificationRepo.updateManyByFilter({ _id: id, receiver: user._id }, body);
       return {
         success: true,
         message: OK,

@@ -72,7 +72,7 @@ export class UsersController {
   @ApiBearerAuth()
   @UseGuards(AtGuard)
   async updateLocation(@CurrentUser() user: User, @Body() location: UpdateUserLocationDTO): Promise<IResponse> {
-    await this.userService.updateLocation(user._id.toString(), location);
+    await this.userService.updateLocation(user._id, location);
     return {
       success: true,
       message: 'Cập nhật vị trí user thành công',

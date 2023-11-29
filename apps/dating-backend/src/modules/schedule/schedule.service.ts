@@ -285,6 +285,7 @@ export class ScheduleService {
           sender: user,
           receiver,
           type: NotificationType.CANCEL_SCHEDULE_DATING,
+          description: NotificationType.CANCEL_SCHEDULE_DATING,
           schedule,
         }),
       );
@@ -325,6 +326,7 @@ export class ScheduleService {
           sender: user,
           receiver,
           type: NotificationType.ACCEPT_SCHEDULE_DATING,
+          description: NotificationType.ACCEPT_SCHEDULE_DATING,
           schedule,
         }),
       );
@@ -360,12 +362,13 @@ export class ScheduleService {
       //   );
       // }
       promises.push(
-        this.notiService.deleteMany({ schedule: schedule._id, type: NotificationType.INVITE_SCHEDULE_DATING }, user),
+        this.notiService.deleteMany({ schedule: schedule._id, types: [NotificationType.SCHEDULE_DATING] }, user),
         this.socketService.getSocketIdsByUser(receiver._id.toString()),
         this.notiService.create({
           sender: user,
           receiver,
           type: NotificationType.DECLINE_SCHEDULE_DATING,
+          description: NotificationType.DECLINE_SCHEDULE_DATING,
           schedule,
         }),
       );
@@ -552,7 +555,8 @@ export class ScheduleService {
           const notification = await this.notiService.create({
             sender: payload.user,
             receiver,
-            type: NotificationType.POSITIVE_REVIEW_DATING,
+            type: NotificationType.SCHEDULE_DATING,
+            description: NotificationType.POSITIVE_REVIEW_DATING,
             schedule,
           });
           const socketIds = await this.socketService.getSocketIdsByUser(receiver._id);

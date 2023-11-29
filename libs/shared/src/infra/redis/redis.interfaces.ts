@@ -1,5 +1,5 @@
 export interface IRedisSet {
   key: string;
-  ttl: number;
+  ttl?: number;
   data: string;
 }

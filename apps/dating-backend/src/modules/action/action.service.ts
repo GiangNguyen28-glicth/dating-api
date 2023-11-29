@@ -115,7 +115,7 @@ export class ActionService {
         };
 
         const notiDto: CreateNotificationDto = {
-          status: NotificationStatus.NOT_SEEN,
+          status: NotificationStatus.NOT_RECEIVED,
           sender,
           receiver,
           type: NotificationType.LIKE,
@@ -226,9 +226,9 @@ export class ActionService {
     }
   }
 
-  async skip(owner: User, userId: string): Promise<IResponse> {
+  async skip(sender: User, receiverId: string): Promise<IResponse> {
     try {
-      await Promise.all([this.actionRepo.skip(owner, userId), this.matchReqService.skip(owner._id.toString(), userId)]);
+      await Promise.all([this.actionRepo.skip(sender, receiverId), this.matchReqService.skip(sender._id, receiverId)]);
 
       return {
         success: true,

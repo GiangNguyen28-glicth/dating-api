@@ -25,7 +25,7 @@ export type MatchRequestModelType = Model<MatchRequest>;
 export type RelationshipModelType = Model<Relationship>;
 export type NotificationModelType = Model<Notification>;
 export type ScheduleModelType = Model<Schedule>;
-export type MongoQuery = '$eq' | '$gte' | '$lte' | '$in' | '$nin' | '$elemMatch' | '$exists' | '$ne';
+export type MongoQuery = '$eq' | '$gte' | '$lte' | '$in' | '$nin' | '$elemMatch' | '$exists' | '$ne' | '$all';
 
 export enum BulkWriteKey {
   insertOne = 'insertOne',

@@ -20,20 +20,30 @@ export class HelperController {
 
   @Get('/location/province')
   async getProvince() {
-    return (await axios.get('https://provinces.open-api.vn/api/')).data;
+    try {
+      return (await axios.get('https://provinces.open-api.vn/api/')).data;
+    } catch (error) {
+      throw error;
+    }
   }
   @Get('/location/district/:code')
   @ApiParam({ type: 'string', name: 'code' })
   async getDistrict(@Param('code') code: string) {
-    const resp = await axios.get(`https://provinces.open-api.vn/api/p/${code}?depth=2`);
-    return resp.data;
+    try {
+      return (await axios.get(`https://provinces.open-api.vn/api/p/${code}?depth=2`)).data;
+    } catch (error) {
+      throw error;
+    }
   }
 
   @Get('/location/wards/:code')
   @ApiParam({ type: 'string', name: 'code' })
   async getWards(@Param('code') code: string) {
-    const resp = await axios.get('https://provinces.open-api.vn/api/d/' + code + '?depth=2');
-    return resp.data;
+    try {
+      return (await axios.get('https://provinces.open-api.vn/api/d/' + code + '?depth=2')).data;
+    } catch (error) {
+      throw error;
+    }
   }
 
   @Get('spotify/info')

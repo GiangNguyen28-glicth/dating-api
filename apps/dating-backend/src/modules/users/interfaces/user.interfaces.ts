@@ -23,3 +23,17 @@ export interface SpotifyPayload {
   images: SpotifyImagePayload[];
   name: string;
 }
+
+export const excludeFieldRecommendation = {
+  __v: 0,
+  geoLocation: 0,
+  setting: 0,
+  registerType: 0,
+  featureAccess: 0,
+  isBlocked: 0,
+  isDeleted: 0,
+  stepStarted: 0,
+  createdAt: 0,
+  updatedAt: 0,
+  showMeInFinder: 0,
+};

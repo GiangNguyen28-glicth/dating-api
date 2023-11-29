@@ -1,6 +1,6 @@
-import { IsInt, IsOptional, Max, Min } from 'class-validator';
-import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { IsOptional } from 'class-validator';
 
 import { NotificationStatus, NotificationType } from '@common/consts';
 import { Notification } from '../entities';
@@ -9,7 +9,7 @@ export class FilterGetAllNotification implements Partial<Notification> {
   @ApiPropertyOptional({ type: NotificationStatus, enum: NotificationStatus })
   status?: NotificationStatus;
 
-  @ApiPropertyOptional({ type: [String], enum: NotificationType })
+  @ApiPropertyOptional({ type: [NotificationType], enum: NotificationType })
   types?: NotificationType[];
 
   @ApiProperty({ type: Number, default: 1, required: false })
@@ -21,4 +21,12 @@ export class FilterGetAllNotification implements Partial<Notification> {
   @IsOptional()
   @Type(() => Number)
   size?: number;
+
+  receiver?: string;
+
+  schedule?: string;
+
+  type?: NotificationType;
+
+  ids?: string[];
 }

@@ -1,13 +1,13 @@
 import { Body, Controller, Delete, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { CurrentUser } from '@common/decorators';
 import { AtGuard } from '@common/guards';
 import { IResponse, IResult } from '@common/interfaces';
+
 import { User } from '@modules/users/entities';
 
-import { NotificationStatus } from '@common/consts';
-import { FilterGetAllNotification, UpdateNotificationByUserDto, UpdateNotificationDto } from './dto';
+import { FilterGetAllNotification, UpdateNotificationDto } from './dto';
 import { Notification } from './entities';
 import { NotificationService } from './notification.service';
 
@@ -17,7 +17,7 @@ import { NotificationService } from './notification.service';
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
-  @Get('')
+  @Get()
   async findAll(@CurrentUser() user: User, @Query() filter: FilterGetAllNotification): Promise<IResult<Notification>> {
     return await this.notificationService.findAll(user, filter);
   }
@@ -27,29 +27,28 @@ export class NotificationController {
     return await this.notificationService.countNoti(user, filter);
   }
 
-  @Get('count-schedule')
-  async countSchedule(@CurrentUser() user: User): Promise<IResponse> {
-    return await this.notificationService.countSchedule(user);
-  }
-
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<IResponse> {
     return await this.notificationService.remove(id);
   }
 
-  @Patch()
+  @Patch('/received')
   @ApiBearerAuth()
-  @ApiBody({ type: UpdateNotificationByUserDto })
-  async updateMany(@Body() notiDto: UpdateNotificationByUserDto, @CurrentUser() user: User): Promise<IResponse> {
-    return await this.notificationService.updateMany(notiDto, user);
+  async updateStatus(
+    @CurrentUser() user: User,
+    @Query() filter: FilterGetAllNotification,
+    @Body() notification: UpdateNotificationDto,
+  ): Promise<IResponse> {
+    filter.receiver = user._id;
+    return await this.notificationService.updateStatusToReceived(filter, notification);
   }
 
-  @Patch('/schedule')
-  @ApiBearerAuth()
-  async updateNotiBySchedule(@CurrentUser() user: User): Promise<IResponse> {
-    const update: UpdateNotificationDto = {
-      status: NotificationStatus.RECEIVED,
-    };
-    return await this.notificationService.updateManyBySchedule(user, update);
+  @Patch(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() notification: UpdateNotificationDto,
+    @CurrentUser() user: User,
+  ): Promise<IResponse> {
+    return await this.notificationService.findOneAndUpdate(id, notification, user);
   }
 }

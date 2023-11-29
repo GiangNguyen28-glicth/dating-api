@@ -12,7 +12,15 @@ import {
 import { Server, Socket } from 'socket.io';
 
 import { RedisService } from '@app/shared';
-import { CurrentUserWS, MessageStatus, MessageType, SOCKET, WebsocketExceptionsFilter, WsGuard } from '@dating/common';
+import {
+  CurrentUserWS,
+  MessageStatus,
+  MessageType,
+  SOCKET,
+  SOCKET_ID_TTL,
+  WebsocketExceptionsFilter,
+  WsGuard,
+} from '@dating/common';
 import { CreateMessageDto, SeenMessage } from '@modules/message/dto';
 import { Message } from '@modules/message/entities';
 import { MessageService } from '@modules/message/message.service';
@@ -56,7 +64,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   ) {}
 
   async onModuleInit() {
-    // return;
+    return;
     console.log('Start scan');
     await this.redisService.deleteWithPrefixKey(SOCKET);
   }
@@ -90,7 +98,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       const socketIds: string[] = await this.redisService.smembers(userId);
       console.log('========================Disconnection========================');
       if (!socketIds.length) {
-        await this.userService.findOneAndUpdate(userId, { onlineNow: false });
+        await this.userService.findOneAndUpdate(userId, { onlineNow: false, lastActiveDate: new Date() });
       }
     } catch (error) {
       return;
@@ -103,8 +111,9 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     console.log('========================verifyFirstConnection========================');
     try {
       (socket as any).userId = user._id.toString();
-      const socketKey = SOCKET + user._id.toString();
-      await this.redisService.sadd(socketKey, socket.id);
+      const key = SOCKET + user._id.toString();
+      await this.redisService.sadd({ key, data: socket.id, ttl: SOCKET_ID_TTL });
+      await this.userService.findOneAndUpdate(user._id, { lastActiveDate: new Date() });
       this.server.sockets.to(socket.id).emit('verifyFirstConnection', user);
     } catch (error) {
       throw error;
@@ -114,7 +123,6 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   @SubscribeMessage('sendMessage')
   @UseGuards(WsGuard)
   async sendMessage(@MessageBody() data: CreateMessageDto, @CurrentUserWS() user: User): Promise<void> {
-    console.log(JSON.stringify(data));
     console.log('========================sendMessage========================');
     try {
       const message = await this.messageService.create(data, user);
@@ -132,11 +140,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 
   @SubscribeMessage('seenMessage')
   @UseGuards(WsGuard)
-  async seenMessage(
-    @MessageBody() data: SeenMessage,
-    @ConnectedSocket() client: Socket,
-    // @CurrentUserWS() user: User,
-  ) {
+  async seenMessage(@MessageBody() data: SeenMessage, @ConnectedSocket() client: Socket) {
     try {
       console.log('========================seenMessage========================');
       await this.messageService.seenMessage(data);

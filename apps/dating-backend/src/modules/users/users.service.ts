@@ -25,7 +25,7 @@ import { FilterGetStatistic, GroupDate } from '@modules/admin/dto';
 import { CreateUserDTO, FilterGetAllUserDTO, FilterGetOneUserDTO, UpdateUserTagDTO } from './dto';
 import { User, UserSetting } from './entities';
 import { UserHelper } from './helper';
-import { FinalCondRecommendation } from './interfaces';
+import { FinalCondRecommendation, excludeFieldRecommendation } from './interfaces';
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -82,6 +82,12 @@ export class UserService implements OnModuleInit {
       const countStage = [...recommendationStage];
       recommendationStage.push(
         {
+          $skip: (pagination?.page - 1) * pagination?.size || 0,
+        },
+        {
+          $limit: pagination?.size || 100,
+        },
+        {
           $lookup: {
             from: 'tags',
             let: { tags: '$tags' },
@@ -112,6 +118,12 @@ export class UserService implements OnModuleInit {
                   $expr: { $in: ['$_id', '$$relationships'] },
                 },
               },
+              {
+                $project: {
+                  name: 1,
+                  description: 1,
+                },
+              },
             ],
             as: 'relationships',
           },
@@ -125,27 +137,10 @@ export class UserService implements OnModuleInit {
           },
         },
         {
-          $project: {
-            __v: 0,
-            geoLocation: 0,
-            setting: 0,
-            registerType: 0,
-            featureAccess: 0,
-            isBlocked: 0,
-            isDeleted: 0,
-            stepStarted: 0,
-            createdAt: 0,
-            updatedAt: 0,
-          },
+          $project: excludeFieldRecommendation,
         },
         {
           $sort: { 'boostsSession.expiredDate': -1, _id: -1 },
-        },
-        {
-          $skip: (pagination?.page - 1) * pagination?.size || 0,
-        },
-        {
-          $limit: pagination?.size || 100,
         },
       );
       const [totalCount, results] = await Promise.all([
@@ -227,20 +222,17 @@ export class UserService implements OnModuleInit {
           blurAvatar: entities.blurAvatar,
         });
       }
-      const imagesVerify = entities.images
-        .filter(img => isNil(img.isVerifiedSuccess) || !img.isVerifiedSuccess)
-        .map(item => item.url);
-      if (imagesVerify.length) {
-        console.log('zo day');
-        try {
-          axios.post('https://finder.sohe.in/face/recognize', {
-            userId: userId,
-            images: imagesVerify,
-          });
-        } catch (error) {
-          console.log(error);
-        }
-      }
+      const imagesVerify = entities.images.filter(img => isNil(img.isVerifiedSuccess)).map(item => item.url);
+      // if (imagesVerify.length) {
+      //   try {
+      //     axios.post('https://finder.sohe.in/face/recognize', {
+      //       userId: userId,
+      //       images: imagesVerify,
+      //     });
+      //   } catch (error) {
+      //     console.log('aaaaaaaaa', error);
+      //   }
+      // }
     }
   }
 
@@ -298,18 +290,22 @@ export class UserService implements OnModuleInit {
   }
 
   async getCurrentUser(user: User, offering = false): Promise<User> {
-    const currentUser = await this.userRepo.toJSON(
-      await this.userRepo.populate(user as unknown as Document, [
-        { path: 'tags' },
-        { path: 'relationships' },
-        { path: 'relationshipStatus' },
-      ]),
-    );
-    if (offering) {
-      const billing = await this.billingService.findOneByCurrentUser(user._id);
-      currentUser['offering'] = billing?.offering;
+    try {
+      const currentUser = await this.userRepo.toJSON(
+        await this.userRepo.populate(user as unknown as Document, [
+          { path: 'tags' },
+          { path: 'relationships' },
+          { path: 'relationshipStatus' },
+        ]),
+      );
+      if (offering) {
+        const billing = await this.billingService.findOneByCurrentUser(user._id);
+        currentUser['offering'] = billing?.offering;
+      }
+      return currentUser;
+    } catch (error) {
+      throw error;
     }
-    return currentUser;
   }
 
   //======================================Admin======================================

@@ -64,17 +64,17 @@ export class UserHelper implements OnModuleInit {
     // });
   }
   async getRawLocation(lat: number, long: number) {
-    if (!lat || !long) {
-      throw new BadRequestException('Missing param lat,long');
+    try {
+      if (!lat || !long) {
+        throw new BadRequestException('Missing param lat,long');
+      }
+      const GOOGLE_MAP_API_KEY = process.env.GOOGLE_MAP_API_KEY;
+      return await axios.get(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${GOOGLE_MAP_API_KEY}`,
+      );
+    } catch (error) {
+      throw error;
     }
-    const GOOGLE_MAP_API_KEY = process.env.GOOGLE_MAP_API_KEY;
-    return await axios.get(
-      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${GOOGLE_MAP_API_KEY}`,
-    );
-  }
-
-  async getProvince() {
-    return (await axios.get('https://provinces.open-api.vn/api/')).data;
   }
 
   async getLocation(lat: number, long: number): Promise<UserAddress> {
@@ -132,9 +132,9 @@ export class UserHelper implements OnModuleInit {
       queryFilter.setFilterItem('gender', '$eq', user.setting.discovery.lookingFor);
     }
     if (user.setting.advancedFilter.enable) {
-      const tagIds: string[] = user.setting.advancedFilter.tags.map(tag => tag.tagId);
+      const tagIds: Types.ObjectId[] = user.setting.advancedFilter.tags.map(tag => new Types.ObjectId(tag.tagId));
       if (tagIds.length) {
-        queryFilter.setFilterItem('tags', '$in', user.tags);
+        queryFilter.setFilterItem('tags', '$all', tagIds);
       }
     }
     return queryFilter.buildQuery()[0];

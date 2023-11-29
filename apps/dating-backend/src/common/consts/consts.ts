@@ -48,6 +48,7 @@ export const DATABASE_TYPE = {
 };
 
 export const REFRESH_TOKEN_TTL = 365 * 24 * 60 * 60;
+export const SOCKET_ID_TTL = 24 * 60 * 60;
 export const REDIS_KEY_PREFIX = {
   NOTI_MATCHED: 'NOTI_MATCHED_',
   SOCKET: 'SOCKET_',

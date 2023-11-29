@@ -64,8 +64,26 @@ export class RedisService implements OnModuleInit {
     await this.redisClient.srem(key, value);
   }
 
-  async sadd(key: string, value): Promise<void> {
-    await this.redisClient.sadd(key, value);
+  async sadd(redisSet: IRedisSet): Promise<void> {
+    try {
+      if (redisSet?.ttl) {
+        return new Promise((resolve, reject) => {
+          this.redisClient
+            .multi()
+            .sadd(redisSet.key, redisSet.data)
+            .expire(redisSet.key, redisSet.ttl)
+            .exec(err => {
+              if (err) {
+                reject(err);
+              }
+            });
+        });
+      }
+      await this.redisClient.sadd(redisSet.key, redisSet.data);
+    } catch (error) {
+      console.log(error);
+      return;
+    }
   }
 
   async deleteWithPrefixKey(key: string): Promise<void> {

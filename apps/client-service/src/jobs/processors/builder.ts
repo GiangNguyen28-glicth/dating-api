@@ -15,9 +15,6 @@ export class BuilderService {
         if (item.name === MerchandisingType.SUPER_LIKE && item.amount > 1) {
           return false;
         }
-        if (item.name === MerchandisingType.BOOSTS && item.amount > 0) {
-          return false;
-        }
       }
       return true;
     };
@@ -44,7 +41,12 @@ export class BuilderService {
         updateOneList.push({
           updateOne: {
             filter: { _id: user._id },
-            update: { $set: { featureAccess: mapping(User.getDefaultFeatureAccess(), user.featureAccess) } },
+            update: {
+              $set: {
+                featureAccess: mapping(User.getDefaultFeatureAccess(), user.featureAccess),
+                'boostsSession.expiredDate': new Date(),
+              },
+            },
           },
         });
       }
@@ -52,7 +54,7 @@ export class BuilderService {
     const updateDefault: IBulkWrite = {
       updateMany: {
         filter: { _id: { $in: bulkWriteDefault } },
-        update: { $set: { featureAccess: User.getDefaultFeatureAccess() } },
+        update: { $set: { featureAccess: User.getDefaultFeatureAccess(), 'boostsSession.expiredDate': new Date() } },
       },
     };
     return [updateDefault].concat(updateOneList);
@@ -84,7 +86,6 @@ export class BuilderService {
             arrayFilters.push(ftFilter);
           } else {
             $inc['boostsSession.amount'] = merchandising.amount;
-            console.log('Zo day');
           }
         }
       }

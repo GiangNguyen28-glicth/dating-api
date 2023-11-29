@@ -134,20 +134,19 @@ export class MatchRequestService {
 
   async matched(matchedAction: IMatchedAction): Promise<void> {
     const { sender, receiver, socketIdsClient, matchRq } = matchedAction;
+    console.log(socketIdsClient);
     const conversationDto: CreateConversationDto = {
       members: [sender._id, receiver._id],
     };
 
-    const conversation = await this.conversationService.toJSON(
-      await this.getConversationByStatus(matchedAction, conversationDto),
-    );
+    const conversation = await this.conversationService.create(conversationDto);
 
     const senderNotiDto: CreateNotificationDto = {
       sender,
       receiver,
       type: NotificationType.MATCHED,
       conversation,
-      status: NotificationStatus.NOT_SEEN,
+      status: NotificationStatus.NOT_RECEIVED,
     };
     matchRq.status = MatchRqStatus.MATCHED;
     const receiverNotiDto = { ...senderNotiDto };
@@ -161,35 +160,8 @@ export class MatchRequestService {
     ]);
     conversation.members = [sender, receiver];
 
-    this.socketGateway.sendEventToClient(socketIdsClient.sender, 'newNotification', {
-      conversation,
-      notificationId: notiSender._id,
-    });
-    this.socketGateway.sendEventToClient(socketIdsClient.receiver, 'newNotification', {
-      conversation,
-      notificationId: notiReceiver._id,
-    });
-  }
-
-  async getConversationByStatus(
-    matchedAction: IMatchedAction,
-    conversationDto: CreateConversationDto,
-  ): Promise<Conversation> {
-    let conversation: Conversation = null;
-    const { sender, receiver, matchRq } = matchedAction;
-
-    if (matchRq.status !== MatchRqStatus.SUPER_LIKE) {
-      conversation = await this.conversationService.create(conversationDto);
-    } else {
-      conversation = await this.conversationService.findOneByMembers([sender._id, receiver._id]);
-      if (!conversation) {
-        conversation = await this.conversationService.create(conversationDto);
-      } else {
-        conversation.type = ConversationType.MATCHED;
-        await this.conversationService.save(conversation);
-      }
-    }
-    return conversation;
+    this.socketGateway.sendEventToClient(socketIdsClient.sender, 'newNotification', notiReceiver);
+    this.socketGateway.sendEventToClient(socketIdsClient.receiver, 'newNotification', notiSender);
   }
 
   async save(matchRq: MatchRequest): Promise<void> {

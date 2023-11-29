@@ -23,7 +23,7 @@ export class ConversationService {
   ) {}
   async create(conversationDto: CreateConversationDto): Promise<Conversation> {
     const conversation = await this.conversationRepo.insert(conversationDto);
-    conversation.enableSafeMode = conversationDto.members;
+    // conversation.enableSafeMode = [conversationDto.members];
     return await this.conversationRepo.save(conversation);
   }
 

@@ -1,15 +1,14 @@
-import { NotificationStatus, NotificationType } from '@common/consts';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty } from 'class-validator';
-import { Notification } from '../entities';
+
+import { NotificationStatus, NotificationType } from '@common/consts';
 import { Schedule } from '@modules/schedule/entities';
-import { User } from '@modules/users/entities';
+
+import { Notification } from '../entities';
 
 export class UpdateNotificationDto implements Partial<Notification> {
   @ApiPropertyOptional({ type: NotificationStatus, enum: NotificationStatus })
   status?: NotificationStatus;
-
-  receiver?: string | User;
 }
 
 export class UpdateNotificationByUserDto {

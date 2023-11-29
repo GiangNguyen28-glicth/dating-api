@@ -2,10 +2,12 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
 
 import { MongoID, NotificationStatus, NotificationType } from '@common/consts';
-import { User } from '@modules/users/entities';
 import { Conversation } from '@modules/conversation/entities';
 import { Message } from '@modules/message/entities';
 import { Schedule } from '@modules/schedule/entities';
+import { User } from '@modules/users/entities';
+import { FilterGetAllNotification } from '../dto';
+import { isString } from 'lodash';
 
 @Schema({ timestamps: true })
 export class Notification {
@@ -42,6 +44,26 @@ export class Notification {
 
   @Prop({ type: Boolean, default: false })
   isDeleted: boolean;
+
+  static getFilter(types: NotificationType[]): NotificationType[] {
+    if (!types) {
+      return null;
+    }
+    if (isString(types)) {
+      types = [types as NotificationType];
+    }
+    if (types?.includes(NotificationType.SCHEDULE_DATING)) {
+      const scheduleTypes = [
+        NotificationType.ACCEPT_SCHEDULE_DATING,
+        NotificationType.CANCEL_SCHEDULE_DATING,
+        NotificationType.INVITE_SCHEDULE_DATING,
+        NotificationType.DECLINE_SCHEDULE_DATING,
+        NotificationType.POSITIVE_REVIEW_DATING,
+      ];
+      types.push(...scheduleTypes);
+    }
+    return types.filter(type => type != NotificationType.SCHEDULE_DATING);
+  }
 
   createdAt: Date;
 
