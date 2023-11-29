@@ -179,7 +179,7 @@ export class ScheduleService {
           schedule,
         }),
       ]);
-      await this.socketGateway.sendEventToClient(socketIds, 'notiSchedule', notification);
+      await this.socketGateway.sendEventToClient(socketIds, 'newNotification', notification);
       return {
         success: true,
         message: 'Tạo lịch hẹn thành công',
@@ -292,7 +292,7 @@ export class ScheduleService {
       // const [, , socketIds, notification] = await Promise.all(promises);
       const [socketIds, notification] = await Promise.all(promises);
 
-      await this.socketGateway.sendEventToClient(socketIds, 'notiSchedule', notification);
+      await this.socketGateway.sendEventToClient(socketIds, 'newNotification', notification);
 
       return {
         success: true,
@@ -319,7 +319,7 @@ export class ScheduleService {
       //   );
       // }
       promises.push(
-        this.notiService.deleteMany({ schedule: schedule._id, type: NotificationType.INVITE_SCHEDULE_DATING }, user),
+        this.notiService.deleteMany({ type: NotificationType.INVITE_SCHEDULE_DATING }, user),
         this.socketService.getSocketIdsByUser(receiver._id.toString()),
         this.notiService.create({
           sender: user,
@@ -331,7 +331,7 @@ export class ScheduleService {
 
       // const [, , socketIds, notification] = await Promise.all(promises);
       const [, socketIds, notification] = await Promise.all(promises);
-      await this.socketGateway.sendEventToClient(socketIds, 'notiSchedule', {
+      await this.socketGateway.sendEventToClient(socketIds, 'newNotification', {
         notificationId: notification._id,
         schedule,
       });
@@ -372,13 +372,13 @@ export class ScheduleService {
 
       // const [, , socketIds, notification] = await Promise.all(promises);
       const [, socketIds, notification] = await Promise.all(promises);
-      await this.socketGateway.sendEventToClient(socketIds, 'notiSchedule', {
+      await this.socketGateway.sendEventToClient(socketIds, 'newNotification', {
         notificationId: notification._id,
         schedule,
       });
       return {
         success: true,
-        message: 'Ok',
+        message: OK,
       };
     } catch (error) {
       throw error;
@@ -556,7 +556,7 @@ export class ScheduleService {
             schedule,
           });
           const socketIds = await this.socketService.getSocketIdsByUser(receiver._id);
-          await this.socketGateway.sendEventToClient(socketIds, 'notiSchedule', notification);
+          await this.socketGateway.sendEventToClient(socketIds, 'newNotification', notification);
         }
       }
       schedule.reviews.push(review);

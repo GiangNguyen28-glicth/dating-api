@@ -34,7 +34,7 @@ export class NotificationController {
 
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<IResponse> {
-    return this.notificationService.remove(id);
+    return await this.notificationService.remove(id);
   }
 
   @Patch()

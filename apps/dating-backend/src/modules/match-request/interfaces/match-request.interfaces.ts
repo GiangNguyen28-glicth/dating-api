@@ -1,7 +1,7 @@
 import { ISocketIdsClient } from '@common/interfaces';
-import { MerchandisingType } from '@common/consts';
 
 import { User } from '@modules/users/entities';
+import { Notification } from '@modules/notification/entities';
 import { MatchRequest } from '../entities';
 
 export interface IMatchedAction {
@@ -9,5 +9,5 @@ export interface IMatchedAction {
   receiver: User;
   socketIdsClient: ISocketIdsClient;
   matchRq?: MatchRequest;
-  action: MerchandisingType;
+  noti?: Notification;
 }

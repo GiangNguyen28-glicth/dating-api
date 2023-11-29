@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { CurrentUser } from '@common/decorators';
@@ -8,7 +8,6 @@ import { User } from '@modules/users/entities';
 
 import { FilterGelAllMqDTO } from './dto';
 import { MatchRequest } from './entities';
-import { BlurImageInterceptor } from './interceptors';
 import { MatchRequestService } from './match-request.service';
 
 @ApiTags(MatchRequest.name)

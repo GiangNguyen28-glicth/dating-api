@@ -6,9 +6,10 @@ import { DurationInputArg2 } from 'moment-timezone';
 import {
   ConversationType,
   DATABASE_TYPE,
-  LimitType,
   MatchRqStatus,
   MerchandisingType,
+  NotificationStatus,
+  NotificationType,
   OK,
   OfferingType,
   PROVIDER_REPO,
@@ -17,17 +18,21 @@ import { IErrorResponse, IResponse } from '@common/interfaces';
 import { ActionRepo } from '@dating/repositories';
 import { FilterBuilder, throwIfNotExists } from '@dating/utils';
 
+import { ConversationService } from '@modules/conversation/conversation.service';
 import { MatchRequestService } from '@modules/match-request/match-request.service';
+import { NotificationService } from '@modules/notification/notification.service';
+import { OfferingService } from '@modules/offering/offering.service';
 import { SocketGateway } from '@modules/socket/socket.gateway';
 import { SocketService } from '@modules/socket/socket.service';
 import { UserService } from '@modules/users/users.service';
-import { OfferingService } from '@modules/offering/offering.service';
-import { ConversationService } from '@modules/conversation/conversation.service';
 
 import { User } from '@modules/users/entities';
 
+import { CreateConversationDto } from '@modules/conversation/dto';
 import { CreateMatchRequestDto } from '@modules/match-request/dto';
 import { IMatchedAction } from '@modules/match-request/interfaces';
+import { CreateNotificationDto } from '@modules/notification/dto';
+
 import { FilterGetOneActionDTO } from './dto';
 import { Action } from './entities';
 
@@ -49,6 +54,7 @@ export class ActionService {
     private matchReqService: MatchRequestService,
     private offeringService: OfferingService,
     private conversationService: ConversationService,
+    private notiService: NotificationService,
   ) {}
 
   async findOne(filter: FilterGetOneActionDTO): Promise<Action> {
@@ -87,7 +93,7 @@ export class ActionService {
         this.userService.findOne({ _id: receiverId }),
         this.matchReqService.findOne({
           sender: receiverId,
-          receiver: sender._id.toString(),
+          receiver: sender._id,
         }),
       ]);
       if (Action.isDuplicateAction(matchRq, sender)) {
@@ -98,7 +104,7 @@ export class ActionService {
       }
 
       const socketIdsClient = await this.socketService.getSocketIdsMatchedUser(sender._id.toString(), receiverId);
-      const matchedAction: IMatchedAction = { sender, receiver, socketIdsClient, action };
+      const matchedAction: IMatchedAction = { sender, receiver, socketIdsClient };
       if (matchRq) {
         matchedAction.matchRq = matchRq;
         await this.matchReqService.matched(matchedAction);
@@ -107,24 +113,41 @@ export class ActionService {
           sender: sender._id,
           receiver: receiverId,
         };
-        if (action == MerchandisingType.LIKE) {
-          this.socketGateway.sendEventToClient(socketIdsClient.receiver, 'newMatchRequest', sender);
-          matchRqDto.status = MatchRqStatus.REQUESTED;
+
+        const notiDto: CreateNotificationDto = {
+          status: NotificationStatus.NOT_SEEN,
+          sender,
+          receiver,
+          type: NotificationType.LIKE,
+        };
+
+        const [matchRq, noti] = await Promise.all([
+          this.matchReqService.create(matchRqDto),
+          this.notiService.create(notiDto),
+        ]);
+
+        if (action === MerchandisingType.LIKE) {
+          matchRq.status = MatchRqStatus.REQUESTED;
           await this.like(sender, matchRqDto);
-          await this.matchReqService.create(matchRqDto);
         } else {
-          this.socketGateway.sendEventToClient(socketIdsClient.receiver, 'newSuperLike', sender);
-          matchRqDto.status = MatchRqStatus.SUPER_LIKE;
-          const superMatchRq = await this.matchReqService.create(matchRqDto);
-          matchedAction.matchRq = superMatchRq;
+          matchRq.status = MatchRqStatus.SUPER_LIKE;
+          noti.type = NotificationType.SUPER_LIKE;
+          matchedAction.matchRq = matchRq;
+          matchedAction.noti = noti;
           await this.superLike(matchedAction);
         }
+        const promises = [this.matchReqService.save(matchRq)];
+        if (matchedAction.noti) {
+          promises.push(this.notiService.save(noti));
+        }
+        await Promise.all(promises);
+        this.socketGateway.sendEventToClient(socketIdsClient.receiver, 'newNotification', noti);
       }
 
       await this.actionRepo.like(sender, receiverId);
       const resp: IResponse = {
         success: true,
-        message: 'Ok',
+        message: OK,
       };
 
       if (!sender.featureAccess[idx].unlimited) {
@@ -159,7 +182,23 @@ export class ActionService {
 
   async superLike(matchedAction: IMatchedAction): Promise<void> {
     try {
-      await this.matchReqService.matched(matchedAction);
+      const { sender, receiver } = matchedAction;
+      const conversationDto: CreateConversationDto = {
+        members: [sender._id, receiver._id],
+      };
+      conversationDto.type = ConversationType.SUPER_LIKE;
+      conversationDto.createdBy = sender._id;
+
+      let conversation = await this.conversationService.findOneByMembers([sender._id, receiver._id]);
+      if (!conversation) {
+        conversation = await this.conversationService.create(conversationDto);
+      } else {
+        conversation.type = ConversationType.MATCHED;
+        matchedAction.matchRq.status = MatchRqStatus.MATCHED;
+        matchedAction.noti.type = NotificationType.MATCHED;
+        this.conversationService.save(conversation);
+      }
+      matchedAction.noti.conversation = conversation;
     } catch (error) {
       throw error;
     }
@@ -210,7 +249,7 @@ export class ActionService {
       await this.conversationService.save(conversation);
       return {
         success: true,
-        message: 'Ok',
+        message: OK,
       };
     } catch (error) {
       throw error;

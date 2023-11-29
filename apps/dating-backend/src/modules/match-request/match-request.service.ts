@@ -6,6 +6,7 @@ import {
   DATABASE_TYPE,
   MatchRqStatus,
   MerchandisingType,
+  NotificationStatus,
   NotificationType,
   PROVIDER_REPO,
 } from '@common/consts';
@@ -132,40 +133,42 @@ export class MatchRequestService {
   }
 
   async matched(matchedAction: IMatchedAction): Promise<void> {
-    const { sender, receiver, socketIdsClient, matchRq, action } = matchedAction;
+    const { sender, receiver, socketIdsClient, matchRq } = matchedAction;
     const conversationDto: CreateConversationDto = {
       members: [sender._id, receiver._id],
     };
-    const notificationDto: CreateNotificationDto = {
+
+    const conversation = await this.conversationService.toJSON(
+      await this.getConversationByStatus(matchedAction, conversationDto),
+    );
+
+    const senderNotiDto: CreateNotificationDto = {
       sender,
       receiver,
       type: NotificationType.MATCHED,
+      conversation,
+      status: NotificationStatus.NOT_SEEN,
     };
-    if (action == MerchandisingType.SUPER_LIKE) {
-      conversationDto.type = ConversationType.SUPER_LIKE;
-      notificationDto.type = NotificationType.SUPER_LIKE;
-      matchRq.status = MatchRqStatus.SUPER_LIKE;
-      conversationDto.createdBy = sender._id;
-    }
-
-    const conversation = await this.getConversationByStatus(matchedAction, conversationDto);
     matchRq.status = MatchRqStatus.MATCHED;
+    const receiverNotiDto = { ...senderNotiDto };
+    receiverNotiDto.sender = receiver;
+    receiverNotiDto.receiver = sender;
 
-    const [notification] = await Promise.all([
-      this.notiService.create(notificationDto),
+    const [notiSender, notiReceiver] = await Promise.all([
+      this.notiService.create(senderNotiDto),
+      this.notiService.create(receiverNotiDto),
       this.matchRequestRepo.save(matchRq),
     ]);
+    conversation.members = [sender, receiver];
 
-    const newConversation = await this.conversationService.toJSON(conversation);
-    newConversation.members = [sender, receiver];
-    const socketIds = socketIdsClient.receiver.concat(socketIdsClient.sender);
-
-    if (conversation.type === ConversationType.MATCHED) {
-      this.socketGateway.sendEventToClient(socketIds, 'newMatched', {
-        conversation: newConversation,
-        notificationId: notification._id,
-      });
-    }
+    this.socketGateway.sendEventToClient(socketIdsClient.sender, 'newNotification', {
+      conversation,
+      notificationId: notiSender._id,
+    });
+    this.socketGateway.sendEventToClient(socketIdsClient.receiver, 'newNotification', {
+      conversation,
+      notificationId: notiReceiver._id,
+    });
   }
 
   async getConversationByStatus(
@@ -187,6 +190,14 @@ export class MatchRequestService {
       }
     }
     return conversation;
+  }
+
+  async save(matchRq: MatchRequest): Promise<void> {
+    try {
+      await this.matchRequestRepo.save(matchRq);
+    } catch (error) {
+      throw error;
+    }
   }
 
   async countMatchRequest(user: User): Promise<IResponse> {

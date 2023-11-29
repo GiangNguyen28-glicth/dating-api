@@ -280,7 +280,7 @@ export class UserService implements OnModuleInit {
     try {
       const { tagId, tagType } = updateTagDto;
       const tag = await this.tagService.findOne({ _id: tagId, type: tagType });
-      user = await this.getCurrentUser(user);
+      user = await this.userRepo.populate(user as unknown as Document, [{ path: 'tags' }]);
       user.tags = user.tags.filter(tag => {
         if (tag.type != updateTagDto.tagType) {
           return tag;

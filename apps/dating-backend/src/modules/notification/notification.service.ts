@@ -80,9 +80,9 @@ export class NotificationService implements OnModuleInit {
       }
       const selectUserFields: Array<keyof User> = ['_id', 'images', 'name', 'onlineNow'];
       const [queryFilter, sortOption] = new FilterBuilder<Notification>()
-        .setFilterItem('type', '$in', filter.types)
         .setFilterItem('receiver', '$eq', user._id)
-        .setFilterItem('isDeleted', '$eq', false, true)
+        .setFilterItem('status', '$eq', filter?.status)
+        .setFilterItem('type', '$in', filter.types)
         .setSortItem('createdAt', 'desc')
         .buildQuery();
       const countFilter = JSON.parse(JSON.stringify(queryFilter));
@@ -90,8 +90,12 @@ export class NotificationService implements OnModuleInit {
       const [results, totalNewNotification, totalCount] = await Promise.all([
         this.notificationRepo.findAll({
           queryFilter,
-          populate: [{ path: 'schedule' }, { path: 'sender', select: selectUserFields.join(' ') }],
+          populate: [{ path: 'sender', select: selectUserFields.join(' ') }],
           sortOption,
+          pagination: {
+            page: filter?.page,
+            size: filter?.size,
+          },
         }),
         this.notificationRepo.count(countFilter),
         this.notificationRepo.count(queryFilter),
@@ -205,6 +209,14 @@ export class NotificationService implements OnModuleInit {
         success: true,
         message: OK,
       };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async save(noti: Notification): Promise<void> {
+    try {
+      await this.notificationRepo.save(noti);
     } catch (error) {
       throw error;
     }

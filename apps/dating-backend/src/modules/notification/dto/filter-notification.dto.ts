@@ -13,10 +13,12 @@ export class FilterGetAllNotification implements Partial<Notification> {
   types?: NotificationType[];
 
   @ApiProperty({ type: Number, default: 1, required: false })
+  @IsOptional()
   @Type(() => Number)
   page?: number;
 
   @ApiProperty({ type: Number, default: 100, required: false })
   @IsOptional()
+  @Type(() => Number)
   size?: number;
 }
