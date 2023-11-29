@@ -48,15 +48,18 @@ services:
       driver: none
   mongodb:
     image: mongo
+    command: mongod --auth
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=giangnt
+      - MONGO_INITDB_ROOT_PASSWORD=giangntxpower
     ports:
       - '27018:27017'
     volumes:
       - mongodata:/data/db
+      - ./db/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     restart: always
     logging:
       driver: none
 volumes:
   mongodata:
-    driver: local
-  cache:
     driver: local

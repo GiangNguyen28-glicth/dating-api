@@ -1,7 +1,6 @@
-use admin
 db.createUser({
   user: 'giangnt',
-  pwd: 'giangnt',
+  pwd: 'giangntxpower',
   roles: [
     {
       role: 'dbOwner',
