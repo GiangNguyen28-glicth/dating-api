@@ -63,3 +63,5 @@ services:
 volumes:
   mongodata:
     driver: local
+  cache:
+    driver: local
