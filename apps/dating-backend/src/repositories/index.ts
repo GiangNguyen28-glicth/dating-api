@@ -10,3 +10,4 @@ export * from './relationship.repo';
 export * from './match-request.repo';
 export * from './notification.repo';
 export * from './schedule.repo';
+export * from './passes.repo';

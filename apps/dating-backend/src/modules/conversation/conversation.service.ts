@@ -91,18 +91,9 @@ export class ConversationService {
 
   setReceiver(conversations: Conversation[], userId: string) {
     conversations.map(item => {
-      item['user'] = this.getReceiver(item, userId) as User;
+      item['user'] = Conversation.getReceiver(item, userId) as User;
       return item;
     });
-  }
-
-  getReceiver(conversation: Conversation, userId: string, isPopulate?: boolean): User | string {
-    if (!isPopulate) {
-      return (conversation.members[0] as User)._id.toString() === userId
-        ? (conversation.members[1] as User)
-        : (conversation.members[0] as User);
-    }
-    return conversation.members[0] === userId ? conversation.members[1] : conversation.members[0];
   }
 
   async findOne(filter: FilterGetOneConversationDTO, user: User): Promise<Conversation> {
@@ -132,7 +123,7 @@ export class ConversationService {
         return conversation;
       }
       const newConversation = this.conversationRepo.toJSON(conversation);
-      newConversation.user = this.getReceiver(conversation, user._id.toString()) as User;
+      newConversation.user = Conversation.getReceiver(conversation, user._id.toString()) as User;
 
       return newConversation;
     } catch (error) {

@@ -35,6 +35,7 @@ import { CreateNotificationDto } from '@modules/notification/dto';
 
 import { FilterGetOneActionDTO } from './dto';
 import { Action } from './entities';
+import { Conversation } from '@modules/conversation/entities';
 
 @Injectable()
 export class ActionService {
@@ -242,9 +243,7 @@ export class ActionService {
   async unMatched(sender: User, userId: string): Promise<IResponse> {
     try {
       const conversation = await this.conversationService.findOneByMembers([sender._id, userId]);
-      if (!conversation || conversation.isDeleted || conversation.type === ConversationType.SUPER_LIKE) {
-        throw new ForbiddenException('ForbiddenException');
-      }
+      Conversation.invalid(conversation);
       conversation.isDeleted = true;
       await this.conversationService.save(conversation);
       return {

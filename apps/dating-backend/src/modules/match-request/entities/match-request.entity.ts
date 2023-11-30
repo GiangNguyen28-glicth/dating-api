@@ -22,14 +22,14 @@ export class MatchRequest implements IEntity {
   @Prop({ default: false })
   isBoosts: boolean;
 
+  @Prop()
+  expiredAt: Date;
+
   static isBoostsSession(matchRq: MatchRequest): boolean {
     return matchRq.isBoosts && matchRq.expiredAt > new Date();
   }
-
-  @Prop()
-  expiredAt: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }
 export const MatchRequestSchema = SchemaFactory.createForClass(MatchRequest);
-MatchRequestSchema.index({ receiver: 1, sender: 1 });
+MatchRequestSchema.index({ receiver: 1, status: 1 });

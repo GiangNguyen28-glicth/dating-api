@@ -3,7 +3,7 @@ import { Action } from '@modules/action/entities';
 import { Report } from '@modules/report/entities';
 import { Billing } from '@modules/billing/entities';
 import { Offering } from '@modules/offering/entities/';
-import { MatchRequest } from '@modules/match-request/entities';
+import { MatchRequest, PassesRequest } from '@modules/match-request/entities';
 import { Tag } from '@modules/tag/entities';
 import { User } from '@modules/users/entities';
 import { Conversation } from '@modules/conversation/entities';
@@ -25,6 +25,7 @@ export type MatchRequestModelType = Model<MatchRequest>;
 export type RelationshipModelType = Model<Relationship>;
 export type NotificationModelType = Model<Notification>;
 export type ScheduleModelType = Model<Schedule>;
+export type PassesRequestModelType = Model<PassesRequest>;
 export type MongoQuery = '$eq' | '$gte' | '$lte' | '$in' | '$nin' | '$elemMatch' | '$exists' | '$ne' | '$all';
 
 export enum BulkWriteKey {

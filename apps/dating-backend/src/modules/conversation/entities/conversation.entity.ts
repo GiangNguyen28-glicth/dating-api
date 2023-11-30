@@ -5,6 +5,7 @@ import { ConversationType, IEntity, MongoID } from '@dating/common';
 
 import { Message } from '@modules/message/entities';
 import { User } from '@modules/users/entities';
+import { ForbiddenException } from '@nestjs/common';
 
 @Schema({ timestamps: true })
 export class Conversation implements IEntity {
@@ -31,6 +32,21 @@ export class Conversation implements IEntity {
 
   @Prop({ type: Boolean, default: false })
   isDeleted: boolean;
+
+  static invalid(conversation: Conversation) {
+    if (!conversation || conversation.isDeleted) {
+      throw new ForbiddenException('ForbiddenException');
+    }
+  }
+
+  static getReceiver(conversation: Conversation, userId: string, isPopulate?: boolean): User | string {
+    if (!isPopulate) {
+      return (conversation.members[0] as User)._id.toString() === userId
+        ? (conversation.members[1] as User)
+        : (conversation.members[0] as User);
+    }
+    return conversation.members[0] === userId ? conversation.members[1] : conversation.members[0];
+  }
 
   user: User;
 

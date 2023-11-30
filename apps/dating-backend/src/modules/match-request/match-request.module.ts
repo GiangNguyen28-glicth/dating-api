@@ -1,18 +1,23 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
-import { MatchRequestMongoRepoProvider } from '@dating/repositories';
+import { MatchRequestMongoRepoProvider, PassesRequestMongoRepoProvider } from '@dating/repositories';
 import { ConversationModule } from '@modules/conversation';
 
-import { MatchRequestService } from './match-request.service';
+import { MatchRequest, MatchRequestSchema, PassesRequest, PassesRequestSchema } from './entities';
 import { MatchRequestController } from './match-request.controller';
-import { MatchRequest, MatchRequestSchema } from './entities';
-import { BlurImageInterceptor } from './interceptors';
+import { MatchRequestService } from './match-request.service';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: MatchRequest.name, schema: MatchRequestSchema }]), ConversationModule],
+  imports: [
+    MongooseModule.forFeature([
+      { name: MatchRequest.name, schema: MatchRequestSchema },
+      { name: PassesRequest.name, schema: PassesRequestSchema },
+    ]),
+    ConversationModule,
+  ],
   controllers: [MatchRequestController],
-  providers: [MatchRequestService, MatchRequestMongoRepoProvider, BlurImageInterceptor],
-  exports: [MatchRequestService, MatchRequestMongoRepoProvider],
+  providers: [MatchRequestService, MatchRequestMongoRepoProvider, PassesRequestMongoRepoProvider],
+  exports: [MatchRequestService],
 })
 export class MatchRequestModule {}

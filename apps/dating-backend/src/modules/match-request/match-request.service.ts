@@ -2,7 +2,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import { PopulateOptions } from 'mongoose';
 
 import {
-  ConversationType,
   DATABASE_TYPE,
   MatchRqStatus,
   MerchandisingType,
@@ -11,14 +10,13 @@ import {
   PROVIDER_REPO,
 } from '@common/consts';
 import { IResponse, IResult } from '@common/interfaces';
-import { MatchRequestRepo } from '@dating/repositories';
+import { MatchRequestRepo, PassesRequestRepo } from '@dating/repositories';
 import { FilterBuilder, docToObject, formatResult } from '@dating/utils';
 
 import { ConversationService } from '@modules/conversation/conversation.service';
 import { NotificationService } from '@modules/notification/notification.service';
 import { SocketGateway } from '@modules/socket/socket.gateway';
 
-import { Conversation } from '@modules/conversation/entities';
 import { User } from '@modules/users/entities';
 
 import { CreateConversationDto } from '@modules/conversation/dto';
@@ -33,6 +31,9 @@ export class MatchRequestService {
   constructor(
     @Inject(PROVIDER_REPO.MATCH_REQUEST + DATABASE_TYPE.MONGO)
     private matchRequestRepo: MatchRequestRepo,
+
+    @Inject(PROVIDER_REPO.PASSES_REQUEST + DATABASE_TYPE.MONGO)
+    private passesRequestRepo: PassesRequestRepo,
 
     private conversationService: ConversationService,
     private socketGateway: SocketGateway,
@@ -126,7 +127,8 @@ export class MatchRequestService {
 
   async skip(receiverId: string, senderId: string): Promise<void> {
     try {
-      await this.matchRequestRepo.skip(receiverId, senderId);
+      const passes = await this.passesRequestRepo.insert({ sender: senderId, receiver: receiverId });
+      await this.passesRequestRepo.save(passes);
     } catch (error) {
       throw error;
     }
@@ -134,7 +136,6 @@ export class MatchRequestService {
 
   async matched(matchedAction: IMatchedAction): Promise<void> {
     const { sender, receiver, socketIdsClient, matchRq } = matchedAction;
-    console.log(socketIdsClient);
     const conversationDto: CreateConversationDto = {
       members: [sender._id, receiver._id],
     };

@@ -10,6 +10,7 @@ export const PROVIDER_REPO = {
   ACTION: 'ACTION_REPO_PROVIDER',
   REPORT: 'REPORT_REPO_PROVIDER',
   MATCH_REQUEST: 'MATCH_REQUEST_REPO_PROVIDER',
+  PASSES_REQUEST: 'PASSES_REQUEST_REPO_PROVIDER',
   RELATIONSHIP: 'RELATIONSHIP_REPO_PROVIDER',
   NOTIFICATION: 'NOTIFICATION_REPO_PROVIDER',
   SCHEDULE: 'SCHEDULE_REPO_PROVIDER',
@@ -67,7 +68,7 @@ export const MAX_COUNT_IN_ACTION_UPSERT = 999999;
 export const DEFAULT_CHANNEL_ID = 'default_channel';
 export const DEFAULT_LIKES_REMAINING = 100;
 export const EXCLUDE_FIELDS = {
-  USER: '-slug -keyword -registerType -setting -isBlocked -isFistLogin -geoLocation -featureAccess',
+  USER: '-registerType -setting -isBlocked -isFistLogin -geoLocation -featureAccess -showMeInFinder',
 };
 
 export const ADMIN = 'ADMIN';
