@@ -123,13 +123,13 @@ export class NotificationService implements OnModuleInit {
     }
   }
 
-  async deleteMany(filter: FilterGetAllNotification, user: User): Promise<void> {
+  async deleteMany(filter: FilterGetAllNotification): Promise<void> {
     try {
       set(filter, 'types', Notification.getFilter(filter?.types));
       console.log('@@@@@@@@@@@@@@@@=Delete notification=@@@@@@@@@@@@@@@@');
       const [queryFilter] = new FilterBuilder<Notification>()
         .setFilterItem('_id', '$in', filter?.ids)
-        .setFilterItem('receiver', '$eq', user?._id)
+        .setFilterItem('receiver', '$eq', filter?.receiver)
         .setFilterItem('schedule', '$eq', filter?.schedule)
         .setFilterItem('status', '$eq', filter?.status)
         .setFilterItem('type', '$in', filter?.types)

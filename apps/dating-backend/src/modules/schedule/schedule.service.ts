@@ -254,11 +254,14 @@ export class ScheduleService {
 
   async cancel(user: User, schedule: Schedule, receiver: User): Promise<IResponse> {
     try {
-      if (schedule.status == RequestDatingStatus.WAIT_FOR_APPROVAL) {
+      if (schedule.status === RequestDatingStatus.WAIT_FOR_APPROVAL) {
         schedule.status = RequestDatingStatus.CANCEL;
         await Promise.all([
           this.scheduleRepo.save(schedule),
-          this.notiService.deleteMany({ schedule: schedule._id, type: NotificationType.INVITE_SCHEDULE_DATING }, user),
+          this.notiService.deleteMany({
+            schedule: schedule._id,
+            receiver: user._id,
+          }),
         ]);
         return {
           success: true,
@@ -320,7 +323,10 @@ export class ScheduleService {
       //   );
       // }
       promises.push(
-        this.notiService.deleteMany({ type: NotificationType.INVITE_SCHEDULE_DATING }, user),
+        this.notiService.deleteMany({
+          receiver: user._id,
+          schedule: schedule._id,
+        }),
         this.socketService.getSocketIdsByUser(receiver._id.toString()),
         this.notiService.create({
           sender: user,
@@ -362,7 +368,10 @@ export class ScheduleService {
       //   );
       // }
       promises.push(
-        this.notiService.deleteMany({ schedule: schedule._id, types: [NotificationType.SCHEDULE_DATING] }, user),
+        this.notiService.deleteMany({
+          schedule: schedule._id,
+          receiver: user._id,
+        }),
         this.socketService.getSocketIdsByUser(receiver._id.toString()),
         this.notiService.create({
           sender: user,
@@ -422,6 +431,8 @@ export class ScheduleService {
         return this.getPlaceByContent(suggestDto, content);
       });
 
+      console.log(places);
+
       return await Promise.all(
         places.map(async place => {
           return this.searchText(place);
@@ -435,6 +446,7 @@ export class ScheduleService {
 
   async searchText(payloadPlace: IPayloadPlace): Promise<LocationDating> {
     try {
+      console.log(this.configService.get<string>('GOOGLE_MAP_API_KEY'));
       const results = await this.client.textSearch({
         params: {
           key: this.configService.get<string>('GOOGLE_MAP_API_KEY'),
