@@ -1,5 +1,6 @@
-import { CrudRepo, IOptionFilterGetAll } from '@dating/common';
 import { Document, FilterQuery, Model, PopulateOptions, Types } from 'mongoose';
+import { CrudRepo, IOptionFilterGetAll } from '@dating/common';
+import { GroupDate } from '@modules/admin/dto';
 
 export abstract class MongoRepo<T> implements CrudRepo<T> {
   constructor(protected readonly model: Model<T>) {}
@@ -95,5 +96,39 @@ export abstract class MongoRepo<T> implements CrudRepo<T> {
 
   async populate(document: Document, populate: PopulateOptions[]): Promise<T> {
     return document.populate(populate);
+  }
+
+  async statisticByRangeDate(filter, format: GroupDate): Promise<any> {
+    return await this.model.aggregate([
+      { $match: filter },
+      {
+        $addFields: {
+          formattedDate: {
+            $dateToString: { format, date: '$createdAt' },
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            date: '$formattedDate',
+          },
+          count: {
+            $sum: 1,
+          },
+        },
+      },
+      {
+        $project: {
+          date: '$_id.date',
+          count: '$count',
+        },
+      },
+      {
+        $sort: {
+          _id: 1,
+        },
+      },
+    ]);
   }
 }

@@ -65,8 +65,6 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 
   async onModuleInit() {
     return;
-    console.log('Start scan');
-    await this.redisService.deleteWithPrefixKey(SOCKET);
   }
 
   @WebSocketServer()

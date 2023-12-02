@@ -1,3 +1,4 @@
+import { ForbiddenException } from '@nestjs/common';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Transform } from 'class-transformer';
 
@@ -5,7 +6,6 @@ import { ConversationType, IEntity, MongoID } from '@dating/common';
 
 import { Message } from '@modules/message/entities';
 import { User } from '@modules/users/entities';
-import { ForbiddenException } from '@nestjs/common';
 
 @Schema({ timestamps: true })
 export class Conversation implements IEntity {
@@ -33,6 +33,12 @@ export class Conversation implements IEntity {
   @Prop({ type: Boolean, default: false })
   isDeleted: boolean;
 
+  user: User;
+
+  createdAt: Date;
+
+  updatedAt: Date;
+
   static invalid(conversation: Conversation) {
     if (!conversation || conversation.isDeleted) {
       throw new ForbiddenException('ForbiddenException');
@@ -48,10 +54,11 @@ export class Conversation implements IEntity {
     return conversation.members[0] === userId ? conversation.members[1] : conversation.members[0];
   }
 
-  user: User;
-
-  createdAt: Date;
-
-  updatedAt: Date;
+  static setReceiver(conversations: Conversation[], userId: string) {
+    conversations.map(item => {
+      item['user'] = Conversation.getReceiver(item, userId) as User;
+      return item;
+    });
+  }
 }
 export const ConversationSchema = SchemaFactory.createForClass(Conversation);

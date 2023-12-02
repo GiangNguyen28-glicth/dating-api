@@ -25,6 +25,7 @@ import { CreateNotificationDto } from '@modules/notification/dto';
 import { CreateMatchRequestDto, FilterGelAllMqDTO, FilterGetOneMq } from './dto';
 import { MatchRequest } from './entities';
 import { IMatchedAction } from './interfaces';
+import { FilterGetStatistic, GroupDate } from '@modules/admin/dto';
 
 @Injectable()
 export class MatchRequestService {
@@ -189,6 +190,31 @@ export class MatchRequestService {
         isBlur: true,
         blur,
       },
+    };
+  }
+
+  //======================================Admin======================================
+  async statisticLikeByRangeDate(filter: FilterGetStatistic): Promise<any> {
+    const queryBuilder = new FilterBuilder<MatchRequest>();
+    if (filter?.fromDate && filter?.toDate) {
+      queryBuilder.setFilterItemWithObject('createdAt', { $gte: filter?.fromDate, $lte: filter?.toDate });
+    }
+    const [queryFilter] = queryBuilder.buildQuery();
+    const swipeLikes = await this.matchRequestRepo.statisticByRangeDate(queryFilter, filter.format);
+    return {
+      swipeLikes,
+    };
+  }
+
+  async statisticSkipByRangeDate(filter: FilterGetStatistic): Promise<any> {
+    const queryBuilder = new FilterBuilder<MatchRequest>();
+    if (filter?.fromDate && filter?.toDate) {
+      queryBuilder.setFilterItemWithObject('createdAt', { $gte: filter?.fromDate, $lte: filter?.toDate });
+    }
+    const [queryFilter] = queryBuilder.buildQuery();
+    const swipePasses = await this.passesRequestRepo.statisticByRangeDate(queryFilter, filter.format);
+    return {
+      swipePasses,
     };
   }
 }

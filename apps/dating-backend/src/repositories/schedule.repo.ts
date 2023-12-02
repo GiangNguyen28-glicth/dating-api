@@ -3,9 +3,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { CrudRepo, DATABASE_TYPE, PROVIDER_REPO, ScheduleModelType } from '@dating/common';
 import { MongoRepo } from '@dating/infra';
 import { Schedule } from '@modules/schedule/entities';
+import { GroupDate } from '@modules/admin/dto';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface ScheduleRepo extends CrudRepo<Schedule> {}
+export interface ScheduleRepo extends CrudRepo<Schedule> {
+  statisticByRangeDate(filter, format: GroupDate): Promise<any>;
+}
 export class ScheduleMongoRepo extends MongoRepo<Schedule> implements ScheduleRepo {
   constructor(@InjectModel(Schedule.name) scheduleModel: ScheduleModelType) {
     super(scheduleModel);

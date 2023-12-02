@@ -4,11 +4,13 @@ import { get, groupBy, mapValues, orderBy, sum, sumBy, values } from 'lodash';
 
 import { IResponse } from '@common/interfaces';
 import { compareHashValue, getFormatGroupISODate, hash, throwIfNotExists } from '@dating/utils';
-import { OfferingType } from '@common/consts';
+import { OK, OfferingType } from '@common/consts';
 
 import { BillingService } from '@modules/billing/billing.service';
 import { OfferingService } from '@modules/offering/offering.service';
 import { UserService } from '@modules/users/users.service';
+import { ConversationService } from '@modules/conversation/conversation.service';
+import { MatchRequestService } from '@modules/match-request/match-request.service';
 
 import { AdminAuthDTO } from '@modules/auth/dto';
 
@@ -22,6 +24,8 @@ export class AdminService {
     private billingService: BillingService,
     private offeringService: OfferingService,
     private userService: UserService,
+    private conversationService: ConversationService,
+    private matchRqService: MatchRequestService,
   ) {}
 
   async create(admin: Admin, dto: CreateAdminDTO): Promise<IResponse> {
@@ -33,7 +37,7 @@ export class AdminService {
       await newAdmin.save();
       return {
         success: true,
-        message: 'Ok',
+        message: OK,
       };
     } catch (error) {
       throw error;
@@ -134,6 +138,15 @@ export class AdminService {
 
   async getUserStatistic(filter: FilterGetStatistic): Promise<any> {
     filter.format = getFormatGroupISODate(filter?.typeRange);
-    return await this.userService.chartStatisticByRangeDate(filter, filter.format);
+    return await this.userService.statisticByRangeDate(filter);
+  }
+
+  async getActionStatistic(filter: FilterGetStatistic): Promise<any> {
+    filter.format = getFormatGroupISODate(filter?.typeRange);
+    return await Promise.all([
+      this.conversationService.statisticByRangeDate(filter),
+      this.matchRqService.statisticLikeByRangeDate(filter),
+      this.matchRqService.statisticSkipByRangeDate(filter),
+    ]);
   }
 }

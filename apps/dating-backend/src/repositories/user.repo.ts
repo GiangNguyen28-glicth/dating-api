@@ -10,7 +10,7 @@ export interface UserRepo extends CrudRepo<User> {
   countRecommendation(filter: PipelineStage[]): number;
   populate(document: Document, populate: PopulateOptions[]): Promise<User>;
   bulkWrite(bulkWrite: IBulkWrite[]): Promise<void>;
-  chartStatisticByRangeDate(filter, format: GroupDate): Promise<any>;
+  statisticByRangeDate(filter, format: GroupDate): Promise<any>;
   deleteManyUser();
   migrateData(): Promise<User[]>;
 }

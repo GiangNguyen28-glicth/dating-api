@@ -309,13 +309,13 @@ export class UserService implements OnModuleInit {
   }
 
   //======================================Admin======================================
-  async chartStatisticByRangeDate(filter: FilterGetStatistic, format: GroupDate): Promise<any> {
+  async statisticByRangeDate(filter: FilterGetStatistic): Promise<any> {
     const queryBuilder = new FilterBuilder<User>();
     if (filter?.fromDate && filter?.toDate) {
       queryBuilder.setFilterItemWithObject('createdAt', { $gte: filter?.fromDate, $lte: filter?.toDate });
     }
     const [queryFilter] = queryBuilder.buildQuery();
-    return await this.userRepo.chartStatisticByRangeDate(queryFilter, format);
+    return await this.userRepo.statisticByRangeDate(queryFilter, filter.format);
   }
 
   async insertManyUser(): Promise<boolean> {

@@ -45,4 +45,11 @@ export class AdminController {
   async getUserStatistic(@Query() filter: FilterGetStatistic) {
     return await this.adminService.getUserStatistic(filter);
   }
+
+  @Get('action/statistic')
+  @UseGuards(AtGuard, RolesGuard)
+  @hasRoles(Role.MASTER)
+  async geActionStatistic(@Query() filter: FilterGetStatistic) {
+    return await this.adminService.getActionStatistic(filter);
+  }
 }

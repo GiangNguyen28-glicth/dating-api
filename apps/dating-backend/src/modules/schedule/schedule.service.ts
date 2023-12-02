@@ -38,6 +38,7 @@ import {
 import { LocationDating, Schedule } from './entities';
 import { IPayloadPlace, IReviewDating } from './interfaces';
 import { getAddress, getPlaceName, mappingPlaceDetail } from './utils';
+import { FilterGetStatistic } from '@modules/admin/dto';
 
 const serviceAccountInfo = {
   type: 'service_account',
@@ -628,5 +629,18 @@ export class ScheduleService {
     } catch (error) {
       throw error;
     }
+  }
+
+  //======================================Admin======================================
+  async statisticByRangeDate(filter: FilterGetStatistic): Promise<any> {
+    const queryBuilder = new FilterBuilder<Schedule>().setFilterItem('status', '$eq', RequestDatingStatus.ACCEPT);
+    if (filter?.fromDate && filter?.toDate) {
+      queryBuilder.setFilterItemWithObject('createdAt', { $gte: filter?.fromDate, $lte: filter?.toDate });
+    }
+    const [queryFilter] = queryBuilder.buildQuery();
+    const appointment = await this.scheduleRepo.statisticByRangeDate(queryFilter, filter.format);
+    return {
+      appointment,
+    };
   }
 }

@@ -1,6 +1,14 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 
-import { DATABASE_TYPE, EXCLUDE_FIELDS, MessageStatus, MongoQuery, OK, PROVIDER_REPO } from '@common/consts';
+import {
+  ConversationType,
+  DATABASE_TYPE,
+  EXCLUDE_FIELDS,
+  MessageStatus,
+  MongoQuery,
+  OK,
+  PROVIDER_REPO,
+} from '@common/consts';
 import { PaginationDTO } from '@common/dto';
 import { IOptionFilterGetOne, IResponse, IResult } from '@common/interfaces';
 import { ConversationRepo } from '@dating/repositories';
@@ -8,6 +16,7 @@ import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
 
 import { MessageService } from '@modules/message/message.service';
 import { User } from '@modules/users/entities';
+import { FilterGetStatistic, GroupDate } from '@modules/admin/dto';
 
 import { CreateConversationDto, FilterGetAllConversationDTO, FilterGetOneConversationDTO } from './dto';
 import { Conversation } from './entities';
@@ -23,7 +32,7 @@ export class ConversationService {
   ) {}
   async create(conversationDto: CreateConversationDto): Promise<Conversation> {
     const conversation = await this.conversationRepo.insert(conversationDto);
-    // conversation.enableSafeMode = [conversationDto.members];
+    conversation.enableSafeMode = conversationDto.members;
     return await this.conversationRepo.save(conversation);
   }
 
@@ -62,7 +71,7 @@ export class ConversationService {
           ],
         }),
       ]);
-      this.setReceiver(results, user._id.toString());
+      Conversation.setReceiver(results, user._id.toString());
       const newResults = await this.processUpdatedMessage(results, user._id.toString());
       return formatResult(newResults, totalCount, pagination);
     } catch (error) {
@@ -87,13 +96,6 @@ export class ConversationService {
 
   async countByMessageStatus(user: User): Promise<number> {
     return await this.conversationRepo.countByMessageStatus(user._id.toString());
-  }
-
-  setReceiver(conversations: Conversation[], userId: string) {
-    conversations.map(item => {
-      item['user'] = Conversation.getReceiver(item, userId) as User;
-      return item;
-    });
   }
 
   async findOne(filter: FilterGetOneConversationDTO, user: User): Promise<Conversation> {
@@ -196,5 +198,18 @@ export class ConversationService {
     } catch (error) {
       throw error;
     }
+  }
+
+  //======================================Admin======================================
+  async statisticByRangeDate(filter: FilterGetStatistic): Promise<any> {
+    const queryBuilder = new FilterBuilder<Conversation>().setFilterItem('type', '$eq', ConversationType.MATCHED);
+    if (filter?.fromDate && filter?.toDate) {
+      queryBuilder.setFilterItemWithObject('createdAt', { $gte: filter?.fromDate, $lte: filter?.toDate });
+    }
+    const [queryFilter] = queryBuilder.buildQuery();
+    const matched = await this.conversationRepo.statisticByRangeDate(queryFilter, filter.format);
+    return {
+      matched,
+    };
   }
 }

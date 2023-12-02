@@ -2,11 +2,10 @@ import { Body, Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/comm
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
 
-import { AtGuard, CurrentUser, GoogleGuard, IResponse, TokenDTO } from '@dating/common';
-import { User } from '@modules/users/entities';
+import { GoogleGuard, IResponse, TokenDTO } from '@dating/common';
 
 import { AuthService } from './auth.service';
-import { AdminAuthDTO, DeleteAccountOTPDTO, SmsDTO, VerifyOTPDTO } from './dto';
+import { AdminAuthDTO, SmsDTO, VerifyOTPDTO } from './dto';
 import { IToken } from './interfaces';
 
 @ApiTags('Auth')

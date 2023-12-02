@@ -64,7 +64,7 @@ export class RedisService implements OnModuleInit {
     await this.redisClient.srem(key, value);
   }
 
-  async sadd(redisSet: IRedisSet): Promise<void> {
+  async sadd(redisSet: IRedisSet): Promise<any> {
     try {
       if (redisSet?.ttl) {
         return new Promise((resolve, reject) => {
@@ -72,9 +72,11 @@ export class RedisService implements OnModuleInit {
             .multi()
             .sadd(redisSet.key, redisSet.data)
             .expire(redisSet.key, redisSet.ttl)
-            .exec(err => {
+            .exec((err, replies) => {
               if (err) {
                 reject(err);
+              } else {
+                resolve(replies);
               }
             });
         });
