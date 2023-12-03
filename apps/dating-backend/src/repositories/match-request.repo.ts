@@ -6,6 +6,7 @@ import { MatchRequest } from '@modules/match-request/entities';
 import { GroupDate } from '@modules/admin/dto';
 export interface MatchRequestRepo extends CrudRepo<MatchRequest> {
   statisticByRangeDate(filter, format: GroupDate): Promise<any>;
+  statisticMatchedByRangeDate(filter, format: GroupDate): Promise<any>;
 }
 export class MatchRequestMongoRepo extends MongoRepo<MatchRequest> {
   constructor(
@@ -13,6 +14,40 @@ export class MatchRequestMongoRepo extends MongoRepo<MatchRequest> {
     protected matchRequestModel: MatchRequestModelType,
   ) {
     super(matchRequestModel);
+  }
+
+  async statisticMatchedByRangeDate(filter, format: GroupDate) {
+    return await this.model.aggregate([
+      { $match: filter },
+      {
+        $addFields: {
+          formattedDate: {
+            $dateToString: { format, date: '$updatedAt' },
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            date: '$formattedDate',
+          },
+          count: {
+            $sum: 1,
+          },
+        },
+      },
+      {
+        $project: {
+          date: '$_id.date',
+          count: '$count',
+        },
+      },
+      {
+        $sort: {
+          _id: 1,
+        },
+      },
+    ]);
   }
 }
 

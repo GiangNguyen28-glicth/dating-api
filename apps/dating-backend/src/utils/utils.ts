@@ -105,7 +105,7 @@ export function formatResult<T>(data: T[], totalCount: number, pagination?: Pagi
 
 export function getPercentage(count: number, totalCount: number): number {
   if (totalCount < 0) {
-    throw new Error('total count can not lte 0');
+    return 0;
   }
   return Number(((count / totalCount) * 100).toFixed(2));
 }

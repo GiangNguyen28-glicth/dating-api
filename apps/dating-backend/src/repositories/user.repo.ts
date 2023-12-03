@@ -74,6 +74,7 @@ export class UserMongoRepo extends MongoRepo<User> {
 
   async distributionAge(): Promise<any> {
     return await this.userModel.aggregate([
+      { $match: { age: { $ne: null } } },
       {
         $project: {
           ageGroup: {
@@ -102,6 +103,7 @@ export class UserMongoRepo extends MongoRepo<User> {
 
   async distributionGender(): Promise<any> {
     return await this.userModel.aggregate([
+      { $match: { gender: { $ne: null } } },
       {
         $project: {
           genderGroup: {

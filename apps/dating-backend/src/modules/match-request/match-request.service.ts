@@ -26,6 +26,7 @@ import { CreateMatchRequestDto, FilterGelAllMqDTO, FilterGetOneMq } from './dto'
 import { MatchRequest } from './entities';
 import { IMatchedAction } from './interfaces';
 import { FilterGetStatistic, GroupDate } from '@modules/admin/dto';
+import { flatten, groupBy, map, orderBy, sumBy } from 'lodash';
 
 @Injectable()
 export class MatchRequestService {
@@ -196,13 +197,28 @@ export class MatchRequestService {
   //======================================Admin======================================
   async statisticLikeByRangeDate(filter: FilterGetStatistic): Promise<any> {
     filter.format = getFormatGroupISODate(filter?.typeRange);
-    const queryBuilder = new FilterBuilder<MatchRequest>();
+    const queryBuilderLike = new FilterBuilder<MatchRequest>();
+    const queryBuilderMatched = new FilterBuilder<MatchRequest>().setFilterItem('status', '$eq', MatchRqStatus.MATCHED);
     if (filter?.fromDate && filter?.toDate) {
-      queryBuilder.setFilterItemWithObject('createdAt', { $gte: filter?.fromDate, $lte: filter?.toDate });
+      queryBuilderLike.setFilterItemWithObject('createdAt', { $gte: filter?.fromDate, $lte: filter?.toDate });
+      queryBuilderMatched.setFilterItemWithObject('updatedAt', { $gte: filter?.fromDate, $lte: filter?.toDate });
     }
-    const [queryFilter] = queryBuilder.buildQuery();
-    const swipeLikes = await this.matchRequestRepo.statisticByRangeDate(queryFilter, filter.format);
-    return swipeLikes;
+    const [queryFilterLike] = queryBuilderLike.buildQuery();
+    const [queryFilterMatched] = queryBuilderMatched.buildQuery();
+    const swipeLikes = await Promise.all([
+      this.matchRequestRepo.statisticByRangeDate(queryFilterLike, filter.format),
+      this.matchRequestRepo.statisticMatchedByRangeDate(queryFilterMatched, filter.format),
+    ]);
+
+    const flattenedArray = flatten(swipeLikes);
+    const groupedByDate = groupBy(flattenedArray, 'date');
+    const result = map(groupedByDate, (items, date) => ({
+      _id: { date },
+      date,
+      count: sumBy(items, 'count'),
+    }));
+
+    return orderBy(result, ['date'], ['asc']);
   }
 
   async statisticSkipByRangeDate(filter: FilterGetStatistic): Promise<any> {

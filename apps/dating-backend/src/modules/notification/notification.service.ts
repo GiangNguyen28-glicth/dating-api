@@ -160,7 +160,6 @@ export class NotificationService implements OnModuleInit {
 
   async findOneAndUpdate(id: string, body: UpdateNotificationDto, user: User): Promise<IResponse> {
     try {
-      console.log(body);
       await this.notificationRepo.updateManyByFilter({ _id: id, receiver: user._id }, body);
       return {
         success: true,

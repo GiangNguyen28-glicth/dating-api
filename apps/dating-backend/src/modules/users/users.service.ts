@@ -327,15 +327,19 @@ export class UserService implements OnModuleInit {
 
   async distribution(): Promise<any> {
     try {
+      const defaultAgeGroup = ['18-24', '25-34', '35-44', '45-54', '55-64', '65+'];
       const [ageGroup, genderGroup] = await Promise.all([
         this.userRepo.distributionAge(),
         this.userRepo.distributionGender(),
       ]);
       const totalCountGroup = sumBy(ageGroup, 'count');
-      const newAgeGroup = ageGroup.map(item => {
+      const newAgeGroup = defaultAgeGroup.map(item => {
+        const group = ageGroup.find(age => age._id === item);
+        const count = get(group, 'count', 0);
         return {
-          ...item,
-          percentage: getPercentage(item.count, totalCountGroup),
+          _id: item,
+          count,
+          percentage: getPercentage(count, totalCountGroup),
         };
       });
       const newGenderGroup = genderGroup.map(item => {
