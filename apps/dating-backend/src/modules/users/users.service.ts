@@ -1,7 +1,7 @@
 import { BadRequestException, Inject, Injectable, NotFoundException, OnModuleInit, forwardRef } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
 import axios from 'axios';
-import { get, isNil } from 'lodash';
+import { get, isNil, sumBy } from 'lodash';
 import { PipelineStage } from 'mongoose';
 
 import { RabbitService } from '@app/shared';
@@ -16,7 +16,14 @@ import {
   RMQ_CHANNEL,
 } from '@dating/common';
 import { UserRepo } from '@dating/repositories';
-import { FilterBuilder, downloadImage, formatResult, mappingData, throwIfNotExists } from '@dating/utils';
+import {
+  FilterBuilder,
+  downloadImage,
+  formatResult,
+  getPercentage,
+  mappingData,
+  throwIfNotExists,
+} from '@dating/utils';
 
 import { TagService } from '@modules/tag/tag.service';
 import { BillingService } from '@modules/billing/billing.service';
@@ -316,6 +323,35 @@ export class UserService implements OnModuleInit {
     }
     const [queryFilter] = queryBuilder.buildQuery();
     return await this.userRepo.statisticByRangeDate(queryFilter, filter.format);
+  }
+
+  async distribution(): Promise<any> {
+    try {
+      const [ageGroup, genderGroup] = await Promise.all([
+        this.userRepo.distributionAge(),
+        this.userRepo.distributionGender(),
+      ]);
+      const totalCountGroup = sumBy(ageGroup, 'count');
+      const newAgeGroup = ageGroup.map(item => {
+        return {
+          ...item,
+          percentage: getPercentage(item.count, totalCountGroup),
+        };
+      });
+      const newGenderGroup = genderGroup.map(item => {
+        return {
+          ...item,
+          percentage: getPercentage(item.count, totalCountGroup),
+        };
+      });
+      return {
+        ageGroup: newAgeGroup,
+        genderGroup: newGenderGroup,
+        totalCount: totalCountGroup,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
   async insertManyUser(): Promise<boolean> {

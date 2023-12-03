@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 
-import { RequestDatingStatus } from '@common/consts';
-import { CurrentUser } from '@common/decorators';
+import { RequestDatingStatus, Role } from '@common/consts';
+import { CurrentUser, hasRoles } from '@common/decorators';
 import { AtGuard } from '@common/guards';
 import { IResponse, IResult } from '@common/interfaces';
 
@@ -19,6 +19,7 @@ import {
 } from './dto';
 import { LocationDating, Schedule } from './entities';
 import { ScheduleService } from './schedule.service';
+import { FilterGetStatistic } from '@modules/admin/dto';
 
 @Controller('schedule')
 @ApiTags(Schedule.name)
@@ -30,6 +31,13 @@ export class ScheduleController {
   async findAll(@Query() filter: FilterGetAllScheduleDTO, @CurrentUser() user: User): Promise<IResult<Schedule>> {
     filter.userId = user._id;
     return await this.scheduleService.findAll(filter, user);
+  }
+
+  @Get('/statistic-appointment')
+  @UseGuards(AtGuard)
+  @hasRoles(Role.MASTER)
+  async statisticAppointMentByRangeDate(@Query() filter: FilterGetStatistic) {
+    return await this.scheduleService.statisticByRangeDate(filter);
   }
 
   @Get('/count')

@@ -11,6 +11,7 @@ import { OfferingService } from '@modules/offering/offering.service';
 import { UserService } from '@modules/users/users.service';
 import { ConversationService } from '@modules/conversation/conversation.service';
 import { MatchRequestService } from '@modules/match-request/match-request.service';
+import { ScheduleService } from '@modules/schedule/schedule.service';
 
 import { AdminAuthDTO } from '@modules/auth/dto';
 
@@ -26,6 +27,7 @@ export class AdminService {
     private userService: UserService,
     private conversationService: ConversationService,
     private matchRqService: MatchRequestService,
+    private scheduleService: ScheduleService,
   ) {}
 
   async create(admin: Admin, dto: CreateAdminDTO): Promise<IResponse> {
@@ -147,6 +149,7 @@ export class AdminService {
       this.conversationService.statisticByRangeDate(filter),
       this.matchRqService.statisticLikeByRangeDate(filter),
       this.matchRqService.statisticSkipByRangeDate(filter),
+      this.scheduleService.statisticByRangeDate(filter),
     ]);
   }
 }

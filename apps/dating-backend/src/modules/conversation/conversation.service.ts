@@ -12,11 +12,11 @@ import {
 import { PaginationDTO } from '@common/dto';
 import { IOptionFilterGetOne, IResponse, IResult } from '@common/interfaces';
 import { ConversationRepo } from '@dating/repositories';
-import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
+import { FilterBuilder, formatResult, getFormatGroupISODate, throwIfNotExists } from '@dating/utils';
 
+import { FilterGetStatistic } from '@modules/admin/dto';
 import { MessageService } from '@modules/message/message.service';
 import { User } from '@modules/users/entities';
-import { FilterGetStatistic, GroupDate } from '@modules/admin/dto';
 
 import { CreateConversationDto, FilterGetAllConversationDTO, FilterGetOneConversationDTO } from './dto';
 import { Conversation } from './entities';
@@ -202,14 +202,13 @@ export class ConversationService {
 
   //======================================Admin======================================
   async statisticByRangeDate(filter: FilterGetStatistic): Promise<any> {
+    filter.format = getFormatGroupISODate(filter?.typeRange);
     const queryBuilder = new FilterBuilder<Conversation>().setFilterItem('type', '$eq', ConversationType.MATCHED);
     if (filter?.fromDate && filter?.toDate) {
       queryBuilder.setFilterItemWithObject('createdAt', { $gte: filter?.fromDate, $lte: filter?.toDate });
     }
     const [queryFilter] = queryBuilder.buildQuery();
     const matched = await this.conversationRepo.statisticByRangeDate(queryFilter, filter.format);
-    return {
-      matched,
-    };
+    return matched;
   }
 }

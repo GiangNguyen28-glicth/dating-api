@@ -11,6 +11,8 @@ export interface UserRepo extends CrudRepo<User> {
   populate(document: Document, populate: PopulateOptions[]): Promise<User>;
   bulkWrite(bulkWrite: IBulkWrite[]): Promise<void>;
   statisticByRangeDate(filter, format: GroupDate): Promise<any>;
+  distributionAge(): Promise<any>;
+  distributionGender(): Promise<any>;
   deleteManyUser();
   migrateData(): Promise<User[]>;
 }
@@ -65,6 +67,58 @@ export class UserMongoRepo extends MongoRepo<User> {
       {
         $sort: {
           _id: 1,
+        },
+      },
+    ]);
+  }
+
+  async distributionAge(): Promise<any> {
+    return await this.userModel.aggregate([
+      {
+        $project: {
+          ageGroup: {
+            $switch: {
+              branches: [
+                { case: { $and: [{ $gte: ['$age', 18] }, { $lte: ['$age', 24] }] }, then: '18-24' },
+                { case: { $and: [{ $gte: ['$age', 25] }, { $lte: ['$age', 34] }] }, then: '25-34' },
+                { case: { $and: [{ $gte: ['$age', 35] }, { $lte: ['$age', 44] }] }, then: '35-44' },
+                { case: { $and: [{ $gte: ['$age', 45] }, { $lte: ['$age', 54] }] }, then: '45-54' },
+                { case: { $and: [{ $gte: ['$age', 55] }, { $lte: ['$age', 64] }] }, then: '55-64' },
+                { case: { $gte: ['$age', 65] }, then: '65+' },
+              ],
+              default: 'Unknown',
+            },
+          },
+        },
+      },
+      {
+        $group: {
+          _id: '$ageGroup',
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+  }
+
+  async distributionGender(): Promise<any> {
+    return await this.userModel.aggregate([
+      {
+        $project: {
+          genderGroup: {
+            $switch: {
+              branches: [
+                { case: { $and: [{ $eq: ['$gender', 'Female'] }] }, then: 'female' },
+                { case: { $and: [{ $eq: ['$gender', 'Male'] }] }, then: 'male' },
+              ],
+              default: 'Unknown',
+            },
+          },
+        },
+      },
+      {
+        $group: {
+          _id: '$genderGroup',
+          count: { $sum: 1 },
         },
       },
     ]);

@@ -7,6 +7,7 @@ import { BillingModule } from '@modules/billing';
 import { OfferingModule } from '@modules/offering';
 import { ConversationModule } from '@modules/conversation';
 import { MatchRequestModule } from '@modules/match-request';
+import { ScheduleModule } from '@modules/schedule';
 
 import { Admin, AdminSchema } from './entities';
 import { AdminController } from './admin.controller';
@@ -19,6 +20,7 @@ import { AdminService } from './admin.service';
     OfferingModule,
     ConversationModule,
     MatchRequestModule,
+    ScheduleModule,
   ],
   controllers: [AdminController],
   providers: [JwtService, AdminService, AtStrategy],

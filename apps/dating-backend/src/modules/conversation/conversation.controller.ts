@@ -1,9 +1,10 @@
 import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-import { AtGuard, CurrentUser, IResponse, IResult } from '@dating/common';
+import { AtGuard, CurrentUser, IResponse, IResult, Role, hasRoles } from '@dating/common';
 
 import { User } from '@modules/users/entities';
+import { FilterGetStatistic } from '@modules/admin/dto';
 
 import { ConversationService } from './conversation.service';
 import { FilterGetAllConversationDTO, SafeModeDTO } from './dto';
@@ -22,6 +23,13 @@ export class ConversationController {
     @Query() filter: FilterGetAllConversationDTO,
   ): Promise<IResult<Conversation>> {
     return await this.conversationService.findAll(user, filter);
+  }
+
+  @Get('/statistic-matched')
+  @UseGuards(AtGuard)
+  @hasRoles(Role.MASTER)
+  async statisticMatchedByRangeDate(@Query() filter: FilterGetStatistic) {
+    return await this.conversationService.statisticByRangeDate(filter);
   }
 
   @Get(':id')

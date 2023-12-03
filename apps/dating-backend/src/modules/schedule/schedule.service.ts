@@ -17,7 +17,7 @@ import {
 } from '@common/consts';
 import { IResponse, IResult } from '@common/interfaces';
 import { ScheduleRepo } from '@dating/repositories';
-import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
+import { FilterBuilder, formatResult, getFormatGroupISODate, throwIfNotExists } from '@dating/utils';
 
 import { User } from '@modules/users/entities';
 
@@ -633,14 +633,13 @@ export class ScheduleService {
 
   //======================================Admin======================================
   async statisticByRangeDate(filter: FilterGetStatistic): Promise<any> {
+    filter.format = getFormatGroupISODate(filter?.typeRange);
     const queryBuilder = new FilterBuilder<Schedule>().setFilterItem('status', '$eq', RequestDatingStatus.ACCEPT);
     if (filter?.fromDate && filter?.toDate) {
       queryBuilder.setFilterItemWithObject('createdAt', { $gte: filter?.fromDate, $lte: filter?.toDate });
     }
     const [queryFilter] = queryBuilder.buildQuery();
     const appointment = await this.scheduleRepo.statisticByRangeDate(queryFilter, filter.format);
-    return {
-      appointment,
-    };
+    return appointment;
   }
 }

@@ -22,6 +22,13 @@ export class UsersController {
     return await this.userService.getCurrentUser(user, true);
   }
 
+  @Get('distribution')
+  @UseGuards(AtGuard)
+  @hasRoles(Role.MASTER)
+  async distribution(): Promise<any> {
+    return await this.userService.distribution();
+  }
+
   @Get()
   @ApiBearerAuth()
   @UseGuards(AtGuard, RolesGuard)
@@ -47,7 +54,7 @@ export class UsersController {
   async findOne(@Param('id') id: string) {
     try {
       const user = await this.userService.findOne({ _id: id });
-      throwIfNotExists(user, 'Không tìm thấy User');
+      throwIfNotExists(user, 'Không tìm thấy User!');
       return user;
     } catch (error) {
       throw error;

@@ -13,6 +13,16 @@ import { IToken } from './interfaces';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Get('test-redis')
+  async testRedis() {
+    return await this.authService.testRedis();
+  }
+
+  @Get('remove-redis')
+  async removeRedis() {
+    return await this.authService.testRemove();
+  }
+
   @Get('/google')
   @UseGuards(AuthGuard('google'))
   async googleAuth(@Req() req) {

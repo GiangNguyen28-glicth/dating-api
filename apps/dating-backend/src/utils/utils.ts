@@ -103,6 +103,13 @@ export function formatResult<T>(data: T[], totalCount: number, pagination?: Pagi
   return results;
 }
 
+export function getPercentage(count: number, totalCount: number): number {
+  if (totalCount < 0) {
+    throw new Error('total count can not lte 0');
+  }
+  return Number(((count / totalCount) * 100).toFixed(2));
+}
+
 export function docToObject<T>(doc: T): T {
   return JSON.parse(JSON.stringify(doc));
 }

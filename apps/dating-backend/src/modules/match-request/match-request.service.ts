@@ -11,7 +11,7 @@ import {
 } from '@common/consts';
 import { IResponse, IResult } from '@common/interfaces';
 import { MatchRequestRepo, PassesRequestRepo } from '@dating/repositories';
-import { FilterBuilder, docToObject, formatResult } from '@dating/utils';
+import { FilterBuilder, docToObject, formatResult, getFormatGroupISODate } from '@dating/utils';
 
 import { ConversationService } from '@modules/conversation/conversation.service';
 import { NotificationService } from '@modules/notification/notification.service';
@@ -195,26 +195,24 @@ export class MatchRequestService {
 
   //======================================Admin======================================
   async statisticLikeByRangeDate(filter: FilterGetStatistic): Promise<any> {
+    filter.format = getFormatGroupISODate(filter?.typeRange);
     const queryBuilder = new FilterBuilder<MatchRequest>();
     if (filter?.fromDate && filter?.toDate) {
       queryBuilder.setFilterItemWithObject('createdAt', { $gte: filter?.fromDate, $lte: filter?.toDate });
     }
     const [queryFilter] = queryBuilder.buildQuery();
     const swipeLikes = await this.matchRequestRepo.statisticByRangeDate(queryFilter, filter.format);
-    return {
-      swipeLikes,
-    };
+    return swipeLikes;
   }
 
   async statisticSkipByRangeDate(filter: FilterGetStatistic): Promise<any> {
+    filter.format = getFormatGroupISODate(filter?.typeRange);
     const queryBuilder = new FilterBuilder<MatchRequest>();
     if (filter?.fromDate && filter?.toDate) {
       queryBuilder.setFilterItemWithObject('createdAt', { $gte: filter?.fromDate, $lte: filter?.toDate });
     }
     const [queryFilter] = queryBuilder.buildQuery();
     const swipePasses = await this.passesRequestRepo.statisticByRangeDate(queryFilter, filter.format);
-    return {
-      swipePasses,
-    };
+    return swipePasses;
   }
 }
