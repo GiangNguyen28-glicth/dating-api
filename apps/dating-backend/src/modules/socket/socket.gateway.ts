@@ -313,6 +313,12 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 
     if (room) {
       const socketIds = Object.keys(room?.socketsIds);
+
+      if (!room?.answer) {
+        const socketIds = (await Promise.all(receiverIds.map(id => this.socketService.getSocketIdsByUser(id)))).flat();
+        this.sendEventToClient(socketIds, 'reject', { status: false });
+      }
+
       this.sendEventToClient(socketIds, 'hangup', null);
       socketIds.forEach(socketId => {
         roomMapping.delete(socketId);
