@@ -18,8 +18,9 @@ export enum TagType {
   DO_EXERCISE = 'Do exercise',
   SMOKE_QUESTION = 'Smoke question',
   ZODIAC = 'Zodiac',
-  Drinking = 'Drinking',
-  CHILDREN = 'Religion',
+  DRINKING = 'Drinking',
+  CHILDREN = 'Children',
+  RELIGION = 'Religion',
 }
 
 export enum RegisterType {

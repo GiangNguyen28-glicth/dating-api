@@ -31,6 +31,9 @@ export class CreateMessageDto implements Partial<Message> {
 
   @ApiProperty()
   uuid: string;
+
+  startTime?: Date;
+  endTime?: Date;
 }
 
 export class SeenMessage {

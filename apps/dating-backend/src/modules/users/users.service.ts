@@ -1,6 +1,5 @@
-import { BadRequestException, Inject, Injectable, NotFoundException, OnModuleInit, forwardRef } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
-import axios from 'axios';
 import { get, isNil, sumBy } from 'lodash';
 import { PipelineStage } from 'mongoose';
 
@@ -25,10 +24,10 @@ import {
   throwIfNotExists,
 } from '@dating/utils';
 
-import { TagService } from '@modules/tag/tag.service';
 import { BillingService } from '@modules/billing/billing.service';
+import { TagService } from '@modules/tag/tag.service';
 
-import { FilterGetStatistic, GroupDate } from '@modules/admin/dto';
+import { FilterGetStatistic } from '@modules/admin/dto';
 import { CreateUserDTO, FilterGetAllUserDTO, FilterGetOneUserDTO, UpdateUserTagDTO } from './dto';
 import { User, UserSetting } from './entities';
 import { UserHelper } from './helper';

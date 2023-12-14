@@ -20,16 +20,8 @@ export class NotificationMongoRepo extends MongoRepo<Notification> {
     super(notificationModel);
   }
 
-  async updateManyByIds(ids: string[], entities: Partial<Notification>, user: User): Promise<void> {
-    await this.notificationModel.updateMany({ _id: { $in: ids }, receiver: user._id }, entities);
-  }
-
   async updateManyByFilter(filter: Partial<Notification>, update: UpdateNotificationDto): Promise<void> {
     await this.notificationModel.updateMany(filter, update);
-  }
-
-  async deleteManyByIds(ids: string[], user: User): Promise<void> {
-    await this.notificationModel.deleteMany({ _id: { $in: ids }, receiver: user._id });
   }
 
   async deleteByFilter(filter: Partial<Notification>): Promise<void> {

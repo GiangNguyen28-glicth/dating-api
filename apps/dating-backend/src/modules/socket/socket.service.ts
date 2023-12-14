@@ -12,8 +12,8 @@ export const rooms: Map<
 
     offer: any;
     answer: any;
-    startTime: string;
-    endTime: string;
+    startTime: Date;
+    endTime: Date;
     socketsIds: Record<string, boolean>;
   }
 > = new Map();

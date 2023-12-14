@@ -2,7 +2,6 @@ import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ConfirmChannel } from 'amqplib';
 import * as moment from 'moment-timezone';
-import { isNil } from 'lodash';
 
 import { RabbitService } from '@app/shared';
 import {
@@ -24,9 +23,9 @@ import { Offering, Package } from '@modules/offering/entities';
 import { OfferingService } from '@modules/offering/offering.service';
 import { FeatureAccessItem, User } from '@modules/users/entities';
 
+import { CreateBillingDto } from '@modules/billing/dto';
 import { CheckoutDTO } from './dto';
 import { StripePaymentStrategy } from './strategies/stripe.strategy';
-import { CreateBillingDto } from '@modules/billing/dto';
 
 @Injectable()
 export class PaymentService implements OnModuleInit {
@@ -89,12 +88,6 @@ export class PaymentService implements OnModuleInit {
 
       const billing: Billing = await this.billingService.create(billingDto);
 
-      if (offering.type === OfferingType.FINDER_BOOSTS || offering.type === OfferingType.FINDER_SUPER_LIKE) {
-        if (!_package.amount) {
-          throw new BadRequestException('Amount is not accept');
-        }
-      }
-
       const paymentIntent = await this.stripe.createPayment(user, checkoutDto);
       if (paymentIntent['status'] !== 'succeeded') {
         billing.status = BillingStatus.ERROR;
@@ -148,15 +141,15 @@ export class PaymentService implements OnModuleInit {
         continue;
       }
       if (merchandisingItem.type == LimitType.UNLIMITED) {
-        if (!offering.isRetail) {
-          featureAccess[index].unlimited = false;
-        }
         featureAccess[index].unlimited = true;
       } else {
-        if (!offering.isRetail) {
-          featureAccess[index].unlimited = false;
+        featureAccess[index].unlimited = false;
+        if (offering.isRetail) {
+          featureAccess[index].amount =
+            featureAccess[index].amount + Offering.getAmountByPackage(_package._id, offering.packages);
+        } else {
+          featureAccess[index].amount = featureAccess[index].amount + merchandisingItem.amount;
         }
-        featureAccess[index].amount = featureAccess[index].amount + merchandisingItem.amount;
       }
     }
     return featureAccess;

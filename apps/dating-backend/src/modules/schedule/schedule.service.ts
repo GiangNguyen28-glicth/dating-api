@@ -432,8 +432,6 @@ export class ScheduleService {
         return this.getPlaceByContent(suggestDto, content);
       });
 
-      console.log(places);
-
       return await Promise.all(
         places.map(async place => {
           return this.searchText(place);
@@ -447,7 +445,6 @@ export class ScheduleService {
 
   async searchText(payloadPlace: IPayloadPlace): Promise<LocationDating> {
     try {
-      console.log(this.configService.get<string>('GOOGLE_MAP_API_KEY'));
       const results = await this.client.textSearch({
         params: {
           key: this.configService.get<string>('GOOGLE_MAP_API_KEY'),

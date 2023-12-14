@@ -26,7 +26,7 @@ export type RelationshipModelType = Model<Relationship>;
 export type NotificationModelType = Model<Notification>;
 export type ScheduleModelType = Model<Schedule>;
 export type PassesRequestModelType = Model<PassesRequest>;
-export type MongoQuery = '$eq' | '$gte' | '$lte' | '$in' | '$nin' | '$elemMatch' | '$exists' | '$ne' | '$all';
+export type MongoQuery = '$eq' | '$gte' | '$lte' | '$in' | '$nin' | '$elemMatch' | '$exists' | '$ne' | '$all' | '$gt';
 
 export enum BulkWriteKey {
   insertOne = 'insertOne',

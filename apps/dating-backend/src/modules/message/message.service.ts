@@ -1,11 +1,12 @@
 import { Inject, Injectable, OnModuleInit, forwardRef } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
 
+import { RabbitService } from '@app/shared';
 import {
   ConversationType,
   DATABASE_TYPE,
-  MerchandisingType,
   MessageType,
+  OK,
   PROVIDER_REPO,
   QUEUE_NAME,
   RMQ_CHANNEL,
@@ -13,12 +14,19 @@ import {
 import { IResponse, IResult } from '@common/interfaces';
 import { MessageRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
+
 import { ConversationService } from '@modules/conversation/conversation.service';
 import { User } from '@modules/users/entities';
-import { RabbitService } from '@app/shared';
 
+import {
+  CreateMessageDto,
+  FilterGetAllMessageDTO,
+  FilterGetAllMessageReviews,
+  ReviewCallDTO,
+  SeenMessage,
+  UpdateMessageDto,
+} from './dto';
 import { Message } from './entities';
-import { CreateMessageDto, FilterGetAllMessageDTO, ReviewCallDTO, SeenMessage, UpdateMessageDto } from './dto';
 
 @Injectable()
 export class MessageService implements OnModuleInit {
@@ -63,7 +71,7 @@ export class MessageService implements OnModuleInit {
       });
       throwIfNotExists(conversation, 'Không tìm thấy cuộc hội thoại');
       await this.messageRepo.save(message);
-      if (messageDto.images && messageDto.images.length) {
+      if (messageDto?.images?.length) {
         await this.rabbitService.sendToQueue(QUEUE_NAME.MESSAGE_IMAGES_BUILDER, {
           messageId: message._id,
           images: messageDto.images,
@@ -155,10 +163,10 @@ export class MessageService implements OnModuleInit {
     try {
       const message = await this.messageRepo.findOneAndUpdate(_id, {
         isDeleted: true,
-        text: 'Tin nhan da bi xoa',
+        text: 'Tin nhắn đã được thu hồi',
       });
       if (!message) {
-        throwIfNotExists(message, 'Message không tông tại');
+        throwIfNotExists(message, 'Message không tồn tại');
       }
       return {
         success: true,
@@ -176,15 +184,40 @@ export class MessageService implements OnModuleInit {
       });
       throwIfNotExists(message, 'Message không tồn tại');
       await this.conversationService.findOne({ _id: message.conversation.toString() }, user);
-      message.rating = review.rating;
-      if (review.content) {
-        message.reviewMessage = review.content;
-      }
+      review.createdBy = user._id;
+      message.reviews.push(review);
       await this.messageRepo.save(message);
       return {
         success: true,
-        message: 'Ok',
+        message: OK,
       };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  //======================================Admin======================================
+  async getRatingByMessageCall(): Promise<any> {
+    try {
+      return await this.messageRepo.getRatingByMessageCall();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getReviewsByMessageCall(filter: FilterGetAllMessageReviews): Promise<IResult<Message>> {
+    try {
+      const queryBuilder = new FilterBuilder<Message>()
+        .setFilterItem('type', '$eq', MessageType.CALL)
+        .setFilterItemWithObject('reviews', { $gt: { $size: 1 } });
+      if (filter?.rating) {
+        queryBuilder.setFilterItemWithObject('reviews', { $elemMatch: { $eq: filter?.rating } });
+      }
+      const [queryFilter] = queryBuilder.buildQuery();
+      const [results] = await Promise.all([
+        this.messageRepo.getReviewsByMessageCall(queryFilter, { page: filter?.page, size: filter?.size }),
+      ]);
+      return results;
     } catch (error) {
       throw error;
     }

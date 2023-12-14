@@ -1,12 +1,13 @@
-import { Body, Controller, Delete, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiParam, ApiTags } from '@nestjs/swagger';
 
-import { CurrentUser } from '@common/decorators';
+import { CurrentUser, hasRoles } from '@common/decorators';
 import { AtGuard } from '@common/guards';
 import { IResponse, IResult } from '@common/interfaces';
 import { User } from '@modules/users/entities';
 
-import { FilterGetAllMessageDTO, ReviewCallDTO } from './dto';
+import { Role } from '@common/consts';
+import { FilterGetAllMessageDTO, FilterGetAllMessageReviews, ReviewCallDTO } from './dto';
 import { Message } from './entities';
 import { MessageService } from './message.service';
 
@@ -21,7 +22,19 @@ export class MessageController {
     return await this.messageService.findAll(filter, user);
   }
 
-  @Patch('/reviews')
+  @Get('/rating')
+  @hasRoles(Role.MASTER)
+  async getRatingByMessageCall(): Promise<IResult<Message>> {
+    return await this.messageService.getRatingByMessageCall();
+  }
+
+  @Get('/reviews')
+  @hasRoles(Role.MASTER)
+  async getReviewsMessageCall(@Query() filter: FilterGetAllMessageReviews): Promise<IResult<Message>> {
+    return await this.messageService.getReviewsByMessageCall(filter);
+  }
+
+  @Post('/reviews')
   async reviewCallMessage(@Body() reviewDto: ReviewCallDTO, @CurrentUser() user: User): Promise<IResponse> {
     return await this.messageService.reviewCallMessage(reviewDto, user);
   }

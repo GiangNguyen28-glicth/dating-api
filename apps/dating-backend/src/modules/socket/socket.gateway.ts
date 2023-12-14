@@ -233,7 +233,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 
     const room = rooms.get(roomId);
     room.answer = offer;
-    room.startTime = new Date().toISOString();
+    room.startTime = new Date();
     room.socketsIds = {
       ...room.socketsIds,
       [client.id]: true,
@@ -282,7 +282,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       userId,
       receiverIds,
       startTime: room.startTime,
-      endTime: new Date().toISOString(),
+      endTime: new Date(),
     };
 
     userAvailable.delete(userId);
@@ -296,6 +296,8 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
             receiver: id,
             conversation: roomId,
             createdAt: new Date(),
+            startTime: messages.startTime,
+            endTime: messages.endTime,
           },
           user,
         );

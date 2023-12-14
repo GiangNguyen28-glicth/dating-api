@@ -1,14 +1,17 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { IsMongoId, IsNotEmpty, Max, Min } from 'class-validator';
-import { Message } from '../entities';
+
+import { User } from '@modules/users/entities';
+
+import { ReviewCall } from '../entities';
 import { CreateMessageDto } from './create-message.dto';
 export class UpdateMessageDto extends PartialType(CreateMessageDto) {}
 
-export class ReviewCallDTO implements Partial<Message> {
+export class ReviewCallDTO implements Partial<ReviewCall> {
   @ApiProperty()
   @Min(1)
   @Max(5)
-  rating?: number;
+  rating: number;
 
   @ApiProperty()
   @IsNotEmpty()
@@ -16,5 +19,7 @@ export class ReviewCallDTO implements Partial<Message> {
   messageId: string;
 
   @ApiPropertyOptional()
-  content?: string;
+  content: string;
+
+  createdBy: string | User;
 }

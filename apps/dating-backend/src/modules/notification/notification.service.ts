@@ -9,14 +9,9 @@ import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
 import { ConversationService } from '@modules/conversation/conversation.service';
 import { User } from '@modules/users/entities';
 
-import {
-  CreateNotificationDto,
-  FilterGetAllNotification,
-  UpdateNotificationByUserDto,
-  UpdateNotificationDto,
-} from './dto';
-import { Notification } from './entities';
 import { set } from 'lodash';
+import { CreateNotificationDto, FilterGetAllNotification, UpdateNotificationDto } from './dto';
+import { Notification } from './entities';
 
 @Injectable()
 export class NotificationService implements OnModuleInit {

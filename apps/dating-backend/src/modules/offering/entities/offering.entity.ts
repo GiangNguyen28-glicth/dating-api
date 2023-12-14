@@ -157,6 +157,10 @@ export class Offering implements IEntity {
       }
     });
   }
+
+  static getAmountByPackage(packageId: string, _package: Package[]): number {
+    return _package.find(p => p._id === packageId).amount;
+  }
 }
 
 export const OfferingSchema = SchemaFactory.createForClass(Offering);
