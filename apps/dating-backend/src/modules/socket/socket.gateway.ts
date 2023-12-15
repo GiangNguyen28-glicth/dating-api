@@ -203,7 +203,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 
     const payload = {
       roomId,
-      onwner: {
+      owner: {
         name: user.name,
         image: user.images[0],
       },
