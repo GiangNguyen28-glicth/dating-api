@@ -288,9 +288,13 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     userAvailable.delete(userId);
     await Promise.all(
       receiverIds?.map(async id => {
+        let messageType = MessageType.CALL;
+        if (messages.startTime) {
+          messageType = MessageType.MISSED;
+        }
         const message = await this.messageService.create(
           {
-            type: MessageType.CALL,
+            type: messageType,
             text: encodeToBase64(JSON.stringify(messages)),
             uuid: uuidv4(),
             receiver: id,

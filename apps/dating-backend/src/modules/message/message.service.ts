@@ -222,4 +222,9 @@ export class MessageService implements OnModuleInit {
       throw error;
     }
   }
+
+  async getCallStatistic(): Promise<any> {
+    try {
+    } catch (error) {}
+  }
 }

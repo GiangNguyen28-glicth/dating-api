@@ -20,6 +20,7 @@ export interface MessageRepo extends CrudRepo<Message> {
   updateMessageToReceived(ids: string[]): void;
   getRatingByMessageCall(): any;
   getReviewsByMessageCall(filter, pagination: PaginationDTO): any;
+  getCallStatistic(): any;
 }
 export class MessageMongoRepo extends MongoRepo<Message> {
   constructor(@InjectModel(Message.name) protected messageModel: MessageModelType) {
@@ -113,6 +114,17 @@ export class MessageMongoRepo extends MongoRepo<Message> {
       },
       {
         $limit: pagination?.size || 100,
+      },
+    ]);
+  }
+
+  async getCallStatistic(): Promise<any> {
+    return await this.messageModel.aggregate([
+      {
+        $project: {
+          _id: 1,
+          duration: { $subtract: ['$endTime', '$startTime'] }, // Tính thời gian diễn ra của mỗi cuộc gọi
+        },
       },
     ]);
   }

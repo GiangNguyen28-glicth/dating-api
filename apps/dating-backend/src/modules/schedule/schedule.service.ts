@@ -3,7 +3,7 @@ import { BadRequestException, ForbiddenException, Inject, Injectable } from '@ne
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { GoogleAuth } from 'google-auth-library';
-import { get, isNil } from 'lodash';
+import { get, isEmpty, isNil, uniq, uniqBy } from 'lodash';
 
 import {
   DATABASE_TYPE,
@@ -398,7 +398,7 @@ export class ScheduleService {
     }
   }
 
-  async suggestLocation(suggestDto: SuggestLocationDTO): Promise<LocationDating[]> {
+  async suggestLocation(suggestDto: SuggestLocationDTO): Promise<any> {
     try {
       const auth = new GoogleAuth({
         credentials: serviceAccountInfo,
@@ -428,14 +428,23 @@ export class ScheduleService {
       );
       const data = await response.data;
       const aiSuggestionData: string[] = get(data, 'predictions[0].content').split('\n');
-      const places: IPayloadPlace[] = aiSuggestionData.map(content => {
-        return this.getPlaceByContent(suggestDto, content);
-      });
+      const places: IPayloadPlace[] = uniqBy(
+        aiSuggestionData
+          .map(content => {
+            return this.getPlaceByContent(suggestDto, content);
+          })
+          .filter(place => place),
+        place => place.name,
+      );
 
-      return await Promise.all(
+      const results = await Promise.all(
         places.map(async place => {
           return this.searchText(place);
         }),
+      );
+      return uniqBy(
+        results.filter(item => !isNil(item) && isNil(item.isEmpty)),
+        obj => obj.place_id,
       );
     } catch (error) {
       console.log(error);
@@ -445,6 +454,9 @@ export class ScheduleService {
 
   async searchText(payloadPlace: IPayloadPlace): Promise<LocationDating> {
     try {
+      if (!payloadPlace?.name || !payloadPlace?.address) {
+        return null;
+      }
       const results = await this.client.textSearch({
         params: {
           key: this.configService.get<string>('GOOGLE_MAP_API_KEY'),
@@ -518,8 +530,15 @@ export class ScheduleService {
 
   getPlaceByContent(suggestDto: SuggestLocationDTO, rawContent: string): IPayloadPlace {
     const place: IPayloadPlace = {};
+    if (!rawContent || isEmpty(rawContent)) {
+      return null;
+    }
+
     const address = getAddress(rawContent);
     place.name = getPlaceName(rawContent);
+    if ((place?.name && place.name.includes('Địa chỉ')) || place.name.includes('Không gian')) {
+      return null;
+    }
     place.address = address ? address : suggestDto.location;
     if (place.name) {
       place.textSearch = place.name + ' ' + place.address;
