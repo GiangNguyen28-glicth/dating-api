@@ -34,6 +34,12 @@ export class MessageController {
     return await this.messageService.getReviewsByMessageCall(filter);
   }
 
+  @Get('/call')
+  @hasRoles(Role.MASTER)
+  async getCallStatistic(): Promise<IResult<Message>> {
+    return await this.messageService.getCallStatistic();
+  }
+
   @Post('/reviews')
   async reviewCallMessage(@Body() reviewDto: ReviewCallDTO, @CurrentUser() user: User): Promise<IResponse> {
     return await this.messageService.reviewCallMessage(reviewDto, user);

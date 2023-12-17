@@ -209,7 +209,7 @@ export class MessageService implements OnModuleInit {
     try {
       const queryBuilder = new FilterBuilder<Message>()
         .setFilterItem('type', '$eq', MessageType.CALL)
-        .setFilterItemWithObject('reviews', { $gt: { $size: 1 } });
+        .setFilterItemWithObject('reviews', { $gte: { $size: 1 } });
       if (filter?.rating) {
         queryBuilder.setFilterItemWithObject('reviews', { $elemMatch: { $eq: filter?.rating } });
       }
@@ -225,6 +225,13 @@ export class MessageService implements OnModuleInit {
 
   async getCallStatistic(): Promise<any> {
     try {
-    } catch (error) {}
+      const [queryFilter] = new FilterBuilder<Message>()
+        .setFilterItem('startTime', '$ne', null, true)
+        .setFilterItem('type', '$eq', MessageType.CALL)
+        .buildQuery();
+      return await this.messageRepo.getCallStatistic(queryFilter);
+    } catch (error) {
+      throw error;
+    }
   }
 }

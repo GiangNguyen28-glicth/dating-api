@@ -20,7 +20,7 @@ export interface MessageRepo extends CrudRepo<Message> {
   updateMessageToReceived(ids: string[]): void;
   getRatingByMessageCall(): any;
   getReviewsByMessageCall(filter, pagination: PaginationDTO): any;
-  getCallStatistic(): any;
+  getCallStatistic(filter): any;
 }
 export class MessageMongoRepo extends MongoRepo<Message> {
   constructor(@InjectModel(Message.name) protected messageModel: MessageModelType) {
@@ -118,12 +118,33 @@ export class MessageMongoRepo extends MongoRepo<Message> {
     ]);
   }
 
-  async getCallStatistic(): Promise<any> {
+  async getCallStatistic(filter): Promise<any> {
     return await this.messageModel.aggregate([
+      {
+        $match: filter,
+      },
       {
         $project: {
           _id: 1,
-          duration: { $subtract: ['$endTime', '$startTime'] }, // Tính thời gian diễn ra của mỗi cuộc gọi
+          duration: { $subtract: ['$endTime', '$startTime'] },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          avgDuration: { $avg: '$duration' },
+          maxDurationCall: { $max: '$duration' },
+          totalCount: {
+            $sum: 1,
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          avgDuration: { $divide: ['$avgDuration', 60000] },
+          maxDurationCall: { $divide: ['$maxDurationCall', 60000] },
+          totalCount: 1,
         },
       },
     ]);

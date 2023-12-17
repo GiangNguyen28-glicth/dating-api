@@ -7,6 +7,7 @@ import { AtGuard } from '@common/guards';
 import { IResponse, IResult } from '@common/interfaces';
 
 import { User } from '@modules/users/entities';
+import { FilterGetStatistic } from '@modules/admin/dto';
 
 import { TokenDTO } from '@common/dto';
 import {
@@ -19,7 +20,6 @@ import {
 } from './dto';
 import { LocationDating, Schedule } from './entities';
 import { ScheduleService } from './schedule.service';
-import { FilterGetStatistic } from '@modules/admin/dto';
 
 @Controller('schedule')
 @ApiTags(Schedule.name)
