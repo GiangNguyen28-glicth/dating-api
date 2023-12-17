@@ -270,67 +270,62 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
 
   async hangup(roomId: string) {
     const room = rooms.get(roomId);
-
     if (!room) return;
     if (!room.callerId) return;
     const userId = room.callerId;
-    const user = await this.userService.findOne({ _id: userId });
-    const memberIds = await this.messageService.findMembersIdById(roomId);
-    const receiverIds = memberIds.filter(id => id !== user._id.toString());
+    userAvailable.delete(userId);
+
+    const [user, memberIds] = await Promise.all([
+      this.userService.findOne({ _id: userId }),
+      this.messageService.findMembersIdById(roomId),
+    ]);
+    const receiverId = memberIds.filter(id => id !== user._id.toString())[0];
 
     const messages = {
       userId,
-      receiverIds,
+      receiverIds: [receiverId],
       startTime: room.startTime,
       endTime: new Date(),
     };
 
-    userAvailable.delete(userId);
-    await Promise.all(
-      receiverIds?.map(async id => {
-        let messageType = MessageType.CALL;
-        if (messages.startTime) {
-          messageType = MessageType.MISSED;
-        }
-        const message = await this.messageService.create(
-          {
-            type: messageType,
-            text: encodeToBase64(JSON.stringify(messages)),
-            uuid: uuidv4(),
-            receiver: id,
-            conversation: roomId,
-            createdAt: new Date(),
-            startTime: messages.startTime,
-            endTime: messages.endTime,
-          },
-          user,
-        );
-
-        userAvailable.delete(id);
-        const [socketIdsSender, socketIdsReceiver] = await Promise.all([
-          this.socketService.getSocketIdsByUser(message.sender as string),
-          this.socketService.getSocketIdsByUser(message.receiver as string),
-        ]);
-        // This event emit to all tab of user sent the message in order to those tabs update new message
-        this.sendEventToClient(socketIdsSender, 'sentMessage', message);
-        this.sendEventToClient(socketIdsReceiver, 'newMessage', message);
-      }),
+    const messageType = messages.startTime ? MessageType.CALL : MessageType.MISSED;
+    const message = await this.messageService.create(
+      {
+        type: messageType,
+        text: encodeToBase64(JSON.stringify(messages)),
+        uuid: uuidv4(),
+        receiver: receiverId,
+        conversation: roomId,
+        createdAt: new Date(),
+        startTime: messages.startTime,
+        endTime: messages.endTime,
+      },
+      user,
     );
 
-    if (room) {
-      const socketIds = Object.keys(room?.socketsIds);
+    userAvailable.delete(receiverId);
+    const [socketIdsSender, socketIdsReceiver] = await Promise.all([
+      this.socketService.getSocketIdsByUser(message.sender as string),
+      this.socketService.getSocketIdsByUser(message.receiver as string),
+    ]);
+    this.sendEventToClient(socketIdsSender, 'sentMessage', message);
+    this.sendEventToClient(socketIdsReceiver, 'newMessage', message);
 
-      if (!room?.answer) {
-        const socketIds = (await Promise.all(receiverIds.map(id => this.socketService.getSocketIdsByUser(id)))).flat();
-        this.sendEventToClient(socketIds, 'reject', { status: false });
-      }
+    if (!room) return;
 
-      this.sendEventToClient(socketIds, 'hangup', null);
-      socketIds.forEach(socketId => {
-        roomMapping.delete(socketId);
-      });
-      rooms.delete(roomId);
+    const socketIds = Object.keys(room?.socketsIds);
+    if (!room?.answer) {
+      const socketId = await this.socketService.getSocketIdsByUser(receiverId);
+      this.sendEventToClient(socketId, 'reject', { status: false });
     }
+
+    this.sendEventToClient(socketIds, 'hangup', {
+      messageId: message._id,
+    });
+    socketIds.forEach(socketId => {
+      roomMapping.delete(socketId);
+    });
+    rooms.delete(roomId);
   }
 
   sendEventToClient(socketIds: string[], eventName: string, data) {
