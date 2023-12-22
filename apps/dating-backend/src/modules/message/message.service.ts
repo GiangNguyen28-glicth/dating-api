@@ -222,9 +222,6 @@ export class MessageService implements OnModuleInit {
       const queryBuilder = new FilterBuilder<Message>()
         .setFilterItem('type', '$eq', MessageType.CALL)
         .setFilterItemWithObject('reviews', { $gte: { $size: 1 } });
-      if (filter?.rating) {
-        queryBuilder.setFilterItemWithObject('reviews', { $elemMatch: { rating: { $eq: Number(filter.rating) } } });
-      }
 
       switch (filter?.sort) {
         case SORT_REVIEW.HIGH_TO_LOW:
@@ -240,7 +237,12 @@ export class MessageService implements OnModuleInit {
 
       const [queryFilter, sortOption] = queryBuilder.buildQuery();
       const [results, totalCount] = await Promise.all([
-        this.messageRepo.getReviewsByMessageCall(queryFilter, { page: filter?.page, size: filter?.size }, sortOption),
+        this.messageRepo.getReviewsByMessageCall(
+          queryFilter,
+          { page: filter?.page, size: filter?.size },
+          sortOption,
+          filter?.rating,
+        ),
         this.messageRepo.countReview(queryFilter),
       ]);
       const reviewCount = get(totalCount, '0.totalCount', 0);

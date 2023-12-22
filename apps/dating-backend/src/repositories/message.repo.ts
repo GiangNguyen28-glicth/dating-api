@@ -13,13 +13,14 @@ import { MongoRepo } from '@dating/infra';
 
 import { SeenMessage } from '@modules/message/dto';
 import { Message } from '@modules/message/entities';
+import { PipelineStage } from 'mongoose';
 
 export interface MessageRepo extends CrudRepo<Message> {
   seenMessage(seenMessage: SeenMessage): void;
   receivedMessage(receiverId: string): void;
   updateMessageToReceived(ids: string[]): void;
   getRatingByMessageCall(): any;
-  getReviewsByMessageCall(filter, pagination: PaginationDTO, sortOption): any;
+  getReviewsByMessageCall(filter, pagination: PaginationDTO, sortOption, rating?: number): any;
   getCallStatistic(filter): any;
   countReview(filter): any;
 }
@@ -75,8 +76,8 @@ export class MessageMongoRepo extends MongoRepo<Message> {
     ]);
   }
 
-  async getReviewsByMessageCall(filter, pagination: PaginationDTO, sortOption): Promise<any> {
-    return await this.messageModel.aggregate([
+  async getReviewsByMessageCall(filter, pagination: PaginationDTO, sortOption, rating?: number): Promise<any> {
+    const pipeLine: PipelineStage[] = [
       { $match: filter },
       { $unwind: '$reviews' },
       {
@@ -89,6 +90,12 @@ export class MessageMongoRepo extends MongoRepo<Message> {
           createdAt: '$reviews.createdAt',
         },
       },
+    ];
+    if (rating) {
+      pipeLine.push({ $match: { rating } });
+    }
+    return await this.messageModel.aggregate([
+      ...pipeLine,
       {
         $lookup: {
           from: 'users',

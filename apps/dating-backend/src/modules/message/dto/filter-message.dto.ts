@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty } from 'class-validator';
+import { IsInt, IsNotEmpty, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 
 import { FilterGetAll, PaginationDTO } from '@common/dto';
 import { MessageStatus } from '@common/consts';
@@ -24,6 +25,9 @@ export enum SORT_REVIEW {
 
 export class FilterGetAllMessageReviews extends PaginationDTO implements Partial<ReviewCall> {
   @ApiPropertyOptional()
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
   rating?: number;
 
   @ApiPropertyOptional({ type: 'enum', enum: SORT_REVIEW })
