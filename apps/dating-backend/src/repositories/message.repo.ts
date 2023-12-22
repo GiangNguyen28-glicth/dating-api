@@ -21,6 +21,7 @@ export interface MessageRepo extends CrudRepo<Message> {
   getRatingByMessageCall(): any;
   getReviewsByMessageCall(filter, pagination: PaginationDTO): any;
   getCallStatistic(filter): any;
+  countReview(filter): any;
 }
 export class MessageMongoRepo extends MongoRepo<Message> {
   constructor(@InjectModel(Message.name) protected messageModel: MessageModelType) {
@@ -115,6 +116,15 @@ export class MessageMongoRepo extends MongoRepo<Message> {
       {
         $limit: pagination?.size || 100,
       },
+    ]);
+  }
+
+  async countReview(filter): Promise<any> {
+    return await this.messageModel.aggregate([
+      { $match: filter },
+      { $unwind: '$reviews' },
+      { $group: { _id: null, totalCount: { $sum: 1 } } },
+      { $project: { _id: 0 } },
     ]);
   }
 

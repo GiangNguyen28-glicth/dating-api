@@ -27,6 +27,7 @@ import {
   UpdateMessageDto,
 } from './dto';
 import { Message } from './entities';
+import { get } from 'lodash';
 
 @Injectable()
 export class MessageService implements OnModuleInit {
@@ -199,7 +200,16 @@ export class MessageService implements OnModuleInit {
   //======================================Admin======================================
   async getRatingByMessageCall(): Promise<any> {
     try {
-      return await this.messageRepo.getRatingByMessageCall();
+      const rating = await this.messageRepo.getRatingByMessageCall();
+      return get(rating, '0', {
+        totalRating1: 0,
+        totalRating2: 0,
+        totalRating3: 0,
+        totalRating4: 0,
+        totalRating5: 0,
+        avgRating: 0,
+        totalRating: 0,
+      });
     } catch (error) {
       throw error;
     }
@@ -214,10 +224,12 @@ export class MessageService implements OnModuleInit {
         queryBuilder.setFilterItemWithObject('reviews', { $elemMatch: { $eq: filter?.rating } });
       }
       const [queryFilter] = queryBuilder.buildQuery();
-      const [results] = await Promise.all([
+      const [results, totalCount] = await Promise.all([
         this.messageRepo.getReviewsByMessageCall(queryFilter, { page: filter?.page, size: filter?.size }),
+        this.messageRepo.countReview(queryFilter),
       ]);
-      return results;
+      const reviewCount = get(totalCount, '0.totalCount', 0);
+      return formatResult(results, reviewCount, { page: filter?.page, size: filter?.size });
     } catch (error) {
       throw error;
     }
@@ -229,7 +241,12 @@ export class MessageService implements OnModuleInit {
         .setFilterItem('startTime', '$ne', null, true)
         .setFilterItem('type', '$eq', MessageType.CALL)
         .buildQuery();
-      return await this.messageRepo.getCallStatistic(queryFilter);
+      const results = await this.messageRepo.getCallStatistic(queryFilter);
+      return get(results, '0', {
+        totalCount: 0,
+        avgDuration: 0,
+        maxDurationCall: 0,
+      });
     } catch (error) {
       throw error;
     }
