@@ -25,7 +25,6 @@ export enum SORT_REVIEW {
 
 export class FilterGetAllMessageReviews extends PaginationDTO implements Partial<ReviewCall> {
   @ApiPropertyOptional()
-  @IsInt()
   @Type(() => Number)
   rating?: number;
 
