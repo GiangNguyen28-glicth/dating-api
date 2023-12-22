@@ -23,6 +23,7 @@ import {
   FilterGetAllMessageDTO,
   FilterGetAllMessageReviews,
   ReviewCallDTO,
+  SORT_REVIEW,
   SeenMessage,
   UpdateMessageDto,
 } from './dto';
@@ -223,9 +224,22 @@ export class MessageService implements OnModuleInit {
       if (filter?.rating) {
         queryBuilder.setFilterItemWithObject('reviews', { $elemMatch: { $eq: filter?.rating } });
       }
-      const [queryFilter] = queryBuilder.buildQuery();
+
+      switch (filter?.sort) {
+        case SORT_REVIEW.HIGH_TO_LOW:
+          queryBuilder.setSortWithObject('rating', -1);
+          break;
+        case SORT_REVIEW.LOW_TO_HIGH:
+          queryBuilder.setSortWithObject('rating', 1);
+          break;
+        default:
+          queryBuilder.setSortItem('createdAt', -1);
+          break;
+      }
+
+      const [queryFilter, sortOption] = queryBuilder.buildQuery();
       const [results, totalCount] = await Promise.all([
-        this.messageRepo.getReviewsByMessageCall(queryFilter, { page: filter?.page, size: filter?.size }),
+        this.messageRepo.getReviewsByMessageCall(queryFilter, { page: filter?.page, size: filter?.size }, sortOption),
         this.messageRepo.countReview(queryFilter),
       ]);
       const reviewCount = get(totalCount, '0.totalCount', 0);

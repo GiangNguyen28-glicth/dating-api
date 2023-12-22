@@ -19,7 +19,7 @@ export interface MessageRepo extends CrudRepo<Message> {
   receivedMessage(receiverId: string): void;
   updateMessageToReceived(ids: string[]): void;
   getRatingByMessageCall(): any;
-  getReviewsByMessageCall(filter, pagination: PaginationDTO): any;
+  getReviewsByMessageCall(filter, pagination: PaginationDTO, sortOption): any;
   getCallStatistic(filter): any;
   countReview(filter): any;
 }
@@ -75,7 +75,7 @@ export class MessageMongoRepo extends MongoRepo<Message> {
     ]);
   }
 
-  async getReviewsByMessageCall(filter, pagination: PaginationDTO): Promise<any> {
+  async getReviewsByMessageCall(filter, pagination: PaginationDTO, sortOption): Promise<any> {
     return await this.messageModel.aggregate([
       { $match: filter },
       { $unwind: '$reviews' },
@@ -109,6 +109,9 @@ export class MessageMongoRepo extends MongoRepo<Message> {
           'createdBy.name': 1,
           'createdBy.images': 1,
         },
+      },
+      {
+        $sort: sortOption,
       },
       {
         $skip: (pagination?.page - 1) * pagination?.size || 0,

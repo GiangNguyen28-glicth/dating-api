@@ -44,6 +44,14 @@ export class FilterBuilder<T> {
     return this;
   }
 
+  setSortWithObject(key: string, value: SortOrder) {
+    if (!value) {
+      return this;
+    }
+    this.sortOption[key as any] = value;
+    return this;
+  }
+
   buildQuery() {
     if (!this.queryFilter?.$and?.length) return [{}, this.sortOption];
     return [this.queryFilter, this.sortOption];
