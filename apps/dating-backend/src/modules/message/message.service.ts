@@ -187,6 +187,7 @@ export class MessageService implements OnModuleInit {
       throwIfNotExists(message, 'Message không tồn tại');
       await this.conversationService.findOne({ _id: message.conversation.toString() }, user);
       review.createdBy = user._id;
+      review.createdAt = new Date();
       message.reviews.push(review);
       await this.messageRepo.save(message);
       return {
@@ -222,7 +223,7 @@ export class MessageService implements OnModuleInit {
         .setFilterItem('type', '$eq', MessageType.CALL)
         .setFilterItemWithObject('reviews', { $gte: { $size: 1 } });
       if (filter?.rating) {
-        queryBuilder.setFilterItemWithObject('reviews', { $elemMatch: { $eq: filter?.rating } });
+        queryBuilder.setFilterItemWithObject('reviews', { $elemMatch: { rating: { $eq: Number(filter.rating) } } });
       }
 
       switch (filter?.sort) {

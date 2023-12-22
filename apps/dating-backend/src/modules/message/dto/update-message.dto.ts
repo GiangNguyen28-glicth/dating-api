@@ -22,4 +22,5 @@ export class ReviewCallDTO implements Partial<ReviewCall> {
   content: string;
 
   createdBy: string | User;
+  createdAt?: Date;
 }
