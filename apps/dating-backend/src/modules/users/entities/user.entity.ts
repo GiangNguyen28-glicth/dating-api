@@ -11,6 +11,7 @@ import {
   RefreshIntervalUnit,
   RegisterType,
   RelationshipModeType,
+  TIME_ZONE,
 } from '@dating/common';
 
 import { Relationship } from '@modules/relationship/entities';
@@ -375,12 +376,8 @@ export class User implements IEntity {
   static boostsSession(boostsSession: BoostsSession): BoostsSession {
     boostsSession.amount = boostsSession.amount - 1;
     const { refreshInterval, refreshIntervalUnit } = boostsSession;
-    if (boostsSession.expiredDate < new Date()) {
-      boostsSession.expiredDate = moment()
-        .add(refreshInterval, refreshIntervalUnit.toLowerCase() as moment.DurationInputArg2)
-        .toDate();
-    }
-    boostsSession.expiredDate = moment(boostsSession.expiredDate)
+    boostsSession.expiredDate = moment()
+      .tz(TIME_ZONE)
       .add(refreshInterval, refreshIntervalUnit.toLowerCase() as moment.DurationInputArg2)
       .toDate();
     return boostsSession;
