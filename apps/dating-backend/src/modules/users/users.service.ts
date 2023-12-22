@@ -308,7 +308,6 @@ export class UserService implements OnModuleInit {
         const billing = await this.billingService.findOneByCurrentUser(user._id);
         if (billing?.offering) {
           billing.offering['expiredDate'] = billing.expiredDate;
-          console.log(billing.expiredDate);
           currentUser['offering'] = billing?.offering;
         }
       }

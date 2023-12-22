@@ -113,12 +113,14 @@ export class BillingService {
       .setFilterItem('isRetail', '$eq', false, true)
       .buildQuery();
     const selectOfferingFields: Array<keyof Offering> = ['_id', 'type', 'level'];
-    return await this.billingRepo.toJSON(
-      await this.billingRepo.findOne({
-        queryFilter,
-        populate: [{ path: 'offering', select: selectOfferingFields.join(' ') }],
-      }),
-    );
+    const billing = await this.billingRepo.findOne({
+      queryFilter,
+      populate: [{ path: 'offering', select: selectOfferingFields.join(' ') }],
+    });
+    if (billing) {
+      return await this.billingRepo.toJSON(billing);
+    }
+    return null;
   }
 
   async save(billing: Billing): Promise<void> {
