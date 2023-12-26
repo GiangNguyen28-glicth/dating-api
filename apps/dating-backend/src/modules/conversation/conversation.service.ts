@@ -43,7 +43,6 @@ export class ConversationService {
       const [queryFilter, sortOption] = new FilterBuilder<Conversation>()
         .setFilterItem('members', '$elemMatch', { $eq: user._id })
         .setFilterItem('lastMessage', query, null, true)
-        .setFilterItem('createdBy', '$ne', user._id)
         .setFilterItem('isDeleted', '$eq', false, true)
         .setSortItem('updatedAt', -1)
         .buildQuery();
@@ -72,7 +71,9 @@ export class ConversationService {
         }),
       ]);
       Conversation.setReceiver(results, user._id.toString());
-      const newResults = await this.processUpdatedMessage(results, user._id.toString());
+      const newResults = (await this.processUpdatedMessage(results, user._id.toString())).filter(c =>
+        Conversation.isValidConversationMatched(c, user._id.toString()),
+      );
       return formatResult(newResults, totalCount, pagination);
     } catch (error) {
       throw error;
@@ -82,7 +83,7 @@ export class ConversationService {
   async processUpdatedMessage(conversation: Conversation[], receiverId: string): Promise<Conversation[]> {
     const conversationIds: string[] = [];
     const conversationUpdated = conversation.map(item => {
-      if (item.lastMessage && item.lastMessage.status == MessageStatus.SENT) {
+      if (item?.lastMessage?.status === MessageStatus.SENT) {
         conversationIds.push(item._id);
         item.lastMessage.status = MessageStatus.RECEIVED;
       }
@@ -104,7 +105,6 @@ export class ConversationService {
         .setFilterItem('_id', '$eq', filter?._id)
         .setFilterItem('members', '$elemMatch', { $eq: user._id })
         .setFilterItem('isDeleted', '$eq', false, true)
-        .setFilterItem('createdBy', '$ne', user._id.toString())
         .buildQuery();
       const options: IOptionFilterGetOne<Conversation> = {
         queryFilter,

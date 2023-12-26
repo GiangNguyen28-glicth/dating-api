@@ -60,5 +60,12 @@ export class Conversation implements IEntity {
       return item;
     });
   }
+
+  static isValidConversationMatched(c: Conversation, userId: string) {
+    return (
+      c.type === ConversationType.MATCHED ||
+      (c.type === ConversationType.SUPER_LIKE && c.createdBy.toString() != userId)
+    );
+  }
 }
 export const ConversationSchema = SchemaFactory.createForClass(Conversation);
