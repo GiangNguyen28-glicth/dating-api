@@ -16,6 +16,7 @@ export class FilterGetOneUserDTO extends FilterGetOne implements Partial<User> {
   email?: string;
   registerType?: RegisterType;
   phoneNumber?: string;
+  isDeleted?: boolean;
 }
 
 export class FilterGetAllUserDTO implements Partial<User> {
@@ -33,6 +34,9 @@ export class FilterGetAllUserDTO implements Partial<User> {
 
   @ApiProperty({ type: [String], required: false })
   ids?: string[];
+
+  @ApiPropertyOptional()
+  name?: string;
 
   @ApiProperty({ type: [String], required: false })
   sort?: string[];

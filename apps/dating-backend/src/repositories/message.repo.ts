@@ -22,7 +22,7 @@ export interface MessageRepo extends CrudRepo<Message> {
   getRatingByMessageCall(): any;
   getReviewsByMessageCall(filter, pagination: PaginationDTO, sortOption, rating?: number): any;
   getCallStatistic(filter): any;
-  countReview(filter): any;
+  countReview(filter, rating?: number): any;
 }
 export class MessageMongoRepo extends MongoRepo<Message> {
   constructor(@InjectModel(Message.name) protected messageModel: MessageModelType) {
@@ -129,10 +129,13 @@ export class MessageMongoRepo extends MongoRepo<Message> {
     ]);
   }
 
-  async countReview(filter): Promise<any> {
+  async countReview(filter, rating?: number): Promise<any> {
+    const pipeLine: PipelineStage[] = [{ $match: filter }, { $unwind: '$reviews' }];
+    if (rating) {
+      pipeLine.push({ $match: { rating } });
+    }
     return await this.messageModel.aggregate([
-      { $match: filter },
-      { $unwind: '$reviews' },
+      ...pipeLine,
       { $group: { _id: null, totalCount: { $sum: 1 } } },
       { $project: { _id: 0 } },
     ]);

@@ -243,7 +243,7 @@ export class MessageService implements OnModuleInit {
           sortOption,
           filter?.rating,
         ),
-        this.messageRepo.countReview(queryFilter),
+        this.messageRepo.countReview(queryFilter, filter?.rating),
       ]);
       const reviewCount = get(totalCount, '0.totalCount', 0);
       return formatResult(results, reviewCount, { page: filter?.page, size: filter?.size });

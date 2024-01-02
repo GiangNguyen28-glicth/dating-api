@@ -5,6 +5,7 @@ import * as moment from 'moment-timezone';
 import {
   Gender,
   IEntity,
+  IErrorResponse,
   LookingFor,
   MerchandisingType,
   MongoID,
@@ -321,7 +322,7 @@ export class User implements IEntity {
   lastActiveDate: Date;
 
   @Prop()
-  stripeCustomerId: string;
+  keyword: string;
 
   @Prop({ default: false })
   isBlocked: boolean;
@@ -385,7 +386,13 @@ export class User implements IEntity {
 
   static validateAccount(user: User): void {
     if (user?.isBlocked) {
-      throw new BadRequestException('Tài khoản của bạn đã bị khóa !');
+      const objError: IErrorResponse = {
+        message: `Tài khoản của bạn đã bị khóa !`,
+        data: {
+          isBlocked: true,
+        },
+      };
+      throw new BadRequestException(objError);
     }
     if (user?.isDeleted) {
       throw new BadRequestException('Tài khoản của bạn đã bị xóa !');

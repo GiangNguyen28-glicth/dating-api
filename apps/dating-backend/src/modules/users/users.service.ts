@@ -166,6 +166,7 @@ export class UserService implements OnModuleInit {
         .setFilterItem('email', '$eq', filter?.email)
         .setFilterItem('registerType', '$eq', filter?.registerType)
         .setFilterItem('phoneNumber', '$eq', filter?.phoneNumber)
+        .setFilterItem('isDeleted', '$eq', false, true)
         .buildQuery();
       return await this.userRepo.findOne({ queryFilter });
     } catch (error) {
@@ -177,6 +178,7 @@ export class UserService implements OnModuleInit {
     const queryBuilder = new FilterBuilder<User>()
       .setFilterItem('email', '$eq', filter?.email)
       .setFilterItem('gender', '$eq', filter?.gender)
+      .addName(filter?.name)
       .setSortItem('blockedAt', 'desc');
     if (!isNil(filter?.isBlocked)) {
       queryBuilder.setFilterItem('isBlocked', '$eq', filter?.isBlocked, true);

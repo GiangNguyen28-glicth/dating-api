@@ -161,17 +161,10 @@ export class AuthService {
     }
   }
 
-  async testRedis() {
-    await this.redisService.sadd({ key: 'test', data: 'haha' });
-  }
-
-  async testRemove() {
-    await this.redisService.srem('test', 'haha');
-  }
-
   async sendSMSLogin(smsDto: SmsDTO): Promise<IResponse> {
     let user = await this.userService.findOne({
       phoneNumber: smsDto.phoneNumber,
+      isDeleted: false,
     });
 
     User.validateAccount(user);

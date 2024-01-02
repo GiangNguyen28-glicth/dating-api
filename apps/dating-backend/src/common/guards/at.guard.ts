@@ -1,3 +1,4 @@
+import { IErrorResponse } from '@common/interfaces';
 import { BadRequestException, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -15,7 +16,13 @@ export class AtGuard extends AuthGuard('jwt') {
       throw new UnauthorizedException(err);
     }
     if (user?.isBlocked) {
-      throw new BadRequestException('Tài khoản của bạn đã bị khóa !');
+      const objError: IErrorResponse = {
+        message: `Tài khoản của bạn đã bị khóa !`,
+        data: {
+          isBlocked: true,
+        },
+      };
+      throw new BadRequestException(objError);
     }
     if (user?.isDeleted) {
       throw new BadRequestException('Tài khoản của bạn đã bị xóa !');

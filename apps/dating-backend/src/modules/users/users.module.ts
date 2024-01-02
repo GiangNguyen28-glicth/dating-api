@@ -14,6 +14,7 @@ import { UserHelper } from './helper/user.helper';
 import { UsersController } from './users.controller';
 import { UserService } from './users.service';
 import { UpdateUserProfileInterceptor } from './interceptors';
+import { toKeyword } from '@dating/utils';
 
 @Global()
 @Module({
@@ -35,6 +36,9 @@ import { UpdateUserProfileInterceptor } from './interceptors';
             }
             if (!this.featureAccess.length) {
               this.featureAccess = User.getDefaultFeatureAccess();
+            }
+            if (this.name) {
+              this.keyword = toKeyword(this.name);
             }
             return next();
           });
