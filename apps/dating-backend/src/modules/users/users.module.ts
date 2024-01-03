@@ -24,7 +24,7 @@ import { toKeyword } from '@dating/utils';
         name: User.name,
         useFactory: () => {
           UserSchema.pre('save', function (next) {
-            if (this.birthDate && !this.age) {
+            if (this.birthDate) {
               const currentDate = new Date();
               this.age = currentDate.getFullYear() - this.birthDate.getFullYear();
             }

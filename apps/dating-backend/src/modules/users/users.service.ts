@@ -32,6 +32,7 @@ import { CreateUserDTO, FilterGetAllUserDTO, FilterGetOneUserDTO, UpdateUserTagD
 import { User, UserSetting } from './entities';
 import { UserHelper } from './helper';
 import { FinalCondRecommendation, excludeFieldRecommendation } from './interfaces';
+import axios from 'axios';
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -212,10 +213,15 @@ export class UserService implements OnModuleInit {
   async updateProfile(user: User, entities: Partial<User>): Promise<User> {
     try {
       entities.totalFinishProfile = this.userHelper.calTotalFinishProfile(user, entities);
+      const currentDate = new Date();
+      const birthDate = entities?.birthDate ? entities?.birthDate : user?.birthDate;
+      if(birthDate) {
+        entities.age = currentDate.getFullYear() - birthDate.getFullYear();
+      }
       const newUser = await this.userRepo.findOneAndUpdate(user._id, entities);
       throwIfNotExists(newUser, 'Cập nhật thất bại. Không thể tìm thấy User');
       await this.processImage(user._id, entities);
-      return user;
+      return newUser;
     } catch (error) {
       throw error;
     }
@@ -231,16 +237,16 @@ export class UserService implements OnModuleInit {
         });
       }
       const imagesVerify = entities.images.filter(img => isNil(img.isVerifiedSuccess)).map(item => item.url);
-      // if (imagesVerify.length) {
-      //   try {
-      //     axios.post('https://finder.sohe.in/face/recognize', {
-      //       userId: userId,
-      //       images: imagesVerify,
-      //     });
-      //   } catch (error) {
-      //     console.log('aaaaaaaaa', error);
-      //   }
-      // }
+      if (imagesVerify.length) {
+        try {
+          axios.post('https://finder.sohe.in/face/recognize', {
+            userId: userId,
+            images: imagesVerify,
+          });
+        } catch (error) {
+          console.log('aaaaaaaaa', error);
+        }
+      }
     }
   }
 
