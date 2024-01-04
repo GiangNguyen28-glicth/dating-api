@@ -41,7 +41,7 @@ export class SocketService {
   async userAvailable(roomId: string) {
     try {
       const memberIds = await this.messageService.findMembersIdById(roomId);
-      const isBusy = memberIds.every(id => userAvailable.has(id));
+      const isBusy = memberIds.some(id => userAvailable.has(id));
       if (isBusy) {
         return {
           success: false,
