@@ -92,12 +92,12 @@ export class ScheduleService {
 
   async findOne(_id: string, userId: string): Promise<Schedule> {
     try {
-      const userField: string = ['_id', 'images', 'email', 'name'].join(' ');
+      const selectUserField: string = ['_id', 'images', 'email', 'name'].join(' ');
       const schedule = await this.scheduleRepo.findOne({
         queryFilter: { _id, isDeleted: false },
         populate: [
-          { path: 'sender', select: userField },
-          { path: 'receiver', select: userField },
+          { path: 'sender', select: selectUserField },
+          { path: 'receiver', select: selectUserField },
         ],
       });
       throwIfNotExists(schedule, 'Không tìm thấy cuộc hẹn');
@@ -621,7 +621,8 @@ export class ScheduleService {
         secret: this.configService.get<string>('JWT_VERIFICATION_REVIEW_SCHEDULE_TOKEN_SECRET'),
       });
       const schedule = await this.findOne(payload.schedule, payload.user);
-      const currentUser = get(schedule, 'sender._id', null) === payload.user ? schedule.sender : schedule.receiver;
+      const currentUser =
+        String(get(schedule, 'sender._id', null)) === payload.user ? schedule.sender : schedule.receiver;
       if (!schedule.reviews.length) {
         return {
           success: true,
