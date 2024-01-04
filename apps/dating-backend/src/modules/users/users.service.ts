@@ -1,4 +1,5 @@
 import { Inject, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
+import axios from 'axios';
 import { ConfirmChannel } from 'amqplib';
 import { get, isNil, sumBy } from 'lodash';
 import { PipelineStage } from 'mongoose';
@@ -32,7 +33,6 @@ import { CreateUserDTO, FilterGetAllUserDTO, FilterGetOneUserDTO, UpdateUserTagD
 import { User, UserSetting } from './entities';
 import { UserHelper } from './helper';
 import { FinalCondRecommendation, excludeFieldRecommendation } from './interfaces';
-import axios from 'axios';
 
 @Injectable()
 export class UserService implements OnModuleInit {

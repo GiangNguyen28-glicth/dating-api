@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { isNil } from 'lodash';
 
 import { UserMongoRepoProvider } from '@dating/repositories';
+import { toKeyword } from '@dating/utils';
 import { CloudinaryProvider } from '@common/provider';
 
 import { ActionModule } from '@modules/action';
@@ -14,7 +15,6 @@ import { UserHelper } from './helper/user.helper';
 import { UsersController } from './users.controller';
 import { UserService } from './users.service';
 import { UpdateUserProfileInterceptor } from './interceptors';
-import { toKeyword } from '@dating/utils';
 
 @Global()
 @Module({
