@@ -21,31 +21,31 @@ export class BuilderService {
 
     const mapping = (defaultAccess: FeatureAccessItem[], listing: FeatureAccessItem[]): FeatureAccessItem[] => {
       const indexSuperLike = defaultAccess.findIndex(item => item.name === MerchandisingType.SUPER_LIKE);
-      const indexBoosts = defaultAccess.findIndex(item => item.name === MerchandisingType.BOOSTS);
       for (const item of listing) {
         if (item.name === MerchandisingType.SUPER_LIKE) {
           defaultAccess[indexSuperLike].amount = item.amount;
-        }
-        if (item.name === MerchandisingType.BOOSTS) {
-          defaultAccess[indexBoosts].amount = item.amount;
         }
       }
       return defaultAccess;
     };
     const bulkWriteDefault: string[] = [];
     const updateOneList: IBulkWrite[] = [];
+    const today = moment().tz(TIME_ZONE).startOf('date').toDate();
     for (const user of users) {
       if (isDefaultUpdate(user.featureAccess)) {
         bulkWriteDefault.push(user._id);
       } else {
+        const $set = {
+          featureAccess: mapping(User.getDefaultFeatureAccess(), user.featureAccess),
+        };
+        if (user.boostsSession.expiredDate < today) {
+          $set['boostsSession.expiredDate'] = today;
+        }
         updateOneList.push({
           updateOne: {
             filter: { _id: user._id },
             update: {
-              $set: {
-                featureAccess: mapping(User.getDefaultFeatureAccess(), user.featureAccess),
-                'boostsSession.expiredDate': new Date(),
-              },
+              $set,
             },
           },
         });
@@ -54,7 +54,7 @@ export class BuilderService {
     const updateDefault: IBulkWrite = {
       updateMany: {
         filter: { _id: { $in: bulkWriteDefault } },
-        update: { $set: { featureAccess: User.getDefaultFeatureAccess(), 'boostsSession.expiredDate': new Date() } },
+        update: { $set: { featureAccess: User.getDefaultFeatureAccess(), 'boostsSession.expiredDate': today } },
       },
     };
     return [updateDefault].concat(updateOneList);

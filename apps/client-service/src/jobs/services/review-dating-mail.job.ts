@@ -1,11 +1,11 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { CronJob } from 'cron';
 import { ConfirmChannel } from 'amqplib';
 import { get } from 'lodash';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
-import { JobStatus, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
+import { DATABASE_TYPE, JobStatus, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
 import { RabbitService } from '@app/shared';
 
 import { IReviewDating } from '@modules/schedule/interfaces';
@@ -15,6 +15,7 @@ import { Job } from '../entities';
 import { IJobProcessors } from '../interfaces';
 import { JobsService } from '../jobs.service';
 import { PullerService } from '../processors';
+import { ScheduleRepo } from '@dating/repositories';
 
 const REVIEW_DATING = 'REVIEW_DATING';
 
@@ -23,6 +24,9 @@ export class ReviewDatingJob implements IJobProcessors, OnModuleInit {
   private cronJob: CronJob;
   private channel: ConfirmChannel;
 
+  @Inject(PROVIDER_REPO.SCHEDULE + DATABASE_TYPE.MONGO)
+  private scheduleRepo: ScheduleRepo;
+
   constructor(
     private pullerService: PullerService,
     private jobService: JobsService,
@@ -30,6 +34,9 @@ export class ReviewDatingJob implements IJobProcessors, OnModuleInit {
     private jwtService: JwtService,
     private configService: ConfigService,
   ) {
+    setTimeout(async () => {
+      await this.process();
+    });
     this.cronJob = new CronJob(
       '45 12 * * *',
       async () => {
@@ -104,7 +111,7 @@ export class ReviewDatingJob implements IJobProcessors, OnModuleInit {
             QUEUE_NAME.SEND_MAIL,
             {
               to: senderMail,
-              subject: 'Hello world',
+              subject: `Review về cuộc hẹn của bạn với ${get(schedule, 'receiver.name', null)}`,
               html: `<p>${url}</p>`,
             },
             RMQ_CHANNEL.MAIL_CHANNEL,
@@ -113,21 +120,24 @@ export class ReviewDatingJob implements IJobProcessors, OnModuleInit {
         const receiverMail: string = get(schedule, 'receiver.email', null);
         if (receiverMail) {
           const token = await this.getToken({ schedule: schedule._id, user: get(schedule, 'receiver._id', null) });
+          const url = `${process.env.FRONT_END_URL}/vi/feedback?token=${token}`;
           await this.rabbitService.sendToQueue(
             QUEUE_NAME.SEND_MAIL,
             {
               to: receiverMail,
-              subject: 'Hello world',
-              html: `<p>${token}</p>`,
+              subject: `Review về cuộc hẹn của bạn với ${get(schedule, 'sender.name', null)}`,
+              html: `<p>${url}</p>`,
             },
             RMQ_CHANNEL.MAIL_CHANNEL,
           );
         }
+        await this.scheduleRepo.findOneAndUpdate(schedule._id, { isSendMailReview: true });
         job.numOfProcessRecord += 1;
         job.lastId = schedule._id;
         await this.jobService.save(job);
       }
     } catch (error) {
+      console.log(error);
       return;
     }
   }

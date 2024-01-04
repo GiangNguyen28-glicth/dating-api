@@ -21,9 +21,6 @@ export class RefreshFeatureAccessJob implements IJobProcessors {
     private updaterService: UpdaterService,
     private jobService: JobsService,
   ) {
-    setTimeout(async () => {
-      await this.process();
-    });
     this.cronJob = new CronJob(
       '45 12 * * *',
       async () => {

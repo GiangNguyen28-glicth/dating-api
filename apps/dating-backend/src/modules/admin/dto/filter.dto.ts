@@ -1,8 +1,9 @@
-import { TIME_ZONE } from '@common/consts';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { get } from 'lodash';
 import * as moment from 'moment-timezone';
+
+import { TIME_ZONE } from '@common/consts';
 
 export enum TYPE_RANGE {
   DAY = 'Day',

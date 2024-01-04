@@ -26,7 +26,7 @@ import { CreateMatchRequestDto, FilterGelAllMqDTO, FilterGetOneMq } from './dto'
 import { MatchRequest } from './entities';
 import { IMatchedAction } from './interfaces';
 import { FilterGetStatistic, GroupDate } from '@modules/admin/dto';
-import { flatten, groupBy, map, orderBy, sumBy } from 'lodash';
+import { flatten, get, groupBy, map, orderBy, sumBy } from 'lodash';
 
 @Injectable()
 export class MatchRequestService {
@@ -55,9 +55,19 @@ export class MatchRequestService {
   async findAll(filter: FilterGelAllMqDTO, user: User, isPopulate = false): Promise<IResult<MatchRequest>> {
     try {
       const unBlurIdx = user.featureAccess.findIndex(ft => ft.name === MerchandisingType.UN_BLUR && ft.unlimited);
-      const selectFieldsPopulate: Array<keyof User> = ['_id', 'name', 'tags', 'bio', 'blurAvatar'];
+      const selectFieldsPopulate: Array<keyof User> = [
+        '_id',
+        'name',
+        'tags',
+        'bio',
+        'isVerifiedFace',
+        'jobs',
+        'company',
+      ];
       if (unBlurIdx != -1) {
         selectFieldsPopulate.push('images');
+      } else {
+        selectFieldsPopulate.push('blurAvatar');
       }
       const populate: PopulateOptions[] = [];
       if (isPopulate) {
@@ -118,7 +128,7 @@ export class MatchRequestService {
       if (filter?.populate) {
         populate.push({
           path: 'sender',
-          select: '_id name images',
+          select: '_id name images blurAvatar',
         });
       }
       return await this.matchRequestRepo.findOne({ queryFilter, populate });
@@ -176,19 +186,22 @@ export class MatchRequestService {
   }
 
   async countMatchRequest(user: User): Promise<IResponse> {
+    const unBlur = user.featureAccess.findIndex(fta => fta.name === MerchandisingType.UN_BLUR && fta.unlimited);
     const [totalCount, representUser] = await Promise.all([
       this.matchRequestRepo.count({ receiver: user._id, status: MatchRqStatus.REQUESTED }),
       this.findOne({ receiver: user._id, status: MatchRqStatus.REQUESTED, populate: true }),
     ]);
     let blur = null;
-    if (totalCount > 0) {
-      blur = (representUser.sender as User).images.find(image => image.blur).blur;
+    if (unBlur != -1) {
+      blur = get(representUser, 'sender.images[0].url', null);
+    } else {
+      blur = get(representUser, 'sender.blurAvatar', null);
     }
     return {
       success: true,
       data: {
         totalCount,
-        isBlur: true,
+        isBlur: unBlur != -1 ? false : true,
         blur,
       },
     };

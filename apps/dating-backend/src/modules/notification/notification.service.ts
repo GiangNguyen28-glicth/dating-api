@@ -2,7 +2,16 @@ import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfirmChannel } from 'amqplib';
 
 import { RabbitService } from '@app/shared';
-import { DATABASE_TYPE, NotificationStatus, OK, PROVIDER_REPO, QUEUE_NAME, RMQ_CHANNEL } from '@common/consts';
+import {
+  DATABASE_TYPE,
+  MerchandisingType,
+  NotificationStatus,
+  NotificationType,
+  OK,
+  PROVIDER_REPO,
+  QUEUE_NAME,
+  RMQ_CHANNEL,
+} from '@common/consts';
 import { IResponse, IResult } from '@common/interfaces';
 import { NotificationRepo } from '@dating/repositories';
 import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
@@ -53,7 +62,7 @@ export class NotificationService implements OnModuleInit {
   async findAll(user: User, filter: FilterGetAllNotification): Promise<IResult<Notification>> {
     try {
       set(filter, 'types', Notification.getFilter(filter?.types));
-      const selectUserFields: Array<keyof User> = ['_id', 'images', 'name', 'onlineNow'];
+      const selectUserFields: Array<keyof User> = ['_id', 'images', 'name', 'onlineNow', 'blurAvatar'];
       const [queryFilter, sortOption] = new FilterBuilder<Notification>()
         .setFilterItem('receiver', '$eq', user._id)
         .setFilterItem('status', '$eq', filter?.status)
@@ -62,7 +71,8 @@ export class NotificationService implements OnModuleInit {
         .buildQuery();
       const countFilter = JSON.parse(JSON.stringify(queryFilter));
       countFilter['$and'].push({ status: NotificationStatus.NOT_SEEN });
-      const [results, totalNewNotification, totalCount] = await Promise.all([
+      // eslint-disable-next-line prefer-const
+      let [results, totalNewNotification, totalCount] = await Promise.all([
         this.notificationRepo.findAll({
           queryFilter,
           populate: [{ path: 'sender', select: selectUserFields.join(' ') }],
@@ -75,6 +85,15 @@ export class NotificationService implements OnModuleInit {
         this.notificationRepo.count(countFilter),
         this.notificationRepo.count(queryFilter),
       ]);
+      const unBlur = user.featureAccess.findIndex(fta => fta.name === MerchandisingType.UN_BLUR && fta.unlimited);
+      if (unBlur === -1) {
+        results = results.map(noti => {
+          if (noti.type === NotificationType.LIKE) {
+            set(noti, 'sender.images', []);
+          }
+          return noti;
+        });
+      }
       const response = formatResult(results, totalCount, { size: filter?.size, page: filter?.page });
       response.metadata = {
         totalNewNotification,

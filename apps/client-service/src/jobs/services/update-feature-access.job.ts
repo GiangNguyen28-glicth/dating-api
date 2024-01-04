@@ -30,9 +30,6 @@ export class UpdateFeatureAccessJob {
       true,
       'Asia/Ho_Chi_Minh',
     );
-    // setTimeout(async () => {
-    //   await this.process();
-    // });
     this.start();
   }
 

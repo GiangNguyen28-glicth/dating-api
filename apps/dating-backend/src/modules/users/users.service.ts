@@ -215,7 +215,7 @@ export class UserService implements OnModuleInit {
       entities.totalFinishProfile = this.userHelper.calTotalFinishProfile(user, entities);
       const currentDate = new Date();
       const birthDate = entities?.birthDate ? entities?.birthDate : user?.birthDate;
-      if(birthDate) {
+      if (birthDate) {
         entities.age = currentDate.getFullYear() - birthDate.getFullYear();
       }
       const newUser = await this.userRepo.findOneAndUpdate(user._id, entities);

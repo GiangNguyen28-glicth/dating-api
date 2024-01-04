@@ -103,14 +103,23 @@ export class PullerService {
     if (job.lastId) {
       cursor = new Types.ObjectId(job.lastId);
     }
-    const yesterday = moment.tz(TIME_ZONE).startOf('day').subtract(1, 'day').startOf('day');
+    const yesterday = moment.tz(TIME_ZONE).startOf('day').toDate();
     const [queryFilter, sortOption] = new FilterBuilder<Schedule>()
       .setFilterItem('status', '$eq', RequestDatingStatus.ACCEPT)
       .setFilterItem('isDeleted', '$eq', false, true)
-      .setFilterItemWithObject('appointmentDate', { $gte: yesterday })
+      .setFilterItem('isSendMailReview', '$eq', false, true)
+      .setFilterItemWithObject('appointmentDate', { $lte: yesterday })
       .setFilterItem('_id', '$gte', cursor)
       .setSortItem('_id', 'asc')
       .buildQuery();
-    return await this.scheduleRepo.findAll({ queryFilter, sortOption });
+    const selectUserField: Array<keyof User> = ['_id', 'name', 'email'];
+    return await this.scheduleRepo.findAll({
+      queryFilter,
+      sortOption,
+      populate: [
+        { path: 'sender', select: selectUserField.join(' ') },
+        { path: 'receiver', select: selectUserField.join(' ') },
+      ],
+    });
   }
 }

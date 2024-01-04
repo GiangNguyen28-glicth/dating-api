@@ -102,6 +102,9 @@ export class Schedule implements IEntity {
   isShowLocationDating: boolean;
 
   @Prop({ default: false })
+  isSendMailReview?: boolean;
+
+  @Prop({ default: false })
   isDeleted?: boolean;
 
   static getReviewDatingStatusDating(reviews: Review[]): ReviewDatingStatus {

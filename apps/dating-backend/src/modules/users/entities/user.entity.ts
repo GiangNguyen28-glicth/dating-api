@@ -336,6 +336,9 @@ export class User implements IEntity {
   @Prop({ default: false })
   isDeleted: boolean;
 
+  @Prop({ default: false })
+  isVerifiedFace: boolean;
+
   @Prop({ type: Number, default: 0 })
   stepStarted: number;
 
