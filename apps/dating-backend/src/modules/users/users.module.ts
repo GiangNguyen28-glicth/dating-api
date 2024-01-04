@@ -26,7 +26,7 @@ import { UpdateUserProfileInterceptor } from './interceptors';
           UserSchema.pre('save', function (next) {
             if (this.birthDate) {
               const currentDate = new Date();
-              this.age = currentDate.getFullYear() - this.birthDate.getFullYear();
+              this.age = currentDate.getFullYear() - new Date(this.birthDate).getFullYear();
             }
             if (!isNil(this.insImages) && !this.insImages.length) {
               this.insImages = null;

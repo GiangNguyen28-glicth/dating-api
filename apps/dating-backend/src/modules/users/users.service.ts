@@ -147,7 +147,7 @@ export class UserService implements OnModuleInit {
           $project: excludeFieldRecommendation,
         },
         {
-          $sort: { 'boostsSession.expiredDate': -1, _id: -1 },
+          $sort: { 'boostsSession.expiredDate': -1 },
         },
       );
       const [totalCount, results] = await Promise.all([
@@ -216,7 +216,7 @@ export class UserService implements OnModuleInit {
       const currentDate = new Date();
       const birthDate = entities?.birthDate ? entities?.birthDate : user?.birthDate;
       if (birthDate) {
-        entities.age = currentDate.getFullYear() - birthDate.getFullYear();
+        entities.age = currentDate.getFullYear() - new Date(birthDate).getFullYear();
       }
       const newUser = await this.userRepo.findOneAndUpdate(user._id, entities);
       throwIfNotExists(newUser, 'Cập nhật thất bại. Không thể tìm thấy User');
