@@ -44,7 +44,6 @@ export abstract class MongoRepo<T> implements CrudRepo<T> {
   }
 
   async save(document: Document): Promise<Document> {
-    console.log(document);
     return await document.save();
   }
 
