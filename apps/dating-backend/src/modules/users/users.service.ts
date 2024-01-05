@@ -136,14 +136,6 @@ export class UserService implements OnModuleInit {
           },
         },
         {
-          $lookup: {
-            from: 'relationships',
-            localField: 'relationshipStatus',
-            foreignField: '_id',
-            as: 'relationshipStatus',
-          },
-        },
-        {
           $project: excludeFieldRecommendation,
         },
         {
@@ -180,11 +172,13 @@ export class UserService implements OnModuleInit {
       .setFilterItem('email', '$eq', filter?.email)
       .setFilterItem('gender', '$eq', filter?.gender)
       .addName(filter?.name)
-      .setSortItem('blockedAt', 'desc');
+      .setFilterItem('stepStarted', '$eq', 4)
+      .setSortItem('createdAt', filter?.createdAt)
+      .setSortItem('keyword', filter?.keyword as any);
     if (!isNil(filter?.isBlocked)) {
       queryBuilder.setFilterItem('isBlocked', '$eq', filter?.isBlocked, true);
     }
-    const [queryFilter] = queryBuilder.buildQuery();
+    const [queryFilter, sortOption] = queryBuilder.buildQuery();
     const selectFields: Array<keyof User> = [
       '_id',
       'images',
@@ -196,7 +190,12 @@ export class UserService implements OnModuleInit {
       'createdAt',
     ];
     const [results, totalCount] = await Promise.all([
-      this.userRepo.findAll({ queryFilter, fields: selectFields }),
+      this.userRepo.findAll({
+        queryFilter,
+        fields: selectFields,
+        pagination: { size: filter?.size, page: filter?.page },
+        sortOption,
+      }),
       this.userRepo.count(queryFilter),
     ]);
     return formatResult(results, totalCount);
@@ -306,11 +305,7 @@ export class UserService implements OnModuleInit {
   async getCurrentUser(user: User, offering = false): Promise<User> {
     try {
       const currentUser = await this.userRepo.toJSON(
-        await this.userRepo.populate(user as unknown as Document, [
-          { path: 'tags' },
-          { path: 'relationships' },
-          { path: 'relationshipStatus' },
-        ]),
+        await this.userRepo.populate(user as unknown as Document, [{ path: 'tags' }, { path: 'relationships' }]),
       );
       if (offering) {
         const billing = await this.billingService.findOneByCurrentUser(user._id);

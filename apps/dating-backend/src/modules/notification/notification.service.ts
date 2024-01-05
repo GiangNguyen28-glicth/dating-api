@@ -18,7 +18,7 @@ import { FilterBuilder, formatResult, throwIfNotExists } from '@dating/utils';
 import { ConversationService } from '@modules/conversation/conversation.service';
 import { User } from '@modules/users/entities';
 
-import { set } from 'lodash';
+import { cloneDeep, get, isNil, set } from 'lodash';
 import { CreateNotificationDto, FilterGetAllNotification, UpdateNotificationDto } from './dto';
 import { Notification } from './entities';
 
@@ -88,10 +88,14 @@ export class NotificationService implements OnModuleInit {
       const unBlur = user.featureAccess.findIndex(fta => fta.name === MerchandisingType.UN_BLUR && fta.unlimited);
       if (unBlur === -1) {
         results = results.map(noti => {
-          if (noti.type === NotificationType.LIKE) {
-            set(noti, 'sender.images', []);
+          const updatedNoti = cloneDeep(noti);
+          console.log(updatedNoti.sender['images'].length);
+          if (updatedNoti.type === NotificationType.LIKE) {
+            if (!isNil(get(updatedNoti, 'sender._id'))) {
+              updatedNoti.sender['images'] = [];
+            }
           }
-          return noti;
+          return updatedNoti;
         });
       }
       const response = formatResult(results, totalCount, { size: filter?.size, page: filter?.page });

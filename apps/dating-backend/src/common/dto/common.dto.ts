@@ -5,7 +5,7 @@ import { IsInt, IsOptional, Max, Min } from 'class-validator';
 export class PaginationDTO {
   @ApiProperty({ type: Number, default: 1, required: false })
   @IsInt()
-  @Min(0)
+  @Min(1)
   @Type(() => Number)
   page?: number;
 

@@ -52,6 +52,7 @@ export class Notification {
     if (isString(types)) {
       types = [types as NotificationType];
     }
+    console.log(types);
     if (types?.includes(NotificationType.SCHEDULE_DATING)) {
       const scheduleTypes = [
         NotificationType.ACCEPT_SCHEDULE_DATING,
