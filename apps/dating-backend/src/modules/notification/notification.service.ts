@@ -89,7 +89,6 @@ export class NotificationService implements OnModuleInit {
       if (unBlur === -1) {
         results = results.map(noti => {
           const updatedNoti = cloneDeep(noti);
-          console.log(updatedNoti.sender['images'].length);
           if (updatedNoti.type === NotificationType.LIKE) {
             if (!isNil(get(updatedNoti, 'sender._id'))) {
               updatedNoti.sender['images'] = [];

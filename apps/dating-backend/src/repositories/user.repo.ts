@@ -128,17 +128,22 @@ export class UserMongoRepo extends MongoRepo<User> {
 
   async migrateData(): Promise<User[]> {
     const users = await this.userModel.find();
+    let totalCount = 0;
     for (const user of users) {
       // user.featureAccess = User.getDefaultFeatureAccess();
-      // const tags: any[] = [
-      //   '64ee243aa7626b0485f03331',
-      //   '64ee243aa7626b0485f03350',
-      //   '64ee243aa7626b0485f0336b',
-      //   '64ee243aa7626b0485f03345',
-      //   '64ee243aa7626b0485f03325',
-      // ];
+      if (totalCount >= 50) {
+        break;
+      }
+      totalCount++;
+      const tags: any[] = [
+        '64ee243aa7626b0485f03331',
+        '64ee243aa7626b0485f03350',
+        '64ee243aa7626b0485f0336b',
+        '64ee243aa7626b0485f03345',
+        // '64ee243aa7626b0485f03325',
+      ];
       // user.featureAccess = User.getDefaultFeatureAccess();
-      // user.tags = tags;
+      user.tags = tags;
       // user.address = {
       //   country: 'Vietnam',
       //   province: 'Thành phố Hồ Chí Minh',
@@ -158,6 +163,7 @@ export class UserMongoRepo extends MongoRepo<User> {
       // const relationship: any[] = ['64e77e381be6f8d64cff5712'];
       // user.relationships = relationship;
       // user.stepStarted = 4;
+      user;
       await user.save();
     }
     return users;
